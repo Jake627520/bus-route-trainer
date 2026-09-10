@@ -157,3 +157,64 @@ model LearningCard {
   @@index([progressId, cardType])
   @@map("learning_card")
 }
+
+// ==========================================
+// 4. Recall Session & Attempts (Change 05)
+// ==========================================
+
+enum SessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum RecallMode {
+  NEXT_STOP_FORWARD
+  STOP_NAME_RECOGNITION
+}
+
+enum RecallOutcome {
+  PASS
+  FAIL
+}
+
+model RecallSession {
+  id                     String          @id @default(uuid())
+  driverId               String
+  routeId                String
+  targetVariantKey       String
+  status                 SessionStatus   @default(IN_PROGRESS)
+  currentPromptIndex     Int             @default(0)
+  currentCardKey         String?
+  currentRecallMode      RecallMode?
+  currentExpectedAnswer  String?
+  currentPromptStartedAt DateTime?
+  startedAt              DateTime        @default(now())
+  completedAt            DateTime?
+  abandonedAt            DateTime?
+  attempts               RecallAttempt[]
+
+  @@index([driverId, status])
+  @@index([driverId, targetVariantKey])
+  @@map("recall_session")
+}
+
+model RecallAttempt {
+  id             String        @id @default(uuid())
+  sessionId      String
+  promptIndex    Int
+  cardKey        String        // Historical semantic snapshot, not a foreign key
+  recallMode     RecallMode
+  rawInput       String
+  expectedAnswer String        // Exact stopId or pre-normalized stop name
+  outcome        RecallOutcome
+  startedAt      DateTime
+  answeredAt     DateTime      @default(now())
+  durationMs     Int           // Server-calculated: answeredAt - startedAt
+  session        RecallSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, promptIndex])
+  @@index([sessionId])
+  @@index([cardKey])
+  @@map("recall_attempt")
+}

@@ -1,0 +1,36 @@
+# Tasks: 05-recall-session-domain
+
+## TDD Implementation Sequence (RED → GREEN → REFACTOR)
+
+### Phase 1: Domain Entities & Invariants (Pure Unit Tests)
+
+- [x] Task 01: Define domain enums (`SessionStatus`: `IN_PROGRESS`, `COMPLETED`, `ABANDONED`; `RecallMode`; `RecallOutcome`) and entity `RecallSession` with state machine invariant enforcement (`IN_PROGRESS` -> `COMPLETED` / `ABANDONED`; terminal states throw on mutation) in `src/domain/recall/recall-session.ts` <!-- id: 05-rsd-01 -->
+- [x] Task 02: Write domain unit tests for `RecallSession` verifying: (1) initial state is `IN_PROGRESS`, (2) valid state machine transitions to `COMPLETED` or `ABANDONED`, (3) invalid state transition exceptions (`COMPLETED` -> `IN_PROGRESS`, `ABANDONED` -> `COMPLETED`, `COMPLETED` -> `ABANDONED`), and (4) cursor advancement rules (`recall-session.test.ts`) <!-- id: 05-rsd-02 -->
+- [x] Task 03: Define transient projection `RecallPrompt`, value object `DriverAnswer`, and telemetry entity `RecallAttempt` in `src/domain/recall/` <!-- id: 05-rsd-03 -->
+- [x] Task 04: Write domain unit tests for `RecallPrompt` immutability snapshotting and `RecallAttempt` duration calculation (`recall-prompt.test.ts`) <!-- id: 05-rsd-04 -->
+- [x] Task 05: Implement deterministic normalization function `normalizeStopName(input: string)` (Unicode NFKC -> trim -> lowercase -> collapse whitespace) and `DeterministicRecallEvaluator` supporting `NEXT_STOP_FORWARD` and `STOP_NAME_RECOGNITION` in `src/domain/recall/deterministic-evaluator.ts` <!-- id: 05-rsd-05 -->
+- [x] Task 06: Write domain unit tests for `DeterministicRecallEvaluator` verifying: (1) exact canonical `stopId` matching for `NEXT_STOP_FORWARD` yielding strictly `PASS` or `FAIL`, (2) Unicode normalization edge cases (full-width characters, multiple spaces, mixed case) for `STOP_NAME_RECOGNITION`, (3) empty/whitespace-only input yields `FAIL`, and (4) strict exclusion of fuzzy/partial credit (`deterministic-evaluator.test.ts`) <!-- id: 05-rsd-06 -->
+- [x] Task 07: Define `PromptSelectionStrategy` port interface and implement `SequentialTopologyPromptStrategy` in `src/domain/recall/prompt-selection-strategy.ts` <!-- id: 05-rsd-07 -->
+- [x] Task 08: Write domain unit tests for `SequentialTopologyPromptStrategy` verifying: (1) forward ordered card selection, (2) boundary single-stop variant handling (only 1 STOP prompt, 0 NEXT_STOP prompts), (3) two-stop variant handling, (4) final stop boundary behavior (no NEXT_STOP prompt generated for terminus), and (5) strategy termination returning `null` when all prompts are exhausted (`sequential-topology-prompt-strategy.test.ts`) <!-- id: 05-rsd-08 -->
+
+### Phase 2: Persistence Port & Infrastructure Layer
+
+- [x] Task 09: Define `RecallRepository` port interface with session persistence, attempt recording, and active session query contracts in `src/application/recall/recall-repository.port.ts` <!-- id: 05-rsd-09 -->
+- [x] Task 10: Add Prisma models `RecallSession` and `RecallAttempt` in `prisma/schema.prisma` with prompt snapshot fields on session (`currentRecallMode`, `currentExpectedAnswer`, `currentPromptStartedAt`), `promptIndex` with `@@unique([sessionId, promptIndex])` on `RecallAttempt`, zero foreign keys to GTFS tables, and cascade deletion from session to attempts <!-- id: 05-rsd-10 -->
+- [x] Task 11: Create Prisma migration adding `recall_session`, `recall_attempt`, and PostgreSQL partial unique index `CREATE UNIQUE INDEX "uidx_recall_session_active" ON "recall_session"("driverId", "targetVariantKey") WHERE "status" = 'IN_PROGRESS';` <!-- id: 05-rsd-11 -->
+- [x] Task 12: Write integration tests for `PrismaRecallRepository` verifying: (1) atomic session creation with prompt snapshot and attempt persistence, (2) partial unique index enforcement preventing multiple `IN_PROGRESS` sessions for the same `(driverId, targetVariantKey)`, (3) `@@unique([sessionId, promptIndex])` enforcement preventing duplicate attempts, (4) sequential session completion allowing subsequent sessions to be created, (5) cross-driver session isolation (`driver-alice` vs `driver-bob`), and (6) GTFS table independence (purging GTFS tables leaves recall sessions and attempts intact) (`prisma-recall-repository.test.ts`) <!-- id: 05-rsd-12 -->
+- [x] Task 13: Implement `PrismaRecallRepository` in `src/infrastructure/recall/prisma-recall-repository.ts` turning repository integration tests green <!-- id: 05-rsd-13 -->
+
+### Phase 3: Application Layer Use Cases
+
+- [x] Task 14: Write unit tests for `StartRecallSessionUseCase` verifying: (1) driver enrollment verification, (2) idempotent re-attachment returning existing active session, (3) concurrent race resolution (`Promise.all([startSession, startSession])`) catching only the active-session P2002 error while rethrowing unrelated errors, and (4) rejecting unenrolled variants (`start-recall-session-use-case.test.ts`) <!-- id: 05-rsd-14 -->
+- [x] Task 15: Implement `StartRecallSessionUseCase` in `src/application/recall/start-recall-session-use-case.ts` with `DEFAULT_DRIVER_ID` and P2002 race resolution <!-- id: 05-rsd-15 -->
+- [x] Task 16: Write unit tests and implement `GetCurrentRecallPromptUseCase` verifying prompt reconstitution from session's snapshotted prompt fields without re-querying GTFS topology, and hiding `expectedAnswer` from client DTOs (`get-current-recall-prompt-use-case.test.ts`, `src/application/recall/get-current-recall-prompt-use-case.ts`) <!-- id: 05-rsd-16 -->
+- [x] Task 17: Write unit tests for `SubmitRecallAnswerUseCase` verifying: (1) deterministic evaluation against prompt snapshot, (2) snapshot immutability invariant (evaluating correctly even if GTFS topology was updated or deleted after prompt generation), (3) idempotency guard returning existing outcome on repeated submissions of the same prompt index, and (4) atomic cursor advancement, next prompt snapshotting, and automatic transition to `COMPLETED` upon final prompt submission (`submit-recall-answer-use-case.test.ts`) <!-- id: 05-rsd-17 -->
+- [x] Task 18: Implement `SubmitRecallAnswerUseCase` in `src/application/recall/submit-recall-answer-use-case.ts` <!-- id: 05-rsd-18 -->
+- [x] Task 19: Write unit tests and implement `CompleteRecallSessionUseCase` supporting explicit `COMPLETE` or `ABANDON` actions with terminal idempotency (`COMPLETE -> COMPLETE` is idempotent; `ABANDON -> ABANDON` is idempotent; cross-terminal transitions throw `InvalidStateTransitionError`) (`complete-recall-session-use-case.test.ts`, `src/application/recall/complete-recall-session-use-case.ts`) <!-- id: 05-rsd-19 -->
+
+### Phase 4: Full Vertical Slice & Edge Cases
+
+- [x] Task 20: Write comprehensive integration tests covering end-to-end training cycle: Enroll variant -> Start recall session -> Walk sequential prompts (`NEXT_STOP_FORWARD` and `STOP_NAME_RECOGNITION`) -> Submit answers -> Verify telemetry in `RecallAttempt` -> Complete session -> Verify subsequent session can be started cleanly (`recall-session-e2e.test.ts`) <!-- id: 05-rsd-20 -->
+- [x] Task 21: Run full verification suite (`npm test`, `npm run lint`, `npm run build`, `npx prisma validate`, `openspec doctor`, `git diff --check`) confirming 0 regressions, clean layer boundaries, and 0 lint errors <!-- id: 05-rsd-21 -->
