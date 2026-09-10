@@ -4,30 +4,36 @@
 To enable realistic route exploration and active recall training for Queensland bus drivers, the application must ingest official GTFS schedule data from Translink Queensland. 
 
 GTFS feeds consist of multiple interrelated CSV files. The ingestion pipeline must:
-1. Accurately parse RFC-4180 CSV files without fragile string splitting or unwanted data mutation (e.g. unsolicited trimming).
-2. Faithfully represent GTFS specifications, including conditionally required calendar services and non-consecutive stop sequences.
-3. Decouple application use cases from database drivers via repository ports.
-4. Guarantee atomic batch transactions and idempotent re-runs without mutating or deleting driver notes.
+1. Accurately parse RFC-4180 CSV files without fragile string splitting or unsolicited field mutation (e.g. premature trimming).
+2. Execute a **Two-Pass Streaming Model** that performs 100% pre-validation of syntax, schemas, and cross-file references without loading full datasets into RAM.
+3. Guarantee **Transaction Atomicity (Option A)** so that any mid-import failure triggers a complete rollback with zero partial data retained.
+4. Enforce **Strict Idempotency** (identical feeds succeed as no-ops, conflicting feeds fail explicitly).
+5. Maintain clean architectural boundaries decoupling domain and application use cases from database drivers.
 
 ---
 
 ## 1. System Architecture & Boundaries
 
-### Runtime Processing Flow
+### Runtime Processing Flow (Two-Pass Streaming Model)
 ```text
-GTFS Directory (CSV files)
-        ↓
-Infrastructure: CSV Stream Parser (raw strings, RFC-4180 compliant)
-        ↓
-Infrastructure: GTFS Field Normalizers & Row Validators (Zod schemas)
-        ↓
-Application: Import GTFS Use Case (Orchestrates topological ingestion)
-        ↓
-Domain: Value Objects & Aggregate Verification (GtfsTime, StopSequence)
-        ↓
-Infrastructure: PrismaGtfsRepository (Implements Application Port)
-        ↓
-PostgreSQL Database
+GTFS Directory (CSV files on disk)
+  │
+  ├───► PASS 1: Streaming Validation Pass (Zero DB Mutations)
+  │     ├── Infrastructure: CSV Stream Parser (raw strings, RFC-4180 compliant)
+  │     ├── Infrastructure: GTFS Field Normalizers & Row Validators (Zod schemas)
+  │     ├── Application: Cross-File Referential Validator
+  │     │     ├── Collects lightweight ID Sets (route_ids, stop_ids, trip_ids, service_ids)
+  │     │     ├── Verifies Trip -> Route & Trip -> Service ID Union
+  │     │     ├── Verifies StopTime -> Trip & StopTime -> Stop
+  │     │     └── Verifies StopTime sequence monotonicity (strictly increasing per trip)
+  │     └── Result: Validation Report (PASS -> proceed to Pass 2; FAIL -> abort immediately)
+  │
+  └───► PASS 2: Streaming Persistence Pass (Single Atomic Transaction)
+        ├── Infrastructure: Re-read local CSV files from disk via stream parser
+        ├── Application: ImportGtfsUseCase opens transaction via GtfsRepository port
+        ├── Infrastructure: PrismaGtfsRepository executes chunked batch upserts
+        ├── Strict Idempotency Check: identical payload allowed, conflicting payload rejected
+        └── Result: COMMIT on success (zero partial import) or ROLLBACK on abort
 ```
 
 ### Compile-Time Dependency Rules
@@ -35,14 +41,16 @@ PostgreSQL Database
    ┌────────────────────────────────────────────────────────┐
    │                      Domain Layer                      │
    │  - Pure TypeScript domain models                       │
-   │  - NO dependencies on Application or Infrastructure    │
+   │  - Value Objects (GtfsTime) & Aggregates (StopSequence)│
+   │  - ZERO dependencies on Application or Infrastructure  │
    └───────────────────────────▲────────────────────────────┘
                                │ depends on
    ┌───────────────────────────┴────────────────────────────┐
    │                   Application Layer                    │
    │  - Ingestion Use Cases (import-gtfs-use-case.ts)       │
+   │  - Cross-File Validation Service                       │
    │  - Port Definition: GtfsRepository interface           │
-   │  - NO dependencies on PrismaClient or Node fs          │
+   │  - ZERO dependencies on PrismaClient or Node fs        │
    └───────────────────────────▲────────────────────────────┘
                                │ implements / depends on
    ┌───────────────────────────┴────────────────────────────┐
@@ -50,19 +58,176 @@ PostgreSQL Database
    │  - CSV Stream Parser (csv-stream-parser.ts)            │
    │  - Row Schemas & Normalizers (gtfs-row-schemas.ts)     │
    │  - Repository Adapter: PrismaGtfsRepository            │
-   │  - Prisma Client & Node filesystem access               │
+   │  - Prisma Client & Node filesystem access              │
    └────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Port & Repository Boundary
+## 2. Transaction Atomicity Strategy: Option A (Single Transaction)
 
-To ensure the application use case remains decoupled from Prisma, the application layer defines a repository port interface:
+### Strategy Evaluation
+- **Option A (Single Interactive Transaction, SELECTED FOR V1)**:
+  - *Mechanism*: Pass 1 guarantees 100% data and referential validity before database mutation begins. Pass 2 executes within a single interactive transaction `prisma.$transaction(async (tx) => { ... }, { timeout: 120000, maxWait: 10000 })` using chunked batch writes (`createMany`).
+  - *Guarantee*: If any failure occurs (e.g. connection dropped at row 500,001 of `stop_times`), PostgreSQL rolls back the entire transaction. **Zero partial import is retained.**
+  - *Complexity*: Clean and minimal; requires no auxiliary staging tables or schema modifications.
+- **Option B (Staging Tables / Atomic Publish, Architectural Reference for Large Scale)**:
+  - *Mechanism*: Ingest into temporary staging tables (`staging_gtfs_*`), validate, and swap into production tables via partition swap or table renaming.
+  - *Trade-off*: Excellent for massive multi-million row datasets, but introduces significant schema complexity and migration overhead for V1.
+- **Option C (Batch Atomicity Only, REJECTED)**:
+  - *Trade-off*: Leaves half-imported routes/trips without stop times on failure, corrupting the training application state. Rejected as unacceptable.
+
+**V1 Decision**: **Option A** is formally adopted. Combined with Pass 1 streaming pre-validation, it delivers 100% atomic imports with zero partial data risk.
+
+---
+
+## 3. Two-Pass Streaming Execution Model
+
+To reconcile **complete pre-validation** with **low memory consumption**, the pipeline operates in two streaming passes over local disk files:
+
+```mermaid
+sequenceDiagram
+    participant Disk as Local GTFS CSVs
+    participant Parser as CSV Stream Parser
+    participant Val as Application Validator
+    participant Repo as GtfsRepository (Prisma)
+    participant DB as PostgreSQL
+
+    Note over Disk,Val: PASS 1 — Streaming Validation Pass (Zero DB Writes)
+    Disk->>Parser: Stream lines
+    Parser->>Val: Emit raw rows
+    Val->>Val: Validate Zod schemas & collect ID Sets
+    Val->>Val: Verify Trip/StopTime referential integrity & monotonicity
+    Note over Val: Validation Passed
+
+    Note over Disk,DB: PASS 2 — Streaming Persistence Pass (Single Transaction)
+    Val->>Repo: beginTransaction()
+    Repo->>DB: BEGIN
+    Disk->>Parser: Re-stream lines
+    Parser->>Repo: Stream chunks (1,000 rows)
+    Repo->>DB: Batch upsert chunks (Agency -> Calendar -> Routes -> Stops -> Trips -> StopTimes)
+    Repo->>DB: COMMIT (or ROLLBACK on error)
+```
+
+### Memory Footprint Guarantee
+- Full row objects are **NEVER** stored in memory arrays (`no parseAll()`).
+- Pass 1 accumulates only lightweight string identifier sets:
+  ```typescript
+  const validRouteIds = new Set<string>();
+  const validStopIds = new Set<string>();
+  const validTripIds = new Set<string>();
+  const calendarServiceIds = new Set<string>();
+  const calendarDateServiceIds = new Set<string>();
+  ```
+- For 50,000 trips and stops, these string sets consume <10 MB of RAM, compared to hundreds of MBs if storing full row objects.
+- In Pass 1, stop sequence monotonicity is validated on the fly using a streaming tracker: `Map<string, number>` tracking the `lastStopSequence` for each active trip ID.
+
+---
+
+## 4. Application-Level Referential Integrity & Service ID Universe
+
+Because GTFS allows `calendar_dates.txt` alone to define service schedules (Case B), database-level foreign keys from `GtfsTrip` to `GtfsCalendar` and `GtfsCalendarDate` to `GtfsCalendar` are decoupled. Integrity is strictly enforced by the Application Validator:
+
+### Service ID Universe
+```text
+ValidServiceIds = Set(calendar.service_id) ∪ Set(calendar_dates.service_id)
+```
+- **Case A (`calendar` + `calendar_dates`)**: `ValidServiceIds` is the union of regular and exception service identifiers.
+- **Case B (`calendar_dates` only)**: `calendar.txt` is absent; `ValidServiceIds` is derived entirely from `calendar_dates.service_id`.
+- **Validation Rule**:
+  ```typescript
+  if (!validServiceIds.has(trip.serviceId)) {
+    throw new ReferentialIntegrityError(
+      `Trip "${trip.id}" references unknown serviceId "${trip.serviceId}"`
+    );
+  }
+  ```
+
+### Cross-File Reference Rules
+1. `trip.routeId ∈ validRouteIds` (must exist in `routes.txt`).
+2. `trip.serviceId ∈ ValidServiceIds` (must exist in `calendar.txt` or `calendar_dates.txt`).
+3. `stopTime.tripId ∈ validTripIds` (must exist in `trips.txt`).
+4. `stopTime.stopId ∈ validStopIds` (must exist in `stops.txt`).
+
+---
+
+## 5. Strict Idempotency & Conflict Rejection Contract (Mode 1)
+
+In Mode 1, importing a feed guarantees:
+
+### A. Identical Payload (Idempotent No-Op)
+If an incoming record matches an existing record's primary/composite key AND has identical attribute values, it is treated as a clean idempotent match. No duplicate row is created, and row counters remain stable.
+
+### B. Conflicting Payload (Rejection Failure)
+If an incoming record shares a primary/composite key with an existing database record but contains **conflicting attribute values** (e.g. same `route_id` but different `route_short_name`), the importer triggers an explicit **`ImportConflictError`** and halts ingestion.
+- *Rationale*: Silently ignoring changes via `skipDuplicates` masks corrupt feed updates or data divergences.
+
+### C. Stale Records & Driver Knowledge Safety
+- Mode 1 does not delete records that exist in the database but are missing from the current feed.
+- Driver knowledge (`DriverNote`, `HazardAlert`) resides in decoupled tables and is **NEVER** modified or deleted by GTFS operations.
+- Destructive feed purge is explicitly reserved for future Mode 2 operations.
+
+---
+
+## 6. Agency ID Conditional Validation
+
+In accordance with the official GTFS Schedule specification for `agency.txt`:
+1. **Explicit ID**: If `agency_id` is present in the feed, it is validated and persisted.
+2. **Single-Agency Omission**: If `agency_id` is omitted AND `agency.txt` contains exactly 1 row, an internal deterministic identifier (e.g. `"DEFAULT_AGENCY"`) is assigned.
+3. **Multi-Agency Omission**: If `agency_id` is omitted AND `agency.txt` contains multiple rows, validation **FAILS** immediately with `InvalidAgencyDefinitionError`.
+
+---
+
+## 7. Stop Times Field Categorisation & Monotonicity Rules
+
+### Field Categorisation in `stop_times.txt`
+1. **Persist Now (V1 Scope)**:
+   - `trip_id`: Trip identifier (references `GtfsTrip`).
+   - `stop_sequence`: Order indicator (must be non-negative integer; must strictly increase per trip).
+   - `stop_id`: Stop identifier (references `GtfsStop`).
+   - `arrival_time`: Service-day elapsed time string (e.g. `24:10:00`, nullable).
+   - `departure_time`: Service-day elapsed time string (nullable).
+   - `timepoint`: Exact timing point flag (1 = exact, 0 = approximate, defaults to 1).
+2. **Parse & Validate but Defer Persistence (V2 Candidates)**:
+   - Fields: `stop_headsign`, `pickup_type`, `drop_off_type`, `shape_dist_traveled`.
+   - *Behavior*: Parsed by the CSV parser, validated for correct syntax and numeric ranges by Zod schemas, but intentionally omitted from the V1 Prisma persistence model. The `ImportSummary` diagnostic report logs their presence and row count.
+3. **Unsupported / Rejected**:
+   - Realtime extensions and frequency-based continuous stop times.
+
+### Monotonicity Validation
+- The GTFS specification requires `stop_sequence` to increase along a trip, but does not require consecutive values.
+- **Valid**: `T1: [1, 23, 40]` -> PASS.
+- **Invalid Duplicate**: `T1: [1, 23, 23]` -> FAIL (`DuplicateStopSequenceError`).
+- **Invalid Descending**: `T1: [1, 40, 23]` -> FAIL (`NonMonotonicStopSequenceError`).
+- **Independent Trips**: `T1: [1, 23, 40]` and `T2: [1, 5, 9]` -> PASS.
+
+---
+
+## 8. CSV Parser Specification & Dependency Decision
+
+### Parsing Standards (RFC-4180)
+- **Raw Field Preservation**: The generic CSV parser emits raw string values without global trimming (`" Brisbane Central "` is preserved).
+- **Empty String Semantics**: Emits `""` for blank fields. The downstream GTFS field mapper converts `""` -> `null` for optional columns or triggers a validation error for required columns.
+- **BOM & CRLF**: Strips UTF-8 BOM (`\uFEFF`) from initial chunk; handles CRLF (`\r\n`) and LF (`\n`) across streaming chunk boundaries.
+
+### Dependency Evaluation: `DEPENDENCY DECISION REQUIRED`
+- **Option 1 (Zero-Dependency Custom RFC-4180 Streaming Parser)**:
+  - Built with Node.js stream transformers. Zero external npm dependencies. Full control over error diagnostics. Requires rigorous chunk-boundary test coverage.
+- **Option 2 (Community Standard Package: `csv-parse`)**:
+  - Battle-tested external package (`csv-parse ^5.6.0`). Adds external runtime dependency.
+- **Status**: Marked as **`DEPENDENCY DECISION REQUIRED`**. Implementation remains **NOT STARTED** awaiting human approval.
+
+---
+
+## 9. Repository Port Interface
 
 ```typescript
 // src/application/gtfs/gtfs-repository.port.ts
 export interface GtfsRepository {
+  executeInTransaction<T>(work: (repo: GtfsTransactionalRepository) => Promise<T>): Promise<T>;
+}
+
+export interface GtfsTransactionalRepository {
   saveAgencies(agencies: GtfsAgencyRow[]): Promise<number>;
   saveCalendars(calendars: GtfsCalendarRow[]): Promise<number>;
   saveCalendarDates(calendarDates: GtfsCalendarDateRow[]): Promise<number>;
@@ -70,143 +235,22 @@ export interface GtfsRepository {
   saveStops(stops: GtfsStopRow[]): Promise<number>;
   saveTrips(trips: GtfsTripRow[]): Promise<number>;
   saveStopTimes(stopTimes: GtfsStopTimeRow[]): Promise<number>;
+  findExistingRecord(table: string, key: Record<string, unknown>): Promise<Record<string, unknown> | null>;
 }
 ```
 
-The concrete implementation (`PrismaGtfsRepository`) resides in `src/infrastructure/gtfs/importer/prisma-gtfs-repository.ts`. The application use case depends strictly on the `GtfsRepository` interface.
-
----
-
-## 3. Agency Scope Integration
-In accordance with GTFS specification where `agency.txt` is Required:
-- File: `agency.txt`
-- Target Model: `GtfsAgency`
-- Fields mapped:
-  - `agency_id` -> `GtfsAgency.id` (String @id)
-  - `agency_name` -> `GtfsAgency.name` (String)
-  - `agency_timezone` -> `GtfsAgency.timezone` (String)
-- In the rare event that a single-agency GTFS feed omits `agency_id`, the normalizer maps to a deterministic default (e.g. `"DEFAULT_AGENCY"`).
-
----
-
-## 4. Calendar & CalendarDate Conditional Semantics
-
-GTFS Schedule permits two valid methods to define service availability:
-- **Case A (`calendar.txt` + optional `calendar_dates.txt`)**: Regular service is established by weekday boolean flags over a date range in `calendar.txt`, modified by specific holiday or special run exceptions in `calendar_dates.txt`.
-- **Case B (`calendar_dates.txt` only, `calendar.txt` absent)**: Every operating service date is enumerated explicitly in `calendar_dates.txt`.
-
-### Referential Integrity Design
-- `GtfsCalendarDate` composite identity is `@@id([serviceId, date])` with `@@index([serviceId])`.
-- In our Prisma schema, `GtfsCalendarDate.serviceId` is an indexed string identifier and does **NOT** enforce an explicit database foreign key to `GtfsCalendar.serviceId`.
-- `GtfsTrip.serviceId` is an indexed string attribute referencing the service identifier without a hard foreign key constraint.
-- **Architectural Verification**: This decoupled model natively accommodates both Case A and Case B without constraint violations or schema modifications.
-
----
-
-## 5. CSV Parsing Layer vs GTFS Field Normalization
-
-A strict distinction is maintained between generic CSV parsing and GTFS field mapping:
-
-### A. Generic CSV Parser (RFC 4180 Compliant)
-- **Zero Automatic Trimming**: Preserves raw field characters. `" Brisbane Central "` remains `" Brisbane Central "`.
-- **Empty String Preservation**: Fields with no content between delimiters emit empty strings `""`, not `null`.
-- **Delimiters & Quotes**: Handles commas within quotes (`"St Lucia, Brisbane"`), escaped double quotes (`""`), and preserves newlines inside quoted fields.
-- **Line Endings & Encoding**: Seamlessly supports both Windows CRLF (`\r\n`) and Unix LF (`\n`). Strips UTF-8 BOM (`\uFEFF`) from the initial stream header.
-
-### B. GTFS Field Normalizer & Validator (Zod)
-- **Optional String Fields**: Evaluates raw empty string `""` -> `null`.
-- **Required String Fields**: Evaluates raw empty string `""` -> triggers validation error.
-- **Whitespaces**: Trimming is explicitly managed per field specification where leading/trailing whitespace is proven to be non-semantic.
-
----
-
-## 6. CSV Parser Dependency Evaluation: `DEPENDENCY DECISION REQUIRED`
-
-### Option 1: Zero-Dependency Custom RFC-4180 Parser
-- **Description**: A dedicated streaming state-machine parser implemented in `src/infrastructure/gtfs/parser/csv-stream-parser.ts` using Node.js stream transforms.
-- **Pros**:
-  - Zero external npm packages added to `package.json`.
-  - Full control over error reporting, chunk boundary handling, and performance tuning.
-- **Cons**:
-  - Requires comprehensive test suite covering multi-chunk boundaries with embedded quotes and CRLF.
-  - Ongoing maintenance overhead within the project.
-
-### Option 2: Community Standard Package (`csv-parse`)
-- **Description**: Add `csv-parse` (`^5.6.0`) to `package.json`.
-- **Pros**:
-  - Battle-tested on billions of CSV rows; complete edge-case handling out of the box.
-  - Native Node.js stream pipeline integration.
-- **Cons**:
-  - Introduces external runtime dependency.
-  - Increases supply-chain footprint.
-
-**Status**: Marked as **`DEPENDENCY DECISION REQUIRED`**. Implementation remains **NOT STARTED** awaiting human approval.
-
----
-
-## 7. Import Modes & Idempotency Strategy
-
-### Mode 1: Deterministic Import / Upsert (V1 Scope)
-- **Objective**: Ingest a GTFS directory such that repeated runs against the same or overlapping feed produce identical database states with zero duplicate records and no primary/composite key collisions.
-- **Implementation**:
-  - Entities with primary keys (`GtfsAgency`, `GtfsRoute`, `GtfsStop`, `GtfsTrip`, `GtfsCalendar`) use upsert or chunked `createMany({ skipDuplicates: true })`.
-  - Entities with composite keys (`GtfsStopTime`, `GtfsCalendarDate`) use composite index resolution.
-- **Limitation**: Does not delete records that were present in previous imports but absent in the new feed.
-
-### Mode 2: Full Feed Replacement (Future Scope, NOT in V1)
-- **Objective**: Atomically wipe existing GTFS datasets and replace them with a new feed release.
-- **Safety Boundary**: Must strictly guarantee that driver personal knowledge (`DriverNote`, `HazardAlert`) and future SRS cards are **NEVER** deleted. GTFS tables can be purged in reverse topological order, but driver tables remain completely untouched.
-- **V1 Action**: Mode 2 is explicitly deferred to a dedicated future change.
-
----
-
-## 8. Transaction Safety & Batching Strategy
-
-GTFS datasets can contain tens of thousands of rows (especially `stop_times.txt`). Placing the entire import into a single monolithic interactive transaction causes memory pressure and connection timeouts.
-
-### Ingestion Strategy
-1. **Pre-Validation**: All CSV files in the target directory are checked for presence of mandatory headers and basic row schema validity before initiating database mutations.
-2. **Topological Order**:
-   - Level 0: `GtfsAgency`, `GtfsRoute`, `GtfsStop`, `GtfsCalendar`
-   - Level 1: `GtfsCalendarDate`
-   - Level 2: `GtfsTrip` (references `routeId`)
-   - Level 3: `GtfsStopTime` (references `tripId`, `stopId`)
-3. **Chunked Batches**: Large tables (e.g. `stop_times`) are ingested in chunked batches (e.g. 1,000 rows per batch) inside short-lived Prisma transactions (`prisma.$transaction`).
-4. **Failure Isolation**: An unrecoverable failure in a batch halts processing and reports exact file and row error diagnostics.
-
----
-
-## 9. Stop Times Field Categorisation & Sequence Semantics
-
-### Field Categorisation in `stop_times.txt`
-- **Persist Now (V1 Domain & Persistence)**:
-  - `trip_id`: Trip association.
-  - `stop_sequence`: Order indicator (must be non-negative integer; must strictly increase; **does NOT require consecutive numbering**).
-  - `stop_id`: Stop reference.
-  - `arrival_time`: Service-day elapsed time string (e.g. `24:10:00`, nullable).
-  - `departure_time`: Service-day elapsed time string (nullable).
-  - `timepoint`: Exact timing point indicator (1 = exact, 0 = approximate, defaults to 1).
-- **Parse & Validate but Defer Persistence (V2 Candidates)**:
-  - `stop_headsign`: Per-stop headsign overrides.
-  - `pickup_type`, `drop_off_type`: Boarding restrictions.
-  - `shape_dist_traveled`: Distance along trip shape.
-- **Unsupported / Rejected**:
-  - Realtime trip update extensions and frequency-based continuous stop times.
-
-### Stop Sequence Non-Consecutive Rule
-- The GTFS specification requires `stop_sequence` to increase along the trip, but does not require consecutive numbers (e.g. sequences `1, 23, 40` are completely valid).
-- The importer strictly validates `s[i].stopSequence < s[i+1].stopSequence` and **NEVER** enforces `s[i+1] === s[i] + 1`.
+The concrete adapter (`PrismaGtfsRepository`) implements this interface, ensuring the Application layer does not directly import `PrismaClient`.
 
 ---
 
 ## 10. Synthetic Test Fixtures
-To guarantee strict compliance with data licensing and prevent leakage of proprietary/raw Translink archives:
-- All automated tests in `tests/fixtures/gtfs/` use **synthetically generated minimal GTFS files**.
-- Real Translink raw data archives will **NEVER** be downloaded or committed to the repository.
-- Synthetic fixtures will explicitly include:
-  - `24:10:00` and `25:05:00` GTFS service times.
-  - Quoted fields containing commas and quotes (`""`).
-  - Windows CRLF line breaks.
-  - UTF-8 BOM headers.
+- All automated tests in `tests/fixtures/gtfs/` use synthetically generated minimal GTFS CSVs.
+- Zero proprietary Translink data will be committed or downloaded.
+- Fixtures explicitly cover:
+  - `24:10:00` and `25:05:00` service times.
+  - Quoted fields with commas and escaped quotes (`""`).
+  - CRLF line endings and UTF-8 BOM.
   - Non-consecutive stop sequences (`1, 10, 25`).
-  - Blank optional fields.
+  - Single-agency omission and multi-agency rejection.
+  - Case A (`calendar` + `calendar_dates`) and Case B (`calendar_dates` only).
+  - Conflicting duplicate payloads.
