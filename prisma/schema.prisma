@@ -103,3 +103,57 @@ model DriverNote {
   @@index([stopId])
   @@index([routeId])
 }
+
+// ==========================================
+// 3. Driver Learning & Card State (Change 04)
+// ==========================================
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  MASTERED
+}
+
+enum CardType {
+  STOP
+  NEXT_STOP
+}
+
+enum CardState {
+  NEW
+  LEARNING
+  REVIEW
+  MASTERED
+}
+
+model DriverVariantProgress {
+  id               String         @id @default(uuid())
+  driverId         String
+  routeId          String
+  directionId      Int
+  targetVariantKey String
+  status           ProgressStatus @default(NOT_STARTED)
+  enrolledAt       DateTime       @default(now())
+  lastStudiedAt    DateTime?
+  cards            LearningCard[]
+
+  @@unique([driverId, targetVariantKey])
+  @@index([driverId, routeId])
+  @@map("driver_variant_progress")
+}
+
+model LearningCard {
+  id           String                @id @default(uuid())
+  progressId   String
+  cardKey      String
+  cardType     CardType
+  state        CardState             @default(NEW)
+  nextReviewAt DateTime?
+  repetitions  Int                   @default(0)
+  lapses       Int                   @default(0)
+  progress     DriverVariantProgress @relation(fields: [progressId], references: [id], onDelete: Cascade)
+
+  @@unique([progressId, cardKey])
+  @@index([progressId, cardType])
+  @@map("learning_card")
+}
