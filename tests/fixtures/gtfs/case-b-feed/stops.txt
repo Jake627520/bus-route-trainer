@@ -1,0 +1,3 @@
+stop_id,stop_name,stop_lat,stop_lon
+ST_01,RBWH Station,-27.4475,153.0281
+ST_02,UQ Lakes Station,-27.4988,153.0163

@@ -1,0 +1,2 @@
+route_id,agency_id,route_short_name,route_long_name,route_type
+R66,TRANS_QLD,66,RBWH - UQ Lakes,3

@@ -1,0 +1,3 @@
+agency_id,agency_name,agency_url,agency_timezone
+TRANS_QLD,Translink Queensland,https://translink.com.au,Australia/Brisbane
+OTHER_OPERATOR,Other Operator,https://example.com,Australia/Brisbane

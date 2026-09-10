@@ -1,0 +1,7 @@
+trip_id,arrival_time,departure_time,stop_id,stop_sequence,stop_headsign,pickup_type,drop_off_type,shape_dist_traveled,timepoint
+T66_01,08:00:00,08:00:00,ST_01,1,,,,0.0,1
+T66_01,08:15:00,08:16:00,ST_02,23,,,,5.2,1
+T66_01,24:10:00,24:10:00,ST_03,40,,,,10.5,1
+T66_02,09:00:00,09:00:00,ST_03,1,,,,0.0,1
+T66_02,09:15:00,09:16:00,ST_02,5,,,,5.2,1
+T66_02,25:05:00,25:05:00,ST_01,9,,,,10.5,1

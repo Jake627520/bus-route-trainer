@@ -1,0 +1,2 @@
+trip_id,route_id,service_id,direction_id,trip_headsign,shape_id
+T66_01,R66,SERV_CASE_B,0,UQ Lakes,

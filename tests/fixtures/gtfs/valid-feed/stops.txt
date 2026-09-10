@@ -1,0 +1,4 @@
+stop_id,stop_name,stop_lat,stop_lon
+ST_01,"RBWH Station, Platform 1",-27.4475,153.0281
+ST_02,"Cultural Centre Station",-27.4741,153.0189
+ST_03,"UQ Lakes Station",-27.4988,153.0163
