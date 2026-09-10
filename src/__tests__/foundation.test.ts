@@ -25,3 +25,19 @@ describe('Bus Route Trainer - Foundation Test Suite', () => {
     expect(parsed.success).toBe(true);
   });
 });
+
+describe('Database Connection via Prisma Client', () => {
+  it('successfully executes a query against local PostgreSQL bus_route_trainer', async () => {
+    const { PrismaClient } = await import('@prisma/client');
+    const prisma = new PrismaClient();
+    try {
+      await prisma.$connect();
+      const result: Array<{ current_database: string; current_user: string }> =
+        await prisma.$queryRaw`SELECT current_database(), current_user`;
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0].current_database).toBe('bus_route_trainer');
+    } finally {
+      await prisma.$disconnect();
+    }
+  });
+});
