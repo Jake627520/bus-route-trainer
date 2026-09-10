@@ -6,3 +6,100 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// ==========================================
+// 1. Official Transport Data (Translink GTFS)
+// ==========================================
+
+model GtfsAgency {
+  id        String   @id // agency_id
+  name      String   // agency_name
+  timezone  String   // agency_timezone
+}
+
+model GtfsRoute {
+  id         String     @id // route_id
+  shortName  String     // route_short_name (e.g. "66")
+  longName   String     // route_long_name
+  routeType  Int        // 3 = Bus
+  trips      GtfsTrip[]
+}
+
+model GtfsTrip {
+  id            String         @id // trip_id
+  routeId       String
+  serviceId     String
+  directionId   Int            @default(0) // 0 = Outbound, 1 = Inbound
+  tripHeadsign  String?
+  shapeId       String?
+
+  route         GtfsRoute      @relation(fields: [routeId], references: [id])
+  stopTimes     GtfsStopTime[]
+
+  @@index([routeId, directionId])
+  @@index([serviceId])
+}
+
+model GtfsStop {
+  id         String         @id // stop_id
+  name       String
+  latitude   Float
+  longitude  Float
+  stopTimes  GtfsStopTime[]
+}
+
+model GtfsStopTime {
+  tripId         String
+  stopSequence   Int
+  stopId         String
+  arrivalTime    String?        // HH:MM:SS format (service-day elapsed time, supports >24h, nullable)
+  departureTime  String?        // HH:MM:SS format (nullable)
+  isTimepoint    Boolean        @default(true)
+
+  trip           GtfsTrip       @relation(fields: [tripId], references: [id])
+  stop           GtfsStop       @relation(fields: [stopId], references: [id])
+
+  @@id([tripId, stopSequence])
+  @@index([stopId])
+}
+
+model GtfsCalendar {
+  serviceId  String   @id
+  monday     Boolean
+  tuesday    Boolean
+  wednesday  Boolean
+  thursday   Boolean
+  friday     Boolean
+  saturday   Boolean
+  sunday     Boolean
+  startDate  String   // YYYYMMDD
+  endDate    String   // YYYYMMDD
+}
+
+model GtfsCalendarDate {
+  serviceId      String
+  date           String // YYYYMMDD
+  exceptionType  Int    // 1 = Added, 2 = Removed
+
+  @@id([serviceId, date])
+  @@index([serviceId])
+}
+
+// ==========================================
+// 2. Driver Personal Knowledge Layer (Separated)
+// ==========================================
+
+model DriverNote {
+  id           String   @id @default(uuid())
+  driverId     String   @default("default-driver")
+  stopId       String?
+  routeId      String?
+  noteText     String
+  hazardLevel  String   @default("INFO") // INFO, CAUTION, DANGER
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([driverId])
+  @@index([stopId])
+  @@index([routeId])
+}
