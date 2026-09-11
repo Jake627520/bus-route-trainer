@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { PrismaRecallRepository } from '../../../infrastructure/recall/prisma-recall-repository';
+import { CardState } from '../../../domain/learning/learning-card';
 import {
   RecallSession,
   SessionStatus,
@@ -299,5 +300,164 @@ describe('PrismaRecallRepository Integration Tests', () => {
     const retrieved = await repository.findById('session-independent');
     expect(retrieved).not.toBeNull();
     expect(retrieved?.routeId).toBe('route-unconstrained');
+  });
+
+  it('(7) preserves plannedCardIds array and ordering across database round-trip (Phase 2)', async () => {
+    const plannedCards = ['card-alpha', 'card-beta', 'card-gamma'];
+    const session = new RecallSession({
+      id: 'session-planned-order',
+      driverId: 'driver-p2',
+      routeId: 'route-66',
+      targetVariantKey: 'var-order',
+      status: SessionStatus.IN_PROGRESS,
+      plannedCardIds: plannedCards,
+      currentPromptIndex: 0,
+      currentCardKey: null,
+      currentRecallMode: null,
+      currentExpectedAnswer: null,
+      currentPromptStartedAt: null,
+      startedAt: new Date('2026-09-11T10:00:00Z'),
+      completedAt: null,
+      abandonedAt: null,
+    });
+
+    await repository.createSession(session);
+
+    const retrieved = await repository.findById('session-planned-order');
+    expect(retrieved).not.toBeNull();
+    expect(retrieved?.plannedCardIds).toEqual(plannedCards);
+    expect(retrieved?.plannedCardIds[0]).toBe('card-alpha');
+    expect(retrieved?.plannedCardIds[1]).toBe('card-beta');
+    expect(retrieved?.plannedCardIds[2]).toBe('card-gamma');
+  });
+
+  it('(8) persists and retrieves all 5 resulting SRS snapshot fields on RecallAttempt (Phase 2)', async () => {
+    const session = new RecallSession({
+      id: 'session-srs-snapshot',
+      driverId: 'driver-p2',
+      routeId: 'route-66',
+      targetVariantKey: 'var-srs',
+      status: SessionStatus.IN_PROGRESS,
+      plannedCardIds: ['card-1', 'card-2'],
+      currentPromptIndex: 0,
+      currentCardKey: 'card-1',
+      currentRecallMode: RecallMode.STOP_NAME_RECOGNITION,
+      currentExpectedAnswer: 'Stop 1',
+      currentPromptStartedAt: new Date('2026-09-11T10:00:00Z'),
+      startedAt: new Date('2026-09-11T10:00:00Z'),
+      completedAt: null,
+      abandonedAt: null,
+    });
+    await repository.createSession(session);
+
+    const reviewDate = new Date('2026-09-18T10:00:00Z');
+    const attempt = new RecallAttempt({
+      id: 'attempt-srs-1',
+      sessionId: 'session-srs-snapshot',
+      promptIndex: 0,
+      cardKey: 'card-1',
+      recallMode: RecallMode.STOP_NAME_RECOGNITION,
+      rawInput: 'Stop 1',
+      expectedAnswer: 'Stop 1',
+      outcome: RecallOutcome.PASS,
+      startedAt: new Date('2026-09-11T10:00:00Z'),
+      answeredAt: new Date('2026-09-11T10:00:05Z'),
+      durationMs: 5000,
+      resultingState: CardState.REVIEW,
+      resultingSrsLevel: 3,
+      resultingNextReviewAt: reviewDate,
+      resultingRepetitions: 4,
+      resultingLapses: 1,
+    });
+
+    const advancedSession = new RecallSession({
+      ...session,
+      currentPromptIndex: 1,
+      plannedCardIds: session.plannedCardIds,
+    });
+
+    await repository.saveAttemptAndAdvanceSession(attempt, advancedSession);
+
+    // Direct find by index
+    const retrievedAttempt = await repository.findAttemptBySessionAndIndex('session-srs-snapshot', 0);
+    expect(retrievedAttempt).not.toBeNull();
+    expect(retrievedAttempt?.resultingState).toBe(CardState.REVIEW);
+    expect(retrievedAttempt?.resultingSrsLevel).toBe(3);
+    expect(retrievedAttempt?.resultingNextReviewAt).toEqual(reviewDate);
+    expect(retrievedAttempt?.resultingRepetitions).toBe(4);
+    expect(retrievedAttempt?.resultingLapses).toBe(1);
+
+    // Via findAttemptsBySessionId
+    const attempts = await repository.findAttemptsBySessionId('session-srs-snapshot');
+    expect(attempts).toHaveLength(1);
+    expect(attempts[0].resultingState).toBe(CardState.REVIEW);
+    expect(attempts[0].resultingSrsLevel).toBe(3);
+    expect(attempts[0].resultingNextReviewAt).toEqual(reviewDate);
+    expect(attempts[0].resultingRepetitions).toBe(4);
+    expect(attempts[0].resultingLapses).toBe(1);
+  });
+
+  it('(9) database strictly rejects duplicate (sessionId, promptIndex) insertion via unique constraint (Phase 2)', async () => {
+    const session = new RecallSession({
+      id: 'session-idempotency-db',
+      driverId: 'driver-idemp',
+      routeId: 'route-66',
+      targetVariantKey: 'var-idemp',
+      status: SessionStatus.IN_PROGRESS,
+      plannedCardIds: ['card-x'],
+      currentPromptIndex: 0,
+      currentCardKey: 'card-x',
+      currentRecallMode: RecallMode.STOP_NAME_RECOGNITION,
+      currentExpectedAnswer: 'ans',
+      currentPromptStartedAt: new Date(),
+      startedAt: new Date(),
+      completedAt: null,
+      abandonedAt: null,
+    });
+    await repository.createSession(session);
+
+    // Insert first attempt directly into DB
+    await prisma.recallAttempt.create({
+      data: {
+        id: 'attempt-unique-1',
+        sessionId: 'session-idempotency-db',
+        promptIndex: 0,
+        cardKey: 'card-x',
+        recallMode: RecallMode.STOP_NAME_RECOGNITION,
+        rawInput: 'first',
+        expectedAnswer: 'ans',
+        outcome: RecallOutcome.PASS,
+        startedAt: new Date(),
+        answeredAt: new Date(),
+        durationMs: 1000,
+        resultingState: CardState.REVIEW,
+        resultingSrsLevel: 1,
+        resultingRepetitions: 1,
+        resultingLapses: 0,
+      },
+    });
+
+    // Attempting second insert with same (sessionId, promptIndex) MUST fail with unique constraint violation (P2002)
+    await expect(
+      prisma.recallAttempt.create({
+        data: {
+          id: 'attempt-unique-2',
+          sessionId: 'session-idempotency-db',
+          promptIndex: 0,
+          cardKey: 'card-x',
+          recallMode: RecallMode.STOP_NAME_RECOGNITION,
+          rawInput: 'duplicate-or-conflict',
+          expectedAnswer: 'ans',
+          outcome: RecallOutcome.FAIL,
+          startedAt: new Date(),
+          answeredAt: new Date(),
+          durationMs: 1200,
+          resultingState: CardState.LEARNING,
+          resultingSrsLevel: 0,
+          resultingRepetitions: 0,
+          resultingLapses: 1,
+        },
+      }),
+    ).rejects.toThrow();
   });
 });

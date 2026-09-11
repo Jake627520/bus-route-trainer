@@ -6,8 +6,16 @@ import { PrismaRecallSettlementCoordinator } from '../learning/prisma-recall-set
 import { GetRouteVariantsUseCase } from '@/application/gtfs/get-route-variants-use-case';
 import { SubmitRecallAnswerUseCase } from '@/application/recall/submit-recall-answer-use-case';
 import { StartRecallSessionUseCase } from '@/application/recall/start-recall-session-use-case';
+import { StartPlannedRecallSessionUseCase } from '@/application/recall/start-planned-recall-session-use-case';
+import { PrismaStartPlannedRecallSessionAdapter } from './prisma-start-planned-recall-session-adapter';
 import { GetCurrentRecallPromptUseCase } from '@/application/recall/get-current-recall-prompt-use-case';
 import { CompleteRecallSessionUseCase } from '@/application/recall/complete-recall-session-use-case';
+import { GetCurrentSessionPromptUseCase } from '@/application/recall/get-current-session-prompt-use-case';
+import { PrismaGetCurrentSessionPromptAdapter } from './prisma-get-current-session-prompt-adapter';
+import { SubmitSessionAnswerUseCase } from '@/application/recall/submit-session-answer-use-case';
+import { PrismaSubmitSessionAnswerAdapter } from './prisma-submit-session-answer-adapter';
+import { AbandonRecallSessionUseCase } from '@/application/recall/abandon-recall-session-use-case';
+import { PrismaAbandonRecallSessionAdapter } from './prisma-abandon-recall-session-adapter';
 import {
   PromptSelectionStrategy,
   SequentialTopologyPromptStrategy,
@@ -15,9 +23,13 @@ import {
 
 export interface RecallUseCases {
   startSession: StartRecallSessionUseCase;
+  startPlannedSession: StartPlannedRecallSessionUseCase;
   getPrompt: GetCurrentRecallPromptUseCase;
+  getSessionPrompt: GetCurrentSessionPromptUseCase;
   submitAnswer: SubmitRecallAnswerUseCase;
+  submitSessionAnswer: SubmitSessionAnswerUseCase;
   completeSession: CompleteRecallSessionUseCase;
+  abandonSession: AbandonRecallSessionUseCase;
   coordinator: PrismaRecallSettlementCoordinator;
 }
 
@@ -42,7 +54,11 @@ export function createRecallUseCases(
     getRouteVariantsUseCase,
     promptStrategy,
   );
+  const startPlannedPort = new PrismaStartPlannedRecallSessionAdapter(prisma);
+  const startPlannedSession = new StartPlannedRecallSessionUseCase(startPlannedPort);
   const getPrompt = new GetCurrentRecallPromptUseCase(recallRepo);
+  const getSessionPromptPort = new PrismaGetCurrentSessionPromptAdapter(prisma);
+  const getSessionPrompt = new GetCurrentSessionPromptUseCase(getSessionPromptPort);
   const submitAnswer = new SubmitRecallAnswerUseCase(
     recallRepo,
     learningRepo,
@@ -50,13 +66,21 @@ export function createRecallUseCases(
     promptStrategy,
     coordinator, // Explicit, mandatory Change 06 coordinator injection
   );
+  const submitSessionAnswerPort = new PrismaSubmitSessionAnswerAdapter(prisma);
+  const submitSessionAnswer = new SubmitSessionAnswerUseCase(submitSessionAnswerPort);
   const completeSession = new CompleteRecallSessionUseCase(recallRepo);
+  const abandonSessionPort = new PrismaAbandonRecallSessionAdapter(prisma);
+  const abandonSession = new AbandonRecallSessionUseCase(abandonSessionPort);
 
   return {
     startSession,
+    startPlannedSession,
     getPrompt,
+    getSessionPrompt,
     submitAnswer,
+    submitSessionAnswer,
     completeSession,
+    abandonSession,
     coordinator,
   };
 }

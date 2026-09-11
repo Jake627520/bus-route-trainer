@@ -1,3 +1,4 @@
+import { CardState } from '../learning/learning-card';
 import { RecallMode, RecallOutcome } from './recall-session';
 
 export interface RecallAttemptProps {
@@ -12,6 +13,11 @@ export interface RecallAttemptProps {
   startedAt: Date;
   answeredAt: Date;
   durationMs?: number;
+  resultingState?: CardState;
+  resultingSrsLevel?: number;
+  resultingNextReviewAt?: Date | null;
+  resultingRepetitions?: number;
+  resultingLapses?: number;
 }
 
 export class RecallAttempt {
@@ -26,6 +32,11 @@ export class RecallAttempt {
   public readonly startedAt: Date;
   public readonly answeredAt: Date;
   public readonly durationMs: number;
+  public readonly resultingState: CardState;
+  public readonly resultingSrsLevel: number;
+  public readonly resultingNextReviewAt: Date | null;
+  public readonly resultingRepetitions: number;
+  public readonly resultingLapses: number;
 
   constructor(props: RecallAttemptProps) {
     this.id = props.id;
@@ -41,5 +52,10 @@ export class RecallAttempt {
     this.durationMs =
       props.durationMs ??
       Math.max(0, props.answeredAt.getTime() - props.startedAt.getTime());
+    this.resultingState = props.resultingState ?? CardState.NEW;
+    this.resultingSrsLevel = props.resultingSrsLevel ?? 0;
+    this.resultingNextReviewAt = props.resultingNextReviewAt ?? null;
+    this.resultingRepetitions = props.resultingRepetitions ?? 0;
+    this.resultingLapses = props.resultingLapses ?? 0;
   }
 }

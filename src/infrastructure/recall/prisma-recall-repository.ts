@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { RecallRepository } from '../../application/recall/recall-repository.port';
+import { CardState } from '../../domain/learning/learning-card';
 import {
   RecallSession,
   SessionStatus,
@@ -67,6 +68,7 @@ export class PrismaRecallRepository implements RecallRepository {
         routeId: session.routeId,
         targetVariantKey: session.targetVariantKey,
         status: session.status,
+        plannedCardIds: [...session.plannedCardIds],
         currentPromptIndex: session.currentPromptIndex,
         currentCardKey: session.currentCardKey,
         currentRecallMode: session.currentRecallMode,
@@ -111,6 +113,11 @@ export class PrismaRecallRepository implements RecallRepository {
           startedAt: attempt.startedAt,
           answeredAt: attempt.answeredAt,
           durationMs: attempt.durationMs,
+          resultingState: attempt.resultingState,
+          resultingSrsLevel: attempt.resultingSrsLevel,
+          resultingNextReviewAt: attempt.resultingNextReviewAt,
+          resultingRepetitions: attempt.resultingRepetitions,
+          resultingLapses: attempt.resultingLapses,
         },
       });
 
@@ -159,6 +166,7 @@ export class PrismaRecallRepository implements RecallRepository {
     routeId: string;
     targetVariantKey: string;
     status: string;
+    plannedCardIds?: string[];
     currentPromptIndex: number;
     currentCardKey: string | null;
     currentRecallMode: string | null;
@@ -174,6 +182,10 @@ export class PrismaRecallRepository implements RecallRepository {
       routeId: record.routeId,
       targetVariantKey: record.targetVariantKey,
       status: record.status as SessionStatus,
+      plannedCardIds:
+        record.plannedCardIds && record.plannedCardIds.length > 0
+          ? record.plannedCardIds
+          : (record.currentCardKey ? [record.currentCardKey] : ['legacy-card']),
       currentPromptIndex: record.currentPromptIndex,
       currentCardKey: record.currentCardKey,
       currentRecallMode: record.currentRecallMode ? (record.currentRecallMode as RecallMode) : null,
@@ -197,6 +209,11 @@ export class PrismaRecallRepository implements RecallRepository {
     startedAt: Date;
     answeredAt: Date;
     durationMs: number;
+    resultingState?: string;
+    resultingSrsLevel?: number;
+    resultingNextReviewAt?: Date | null;
+    resultingRepetitions?: number;
+    resultingLapses?: number;
   }): RecallAttempt {
     return new RecallAttempt({
       id: record.id,
@@ -210,6 +227,11 @@ export class PrismaRecallRepository implements RecallRepository {
       startedAt: record.startedAt,
       answeredAt: record.answeredAt,
       durationMs: record.durationMs,
+      resultingState: record.resultingState ? (record.resultingState as CardState) : CardState.NEW,
+      resultingSrsLevel: record.resultingSrsLevel ?? 0,
+      resultingNextReviewAt: record.resultingNextReviewAt ?? null,
+      resultingRepetitions: record.resultingRepetitions ?? 0,
+      resultingLapses: record.resultingLapses ?? 0,
     });
   }
 }

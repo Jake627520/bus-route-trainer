@@ -186,6 +186,7 @@ model RecallSession {
   routeId                String
   targetVariantKey       String
   status                 SessionStatus   @default(IN_PROGRESS)
+  plannedCardIds         String[]        @default([]) @map("planned_card_ids")
   currentPromptIndex     Int             @default(0)
   currentCardKey         String?
   currentRecallMode      RecallMode?
@@ -202,18 +203,24 @@ model RecallSession {
 }
 
 model RecallAttempt {
-  id             String        @id @default(uuid())
-  sessionId      String
-  promptIndex    Int
-  cardKey        String        // Historical semantic snapshot, not a foreign key
-  recallMode     RecallMode
-  rawInput       String
-  expectedAnswer String        // Exact stopId or pre-normalized stop name
-  outcome        RecallOutcome
-  startedAt      DateTime
-  answeredAt     DateTime      @default(now())
-  durationMs     Int           // Server-calculated: answeredAt - startedAt
-  session        RecallSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  id                    String        @id @default(uuid())
+  sessionId             String
+  promptIndex           Int
+  cardKey               String        // Historical semantic snapshot, not a foreign key
+  recallMode            RecallMode
+  rawInput              String
+  expectedAnswer        String        // Exact stopId or pre-normalized stop name
+  outcome               RecallOutcome
+  startedAt             DateTime
+  answeredAt            DateTime      @default(now())
+  durationMs            Int           // Server-calculated: answeredAt - startedAt
+  // Historical resulting SRS snapshot for authoritative idempotent replay
+  resultingState        CardState     @default(NEW) @map("resulting_state")
+  resultingSrsLevel     Int           @default(0) @map("resulting_srs_level")
+  resultingNextReviewAt DateTime?     @map("resulting_next_review_at")
+  resultingRepetitions  Int           @default(0) @map("resulting_repetitions")
+  resultingLapses       Int           @default(0) @map("resulting_lapses")
+  session               RecallSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@unique([sessionId, promptIndex])
   @@index([sessionId])
