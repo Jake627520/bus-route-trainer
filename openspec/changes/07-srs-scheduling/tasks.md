@@ -129,8 +129,27 @@
 
 ---
 
-## Phase 6: Final Verification & Regression
-- [ ] 6.1 Run full regression suite (`npm test -- --run`).
-- [ ] 6.2 ESLint & Build check (`npm run lint`, `npm run build`).
-- [ ] 6.3 OpenSpec validation (`openspec validate 07-srs-scheduling`, `openspec doctor`).
-- [ ] 6.4 Git scope and diff audit.
+## Phase 6: Recall Session Selection Application Use Case & Port Composition
+- [x] 6.1 Enhance `RecallQueuePolicyResult` in `src/domain/learning/recall-queue-policy.ts`:
+  - Add `selectedDueCount`, `selectedNewCount`, `eligibleDueCount`, `eligibleNewCount`.
+  - Authoritatively track and return pool metrics from pure domain policy.
+- [x] 6.2 Declare `NewLearningCardsQueryPort` in `src/application/learning/new-learning-cards-query-port.ts`:
+  - `findNewCards(params: FindNewCardsParams): Promise<LearningCard[]>`.
+- [x] 6.3 Implement `PlanRecallSessionUseCase` in `src/application/learning/plan-recall-session-use-case.ts`:
+  - Pure application orchestrator injecting `Clock`, `DueLearningCardsQueryPort`, `NewLearningCardsQueryPort`.
+  - Unbounded candidate queries to prevent starvation; pure delegation to `selectRecallQueue`.
+  - Return `{ plan: RecallSessionPlan | null, selectedDueCount, selectedNewCount, totalEligibleCount }`.
+- [x] 6.4 Implement `PrismaNewLearningCardsRepository` in `src/infrastructure/learning/prisma-new-learning-cards-repository.ts`:
+  - Query `state: CardState.NEW` and `nextReviewAt: null` ordered by `id ASC`.
+- [x] 6.5 Write tests in `src/__tests__/application/learning/plan-recall-session-use-case.test.ts`:
+  - 14 tests covering mixed composition, shortages, anti-starvation, backfill, exclusion, parameter clamping, and Clock injection.
+- [x] 6.6 Write tests in `src/__tests__/infrastructure/srs/prisma-new-learning-cards-repository.test.ts`:
+  - 4 integration tests verifying NEW state filtering, review exclusion, non-enrollment, and limit.
+
+---
+
+## Phase 7: Final Verification & Regression
+- [ ] 7.1 Run full regression suite (`npm test -- --run`).
+- [ ] 7.2 ESLint & Build check (`npm run lint`, `npm run build`).
+- [ ] 7.3 OpenSpec validation (`openspec validate 07-srs-scheduling`, `openspec doctor`).
+- [ ] 7.4 Git scope and diff audit.

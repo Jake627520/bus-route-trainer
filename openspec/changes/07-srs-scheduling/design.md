@@ -220,3 +220,26 @@ Construct an optimized, deterministic Recall Session of 10–20 cards tailored f
   - Non-empty validation (`cardIds.length > 0`).
   - Strict uniqueness validation (no duplicate card IDs).
   - Snapshot immutability: session sequence is fixed at creation time; SRS mutations during review do not reshuffle the in-progress session plan.
+
+---
+
+## 8. Recall Session Selection Application Orchestrator (Phase 6)
+
+### 8.1 Responsibilities & Clean Architecture Boundaries
+- `PlanRecallSessionUseCase`:
+  - Pure application orchestrator: injects `Clock`, `DueLearningCardsQueryPort`, and `NewLearningCardsQueryPort`.
+  - Zero duplicate queue policy logic: does not implement 70/30 mixing, sorting, backfill, or deduplication; 100% delegates to `selectRecallQueue`.
+  - Candidate Query Unbounded by Default: queries candidate pools without premature limits (`limit` undefined) to ensure the domain policy has full visibility to execute asymmetric backfill without candidate starvation.
+  - Returns `PlanRecallSessionResult`:
+    - `plan: RecallSessionPlan | null`: null when candidate pool is empty or fully excluded.
+    - `selectedDueCount`: number of DUE cards included in the session plan.
+    - `selectedNewCount`: number of NEW cards included in the session plan.
+    - `totalEligibleCount`: total available candidates after policy filtering and exclusion (`eligibleDueCount + eligibleNewCount`).
+
+### 8.2 Dedicated Ports & Infrastructure Adapters
+- `NewLearningCardsQueryPort`:
+  - Interface dedicated exclusively to retrieving candidate cards in `state: CardState.NEW` and `nextReviewAt: null`.
+  - Zero overlap with `DueLearningCardsQueryPort`.
+- `PrismaNewLearningCardsRepository`:
+  - Infrastructure adapter querying `driverVariantProgress` by `(driverId, targetVariantKey)` and filtering `learningCard` by `state: CardState.NEW` and `nextReviewAt: null`.
+  - Ordered deterministically by `id ASC`.

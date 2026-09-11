@@ -21,6 +21,10 @@ export interface RecallQueuePolicyInput {
 
 export interface RecallQueuePolicyResult {
   readonly cardIds: readonly string[];
+  readonly selectedDueCount: number;
+  readonly selectedNewCount: number;
+  readonly eligibleDueCount: number;
+  readonly eligibleNewCount: number;
 }
 
 /**
@@ -37,12 +41,19 @@ export interface RecallQueuePolicyResult {
  *    dueTarget = Math.ceil(sessionSize * dueRatio).
  *    Asymmetric backfill: DUE deficit filled by NEW; NEW deficit filled by DUE.
  * 6. Deduplication invariant: zero duplicate card IDs in output.
+ * 7. Metrics invariant: authoritatively returns selected and eligible counts for both pools.
  */
 export function selectRecallQueue(
   input: RecallQueuePolicyInput,
 ): RecallQueuePolicyResult {
   if (input.sessionSize <= 0) {
-    return { cardIds: [] };
+    return {
+      cardIds: [],
+      selectedDueCount: 0,
+      selectedNewCount: 0,
+      eligibleDueCount: 0,
+      eligibleNewCount: 0,
+    };
   }
 
   const effectiveSessionSize = Math.min(input.sessionSize, MAX_SESSION_SIZE);
@@ -106,5 +117,9 @@ export function selectRecallQueue(
 
   return {
     cardIds: Object.freeze(finalCardIds),
+    selectedDueCount: selectedDue.length,
+    selectedNewCount: selectedNew.length,
+    eligibleDueCount: sortedDue.length,
+    eligibleNewCount: sortedNew.length,
   };
 }

@@ -301,4 +301,55 @@ describe('RecallQueuePolicy (Domain Engine)', () => {
     expect(dueSelected).toHaveLength(5);
     expect(newSelected).toHaveLength(5);
   });
+
+  it('(16) authoritatively returns selected and eligible counts (TDD RED)', () => {
+    // 15 DUE available, 10 NEW available, sessionSize = 15 (70/30 -> 11 DUE, 4 NEW)
+    const dueCards = Array.from({ length: 15 }, (_, i) => makeDueCard(`due-${i}`, 100 - i));
+    const newCards = Array.from({ length: 10 }, (_, i) => makeNewCard(`new-${i}`));
+
+    const result = selectRecallQueue({
+      dueCards,
+      newCards,
+      now: fixedNow,
+      sessionSize: 15,
+    });
+
+    expect(result.selectedDueCount).toBe(11);
+    expect(result.selectedNewCount).toBe(4);
+    expect(result.eligibleDueCount).toBe(15);
+    expect(result.eligibleNewCount).toBe(10);
+  });
+
+  it('(17) accounts for excludedCardIds and cross-pool deduplication in eligible counts (TDD RED)', () => {
+    // 5 DUE, where 2 are excluded -> eligibleDueCount = 3
+    const dueCards = [
+      makeDueCard('due-1', 10),
+      makeDueCard('due-2', 20),
+      makeDueCard('due-3', 30),
+      makeDueCard('due-excluded-1', 40),
+      makeDueCard('due-excluded-2', 50),
+    ];
+    // 4 NEW, where 1 is in DUE (cross-pool dup) and 1 is excluded -> eligibleNewCount = 2
+    const newCards = [
+      makeNewCard('due-1'), // cross-pool duplicate
+      makeNewCard('new-1'),
+      makeNewCard('new-2'),
+      makeNewCard('new-excluded-1'),
+    ];
+
+    const excluded = new Set(['due-excluded-1', 'due-excluded-2', 'new-excluded-1']);
+
+    const result = selectRecallQueue({
+      dueCards,
+      newCards,
+      now: fixedNow,
+      sessionSize: 10,
+      excludedCardIds: excluded,
+    });
+
+    expect(result.eligibleDueCount).toBe(3);
+    expect(result.eligibleNewCount).toBe(2);
+    expect(result.selectedDueCount).toBe(3);
+    expect(result.selectedNewCount).toBe(2);
+  });
 });
