@@ -89,12 +89,48 @@
 
 ---
 
-## Phase 5: Verification & Regression
-- [ ] 5.1 Run full regression suite (`npm test -- --run`):
-  - Ensure all 38 test files and 228 existing tests remain 100% passing.
-- [ ] 5.2 ESLint & Build check:
-  - `npm run lint`
-  - `npm run build`
-- [ ] 5.3 OpenSpec validation:
-  - `openspec validate 07-srs-scheduling`
-  - `openspec doctor`
+## Phase 5: Review Queue & Recall Session Selection Policy (Domain & TDD)
+- [x] 5.1 Implement `src/domain/learning/recall-queue-policy.ts`:
+  - Define `RecallQueueCandidate`, `RecallQueuePolicyInput`, `RecallQueuePolicyResult`.
+  - Constants: `DEFAULT_SESSION_SIZE = 15`, `MAX_SESSION_SIZE = 20`, `DEFAULT_DUE_RATIO = 0.7`.
+  - Pure function `selectRecallQueue(input)`:
+    - Exclude cards in `excludedCardIds`.
+    - Sort DUE pool: oldest `nextReviewAt` first (overdue duration DESC), tie-breaker `cardId ASC`.
+    - Sort NEW pool: deterministic `cardId ASC`.
+    - Target calculation: `dueTarget = Math.ceil(sessionSize * dueRatio)`, `newTarget = sessionSize - dueTarget`.
+    - Asymmetric dynamic backfill between DUE and NEW pools.
+    - Clamping: `result.length <= min(sessionSize, MAX_SESSION_SIZE)`.
+    - Invariant: Zero duplicate card IDs in output.
+- [x] 5.2 Implement `src/domain/learning/recall-session-plan.ts`:
+  - Immutable domain entity `RecallSessionPlan` (`sessionId`, `cardIds`, `createdAt`).
+  - Enforce non-empty and non-duplicate validations.
+  - Defensively copy/freeze inputs; no system clock access.
+- [x] 5.3 Write unit tests in `src/__tests__/domain/learning/recall-queue-policy.test.ts`:
+  - Test 1: DUE preferred over NEW up to target ratio.
+  - Test 2: Default 70/30 target mix.
+  - Test 3: DUE shortage filled by NEW.
+  - Test 4: NEW shortage filled by DUE.
+  - Test 5: Both pools insufficient returns all available.
+  - Test 6: Session size respected (e.g. 15).
+  - Test 7: Maximum session size respected (capped at 20).
+  - Test 8: Session size <= 0 returns empty array.
+  - Test 9: Excluded cards removed from candidates.
+  - Test 10: Duplicate candidate IDs in input never produce duplicates in output.
+  - Test 11: Oldest overdue DUE cards selected first.
+  - Test 12: Equal nextReviewAt uses cardId ASC tie-breaker.
+  - Test 13: NEW cards ordered deterministically by cardId ASC.
+  - Test 14: Exact due boundary (nextReviewAt <= now) accepted; future cards filtered out.
+  - Test 15: Supplied now is respected; no internal system-clock access.
+- [x] 5.4 Write unit tests in `src/__tests__/domain/learning/recall-session-plan.test.ts`:
+  - Test 16: Session snapshot preserves card order.
+  - Test 17: Session snapshot rejects duplicate card IDs.
+  - Test 18: Empty session is rejected with descriptive error.
+  - Test 19: Defensively clones createdAt and freezes cardIds array.
+
+---
+
+## Phase 6: Final Verification & Regression
+- [ ] 6.1 Run full regression suite (`npm test -- --run`).
+- [ ] 6.2 ESLint & Build check (`npm run lint`, `npm run build`).
+- [ ] 6.3 OpenSpec validation (`openspec validate 07-srs-scheduling`, `openspec doctor`).
+- [ ] 6.4 Git scope and diff audit.

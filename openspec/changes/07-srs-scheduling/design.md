@@ -176,3 +176,47 @@ Infrastructure implementation (`PrismaDueLearningCardsRepository`) must execute:
 4. `repetitions`
 5. `lapses`
 alongside `RecallAttempt`, `DriverVariantProgress.status`, and `RecallSession` cursor in the existing single transaction.
+
+---
+
+## 7. Review Queue & Recall Session Selection Policy (Phase 5)
+
+### 7.1 Selection Engine Objectives & Product Scenario
+Construct an optimized, deterministic Recall Session of 10–20 cards tailored for a Queensland bus driver's 5–10 minute pre-shift memory consolidation window.
+
+### 7.2 Candidate Pools
+- **DUE Pool**:
+  - `card.nextReviewAt !== null && card.nextReviewAt <= now`.
+  - Ordered deterministically:
+    1. Overdue duration DESC (i.e. `nextReviewAt ASC`).
+    2. Tie-breaker: `cardId ASC`.
+- **NEW Pool**:
+  - `card.state === CardState.NEW && card.nextReviewAt === null`.
+  - Ordered deterministically: `cardId ASC`.
+- **Intra-session Duplicate Prevention (Session-level Exclusion vs. SRS Time Cooldown)**:
+  - **SRS Layer**: `nextReviewAt` 負責時間冷卻與到期判定（FAIL 後由 SRS `scheduleReview` 設定 `nextReviewAt = now + 10m`；未到期卡片自然不落入 DUE pool）。
+  - **Session Layer**: `excludedCardIds: ReadonlySet<string>` 僅負責防止當次 Session 重複出題（session-level exclusion），排除已在當次 Session 出現過的卡片。`RecallQueuePolicy` 不維護也不感知冷卻時間戳。
+  - Cards specified in `excludedCardIds` are strictly excluded from both DUE and NEW pools.
+  - Final card sequence contains zero duplicate card IDs.
+
+### 7.3 Target Mixing Ratio & Dynamic Backfill
+- Default session size: `DEFAULT_SESSION_SIZE = 15`. Max session size: `MAX_SESSION_SIZE = 20`.
+- Target ratio: `DEFAULT_DUE_RATIO = 0.7` (70% DUE, 30% NEW).
+- Targets:
+  - `dueTarget = Math.ceil(sessionSize * dueRatio)`
+  - `newTarget = sessionSize - dueTarget`
+- Asymmetric dynamic backfill:
+  - If DUE cards are insufficient, available NEW cards fill the remaining deficit up to `sessionSize`.
+  - If NEW cards are insufficient, available DUE cards fill the remaining deficit up to `sessionSize`.
+  - If both pools combined are insufficient, return all available non-excluded cards.
+  - Clamping: `selected.length <= min(sessionSize, MAX_SESSION_SIZE)`.
+
+### 7.4 Immutable Session Plan Snapshot
+- `RecallSessionPlan`:
+  - `sessionId: string`
+  - `cardIds: readonly string[]` (frozen snapshot)
+  - `createdAt: Date` (cloned defensively)
+- Guarantees:
+  - Non-empty validation (`cardIds.length > 0`).
+  - Strict uniqueness validation (no duplicate card IDs).
+  - Snapshot immutability: session sequence is fixed at creation time; SRS mutations during review do not reshuffle the in-progress session plan.
