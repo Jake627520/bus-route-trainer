@@ -148,6 +148,7 @@ model LearningCard {
   cardKey      String
   cardType     CardType
   state        CardState             @default(NEW)
+  srsLevel     Int                   @default(0) @map("srs_level")
   nextReviewAt DateTime?
   repetitions  Int                   @default(0)
   lapses       Int                   @default(0)
@@ -155,6 +156,7 @@ model LearningCard {
 
   @@unique([progressId, cardKey])
   @@index([progressId, cardType])
+  @@index([progressId, nextReviewAt])
   @@map("learning_card")
 }
 
