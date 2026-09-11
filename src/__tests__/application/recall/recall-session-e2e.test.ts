@@ -383,8 +383,9 @@ describe('Change 05 Recall Session Domain End-to-End Vertical Slice Integration'
     const sessionAfter = await recallRepo.findById(sessionId);
     expect(sessionAfter?.currentPromptIndex).toBe(1);
 
-    // (e) nextReviewAt remains unchanged (null)
-    expect(cardAfter.nextReviewAt).toBeNull();
+    // (e) nextReviewAt and srsLevel are now scheduled according to SRS ladder
+    expect(cardAfter.nextReviewAt).not.toBeNull();
+    expect(cardAfter.srsLevel).toBe(1);
 
     // Clean up
     await recallUseCases.completeSession.execute({

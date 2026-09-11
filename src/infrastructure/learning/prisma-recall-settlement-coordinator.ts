@@ -26,21 +26,25 @@ import {
   SessionStatus,
 } from '@/domain/recall/recall-session';
 import { RecallAttempt } from '@/domain/recall/recall-attempt';
-import {
-  evaluateCardTransition,
-  calculateNextRepetitions,
-  calculateNextLapses,
-  calculateVariantProgressStatus,
-} from '@/domain/learning/evaluate-card-transition';
+import { calculateVariantProgressStatus } from '@/domain/learning/evaluate-card-transition';
+import { scheduleReview } from '@/domain/srs/schedule-review';
+import { SrsLevel } from '@/domain/srs/srs-interval-policy';
+import { Clock, SystemClock } from '@/application/common/clock';
 import { SessionNotActiveError } from '@/application/recall/get-current-recall-prompt-use-case';
 
 export class PrismaRecallSettlementCoordinator implements RecallSettlementCoordinator {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(
+    private readonly prisma: PrismaClient,
+    private readonly clock: Clock = new SystemClock(),
+  ) {}
 
   async settleAttempt(input: SettleRecallAttemptInput): Promise<SettleRecallAttemptOutput> {
     try {
       return await this.prisma.$transaction(async (tx) => {
-        // 1. Verify session is IN_PROGRESS
+        // 1. Authoritative Clock: single timestamp for the entire settlement transaction
+        const authoritativeNow = this.clock.now();
+
+        // 2. Verify session is IN_PROGRESS
         const sessionRecord = await tx.recallSession.findUnique({
           where: { id: input.sessionId },
         });
@@ -51,7 +55,7 @@ export class PrismaRecallSettlementCoordinator implements RecallSettlementCoordi
           );
         }
 
-        // 2. Insert RecallAttempt
+        // 3. Insert RecallAttempt (governed by unique constraint (sessionId, promptIndex))
         const attemptRecord = await tx.recallAttempt.create({
           data: {
             id: randomUUID(),
@@ -63,84 +67,99 @@ export class PrismaRecallSettlementCoordinator implements RecallSettlementCoordi
             expectedAnswer: input.expectedAnswer,
             outcome: input.outcome as PrismaRecallOutcome,
             startedAt: input.startedAt,
-            answeredAt: input.answeredAt,
+            answeredAt: authoritativeNow,
             durationMs: input.durationMs,
           },
         });
 
-        // 3. Find progress and target LearningCard
-        const progressRecord = await tx.driverVariantProgress.findUnique({
-          where: {
-            driverId_targetVariantKey: {
-              driverId: input.driverId,
-              targetVariantKey: input.targetVariantKey,
-            },
-          },
-          include: { cards: true },
-        });
+        // 4. Concurrency Guard: Pessimistic Row Lock (SELECT ... FOR UPDATE)
+        // Resolves parent progress and locks the specific LearningCard BEFORE scheduleReview is invoked
+        const lockedCards = await tx.$queryRaw<
+          Array<{
+            id: string;
+            progressId: string;
+            cardKey: string;
+            cardType: string;
+            state: string;
+            srs_level: number;
+            nextReviewAt: Date | null;
+            repetitions: number;
+            lapses: number;
+          }>
+        >`
+          SELECT id, "progressId", "cardKey", "cardType", state, srs_level, "nextReviewAt", repetitions, lapses
+          FROM learning_card
+          WHERE "progressId" = (
+            SELECT id FROM driver_variant_progress
+            WHERE "driverId" = ${input.driverId} AND "targetVariantKey" = ${input.targetVariantKey}
+          )
+          AND "cardKey" = ${input.cardKey}
+          FOR UPDATE;
+        `;
 
-        if (!progressRecord) {
+        if (!lockedCards || lockedCards.length === 0) {
           throw new Error(
-            `DriverVariantProgress not found for driver '${input.driverId}' and variant '${input.targetVariantKey}'`,
+            `LearningCard not found for cardKey '${input.cardKey}' (driver: '${input.driverId}', variant: '${input.targetVariantKey}')`,
           );
         }
 
-        const targetCardRecord = progressRecord.cards.find(
-          (c) => c.cardKey === input.cardKey,
-        );
+        const targetCardRecord = lockedCards[0];
 
-        if (!targetCardRecord) {
-          throw new Error(`LearningCard not found for cardKey '${input.cardKey}'`);
-        }
-
-        // 4. Calculate state machine transition and counters
-        const domainState = targetCardRecord.state as CardState;
+        // 5. Invoke Pure Domain SRS Scheduler on latest, locked row state
         const reviewResult = input.outcome as 'PASS' | 'FAIL';
-        const nextState = evaluateCardTransition(domainState, reviewResult);
-        const nextRepetitions = calculateNextRepetitions(
-          targetCardRecord.repetitions,
+        const decision = scheduleReview(
+          {
+            state: targetCardRecord.state as CardState,
+            srsLevel: targetCardRecord.srs_level as SrsLevel,
+            repetitions: targetCardRecord.repetitions,
+            lapses: targetCardRecord.lapses,
+            nextReviewAt: targetCardRecord.nextReviewAt,
+          },
           reviewResult,
-        );
-        const nextLapses = calculateNextLapses(
-          targetCardRecord.lapses,
-          domainState,
-          reviewResult,
+          authoritativeNow,
         );
 
-        // 5. Update LearningCard in tx (nextReviewAt untouched; no lastReviewedAt)
+        // 6. Update all 5 LearningCard fields atomically in tx
         const updatedCardRecord = await tx.learningCard.update({
           where: { id: targetCardRecord.id },
           data: {
-            state: nextState as PrismaCardState,
-            repetitions: nextRepetitions,
-            lapses: nextLapses,
+            state: decision.nextState as PrismaCardState,
+            srsLevel: decision.nextSrsLevel,
+            nextReviewAt: decision.nextReviewAt,
+            repetitions: decision.nextRepetitions,
+            lapses: decision.nextLapses,
           },
         });
 
-        // 6. Recalculate variant progress status (no progressPercent column)
-        const updatedCards = progressRecord.cards.map((c) =>
+        // 7. Recalculate variant progress status
+        const allCardsInProgress = await tx.learningCard.findMany({
+          where: { progressId: targetCardRecord.progressId },
+          select: { id: true, state: true },
+        });
+
+        const updatedCards = allCardsInProgress.map((c) =>
           c.id === targetCardRecord.id
-            ? { state: nextState }
+            ? { state: decision.nextState }
             : { state: c.state as CardState },
         );
         const newProgressStatus = calculateVariantProgressStatus(updatedCards);
 
         await tx.driverVariantProgress.update({
-          where: { id: progressRecord.id },
+          where: { id: targetCardRecord.progressId },
           data: {
             status: newProgressStatus as PrismaProgressStatus,
-            lastStudiedAt: input.answeredAt,
+            lastStudiedAt: authoritativeNow,
           },
         });
 
-        // 7. Advance RecallSession in tx
+        // 8. Advance RecallSession in tx
         const nextSnapshot = input.nextPromptSnapshot;
         const updatedSessionRecord = await tx.recallSession.update({
           where: { id: input.sessionId },
           data: input.isLastPrompt
             ? {
                 status: PrismaSessionStatus.COMPLETED,
-                completedAt: input.answeredAt,
+                completedAt: authoritativeNow,
                 currentPromptIndex: input.promptIndex + 1,
                 currentCardKey: null,
                 currentRecallMode: null,
@@ -263,16 +282,20 @@ export class PrismaRecallSettlementCoordinator implements RecallSettlementCoordi
     cardKey: string;
     cardType: string;
     state: string;
+    srsLevel?: number;
+    srs_level?: number;
     nextReviewAt: Date | null;
     repetitions: number;
     lapses: number;
   }): LearningCard {
+    const rawLevel = record.srsLevel ?? record.srs_level ?? 0;
     return new LearningCard({
       id: record.id,
       progressId: record.progressId,
       cardKey: record.cardKey,
       cardType: record.cardType as CardType,
       state: record.state as CardState,
+      srsLevel: rawLevel as SrsLevel,
       nextReviewAt: record.nextReviewAt,
       repetitions: record.repetitions,
       lapses: record.lapses,

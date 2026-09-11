@@ -9,6 +9,7 @@ import {
   ProgressStatus,
 } from '@/domain/learning/driver-variant-progress';
 import { LearningCard, CardType, CardState } from '@/domain/learning/learning-card';
+import { SrsLevel } from '@/domain/srs/srs-interval-policy';
 import { LearningProgressRepository } from '@/application/learning/learning-progress-repository.port';
 
 export class PrismaLearningProgressRepository implements LearningProgressRepository {
@@ -97,6 +98,7 @@ export class PrismaLearningProgressRepository implements LearningProgressReposit
       cardKey: string;
       cardType: string;
       state: string;
+      srsLevel: number;
       nextReviewAt: Date | null;
       repetitions: number;
       lapses: number;
@@ -110,6 +112,7 @@ export class PrismaLearningProgressRepository implements LearningProgressReposit
           cardKey: c.cardKey,
           cardType: c.cardType as CardType,
           state: c.state as CardState,
+          srsLevel: c.srsLevel as SrsLevel,
           nextReviewAt: c.nextReviewAt,
           repetitions: c.repetitions,
           lapses: c.lapses,

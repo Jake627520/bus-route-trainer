@@ -18,9 +18,21 @@ import {
 import { CardState } from '@/domain/learning/learning-card';
 import { ProgressStatus } from '@/domain/learning/driver-variant-progress';
 import { SequentialTopologyPromptStrategy } from '@/domain/recall/prompt-selection-strategy';
+import { randomUUID } from 'crypto';
+import { Clock } from '@/application/common/clock';
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
 
-describe('Change 06: Recall Settlement Coordinator & Learning Review Outcome (PostgreSQL)', () => {
+class FixedClock implements Clock {
+  constructor(private currentDate: Date) {}
+  now(): Date {
+    return this.currentDate;
+  }
+  setDate(d: Date): void {
+    this.currentDate = d;
+  }
+}
+
+describe('Change 06 & 07: Recall Settlement Coordinator & Learning Review Outcome (PostgreSQL)', () => {
   const prisma = new PrismaClient();
   const writeRepo = new PrismaGtfsRepository(prisma);
   const readRepo = new PrismaGtfsReadRepository(prisma);
@@ -101,7 +113,7 @@ describe('Change 06: Recall Settlement Coordinator & Learning Review Outcome (Po
     await prisma.$disconnect();
   });
 
-  it('(1) completes 3-stage learning progression (NEW -> LEARNING -> REVIEW -> MASTERED) with intermediate failure', async () => {
+  it('(1) completes 3-stage learning progression (NEW -> LEARNING -> REVIEW -> MASTERED) with intermediate failure and SRS ladder levels', async () => {
     const startResult = await startSessionUseCase.execute({
       driverId: DEFAULT_DRIVER_ID,
       routeId,
@@ -119,11 +131,12 @@ describe('Change 06: Recall Settlement Coordinator & Learning Review Outcome (Po
     );
     const cardBefore = progressBefore!.cards.find((c) => c.cardKey === cardKey)!;
     expect(cardBefore.state).toBe(CardState.NEW);
+    expect(cardBefore.srsLevel).toBe(0);
     expect(cardBefore.repetitions).toBe(0);
     expect(cardBefore.lapses).toBe(0);
     expect(progressBefore!.status).toBe(ProgressStatus.NOT_STARTED);
 
-    // Step 1: NEW + PASS -> LEARNING
+    // Step 1: NEW (L0) + PASS -> LEARNING (L1, 1d)
     const res1 = await submitAnswerUseCase.execute({
       sessionId,
       promptIndex: 0,
@@ -133,13 +146,15 @@ describe('Change 06: Recall Settlement Coordinator & Learning Review Outcome (Po
 
     const cardAfter1 = await prisma.learningCard.findUnique({ where: { id: cardBefore.id } });
     expect(cardAfter1!.state).toBe(CardState.LEARNING);
+    expect(cardAfter1!.srsLevel).toBe(1);
     expect(cardAfter1!.repetitions).toBe(1);
     expect(cardAfter1!.lapses).toBe(0);
+    expect(cardAfter1!.nextReviewAt).not.toBeNull();
 
     const progressAfter1 = await prisma.driverVariantProgress.findUnique({ where: { id: progressBefore!.id } });
     expect(progressAfter1!.status).toBe(ProgressStatus.IN_PROGRESS);
 
-    // Step 2: In LEARNING, simulate a FAIL -> should stay in LEARNING without incrementing lapses!
+    // Step 2: In LEARNING (L1), simulate a FAIL -> should reset to L0, stay in LEARNING without incrementing lapses
     await coordinator.settleAttempt({
       sessionId,
       promptIndex: 1,
@@ -165,10 +180,11 @@ describe('Change 06: Recall Settlement Coordinator & Learning Review Outcome (Po
 
     const cardAfter2 = await prisma.learningCard.findUnique({ where: { id: cardBefore.id } });
     expect(cardAfter2!.state).toBe(CardState.LEARNING);
+    expect(cardAfter2!.srsLevel).toBe(0);
     expect(cardAfter2!.repetitions).toBe(1); // unchanged on FAIL
     expect(cardAfter2!.lapses).toBe(0); // initial learning fail is NOT a lapse
 
-    // Step 3: LEARNING + PASS -> REVIEW
+    // Step 3: LEARNING (L0) + PASS -> REVIEW (L2, 3d)
     await coordinator.settleAttempt({
       sessionId,
       promptIndex: 2,
@@ -194,10 +210,11 @@ describe('Change 06: Recall Settlement Coordinator & Learning Review Outcome (Po
 
     const cardAfter3 = await prisma.learningCard.findUnique({ where: { id: cardBefore.id } });
     expect(cardAfter3!.state).toBe(CardState.REVIEW);
+    expect(cardAfter3!.srsLevel).toBe(2);
     expect(cardAfter3!.repetitions).toBe(2);
     expect(cardAfter3!.lapses).toBe(0);
 
-    // Step 4: REVIEW + PASS -> MASTERED
+    // Step 4: REVIEW (L2) + PASS -> REVIEW (L3, 7d)
     await coordinator.settleAttempt({
       sessionId,
       promptIndex: 3,
@@ -211,16 +228,77 @@ describe('Change 06: Recall Settlement Coordinator & Learning Review Outcome (Po
       startedAt: new Date(),
       answeredAt: new Date(),
       durationMs: 500,
-      isLastPrompt: true,
+      isLastPrompt: false,
+      nextPromptSnapshot: {
+        nextPromptIndex: 4,
+        nextCardKey: cardBefore.cardKey,
+        nextRecallMode: RecallMode.NEXT_STOP_FORWARD,
+        nextExpectedAnswer: 'correct_stop',
+        nextPromptStartedAt: new Date(),
+      },
     });
 
     const cardAfter4 = await prisma.learningCard.findUnique({ where: { id: cardBefore.id } });
-    expect(cardAfter4!.state).toBe(CardState.MASTERED);
+    expect(cardAfter4!.state).toBe(CardState.REVIEW);
+    expect(cardAfter4!.srsLevel).toBe(3);
     expect(cardAfter4!.repetitions).toBe(3);
     expect(cardAfter4!.lapses).toBe(0);
+
+    // Step 5: REVIEW (L3) + PASS -> REVIEW (L4, 14d)
+    await coordinator.settleAttempt({
+      sessionId,
+      promptIndex: 4,
+      driverId: DEFAULT_DRIVER_ID,
+      targetVariantKey,
+      cardKey: cardBefore.cardKey,
+      recallMode: RecallMode.NEXT_STOP_FORWARD,
+      rawInput: 'correct_stop',
+      expectedAnswer: 'correct_stop',
+      outcome: RecallOutcome.PASS,
+      startedAt: new Date(),
+      answeredAt: new Date(),
+      durationMs: 500,
+      isLastPrompt: false,
+      nextPromptSnapshot: {
+        nextPromptIndex: 5,
+        nextCardKey: cardBefore.cardKey,
+        nextRecallMode: RecallMode.NEXT_STOP_FORWARD,
+        nextExpectedAnswer: 'correct_stop',
+        nextPromptStartedAt: new Date(),
+      },
+    });
+
+    const cardAfter5 = await prisma.learningCard.findUnique({ where: { id: cardBefore.id } });
+    expect(cardAfter5!.state).toBe(CardState.REVIEW);
+    expect(cardAfter5!.srsLevel).toBe(4);
+    expect(cardAfter5!.repetitions).toBe(4);
+    expect(cardAfter5!.lapses).toBe(0);
+
+    // Step 6: REVIEW (L4) + PASS -> MASTERED (L5, 30d)
+    await coordinator.settleAttempt({
+      sessionId,
+      promptIndex: 5,
+      driverId: DEFAULT_DRIVER_ID,
+      targetVariantKey,
+      cardKey: cardBefore.cardKey,
+      recallMode: RecallMode.NEXT_STOP_FORWARD,
+      rawInput: 'correct_stop',
+      expectedAnswer: 'correct_stop',
+      outcome: RecallOutcome.PASS,
+      startedAt: new Date(),
+      answeredAt: new Date(),
+      durationMs: 500,
+      isLastPrompt: true,
+    });
+
+    const cardAfter6 = await prisma.learningCard.findUnique({ where: { id: cardBefore.id } });
+    expect(cardAfter6!.state).toBe(CardState.MASTERED);
+    expect(cardAfter6!.srsLevel).toBe(5);
+    expect(cardAfter6!.repetitions).toBe(5);
+    expect(cardAfter6!.lapses).toBe(0);
   });
 
-  it('(2) handles MASTERED + FAIL -> REVIEW with lapses + 1 and subsequent recovery to MASTERED', async () => {
+  it('(2) handles MASTERED + FAIL -> REVIEW with lapses + 1 and subsequent recovery ladder to MASTERED', async () => {
     const startResult = await startSessionUseCase.execute({
       driverId: DEFAULT_DRIVER_ID,
       routeId,
@@ -231,17 +309,18 @@ describe('Change 06: Recall Settlement Coordinator & Learning Review Outcome (Po
     const progress = await learningRepo.findByDriverAndVariant(DEFAULT_DRIVER_ID, targetVariantKey);
     const card = progress!.cards[0];
 
-    // Seed card directly into MASTERED state
+    // Seed card directly into MASTERED state with srsLevel: 5
     await prisma.learningCard.update({
       where: { id: card.id },
       data: {
         state: CardState.MASTERED,
+        srsLevel: 5,
         repetitions: 5,
         lapses: 0,
       },
     });
 
-    // MASTERED + FAIL -> REVIEW, lapses: 1
+    // MASTERED (L5) + FAIL -> REVIEW (L0), lapses: 1
     const slipResult = await coordinator.settleAttempt({
       sessionId,
       promptIndex: 0,
@@ -266,17 +345,116 @@ describe('Change 06: Recall Settlement Coordinator & Learning Review Outcome (Po
     });
 
     expect(slipResult.card.state).toBe(CardState.REVIEW);
+    expect(slipResult.card.srsLevel).toBe(0);
     expect(slipResult.card.repetitions).toBe(5); // unchanged
     expect(slipResult.card.lapses).toBe(1); // incremented
 
     const cardInDb = await prisma.learningCard.findUnique({ where: { id: card.id } });
     expect(cardInDb!.state).toBe(CardState.REVIEW);
+    expect(cardInDb!.srsLevel).toBe(0);
     expect(cardInDb!.lapses).toBe(1);
 
-    // Subsequent REVIEW + PASS -> returns to MASTERED
-    const recoveryResult = await coordinator.settleAttempt({
+    // Recovery ladder: REVIEW L0 -> L1 -> L2 -> L3 -> L4 -> MASTERED L5
+    // Pass 1: L0 -> L1
+    await coordinator.settleAttempt({
       sessionId,
       promptIndex: 1,
+      driverId: DEFAULT_DRIVER_ID,
+      targetVariantKey,
+      cardKey: card.cardKey,
+      recallMode: RecallMode.NEXT_STOP_FORWARD,
+      rawInput: 'correct_stop',
+      expectedAnswer: 'correct_stop',
+      outcome: RecallOutcome.PASS,
+      startedAt: new Date(),
+      answeredAt: new Date(),
+      durationMs: 400,
+      isLastPrompt: false,
+      nextPromptSnapshot: {
+        nextPromptIndex: 2,
+        nextCardKey: card.cardKey,
+        nextRecallMode: RecallMode.NEXT_STOP_FORWARD,
+        nextExpectedAnswer: 'correct_stop',
+        nextPromptStartedAt: new Date(),
+      },
+    });
+
+    // Pass 2: L1 -> L2
+    await coordinator.settleAttempt({
+      sessionId,
+      promptIndex: 2,
+      driverId: DEFAULT_DRIVER_ID,
+      targetVariantKey,
+      cardKey: card.cardKey,
+      recallMode: RecallMode.NEXT_STOP_FORWARD,
+      rawInput: 'correct_stop',
+      expectedAnswer: 'correct_stop',
+      outcome: RecallOutcome.PASS,
+      startedAt: new Date(),
+      answeredAt: new Date(),
+      durationMs: 400,
+      isLastPrompt: false,
+      nextPromptSnapshot: {
+        nextPromptIndex: 3,
+        nextCardKey: card.cardKey,
+        nextRecallMode: RecallMode.NEXT_STOP_FORWARD,
+        nextExpectedAnswer: 'correct_stop',
+        nextPromptStartedAt: new Date(),
+      },
+    });
+
+    // Pass 3: L2 -> L3
+    await coordinator.settleAttempt({
+      sessionId,
+      promptIndex: 3,
+      driverId: DEFAULT_DRIVER_ID,
+      targetVariantKey,
+      cardKey: card.cardKey,
+      recallMode: RecallMode.NEXT_STOP_FORWARD,
+      rawInput: 'correct_stop',
+      expectedAnswer: 'correct_stop',
+      outcome: RecallOutcome.PASS,
+      startedAt: new Date(),
+      answeredAt: new Date(),
+      durationMs: 400,
+      isLastPrompt: false,
+      nextPromptSnapshot: {
+        nextPromptIndex: 4,
+        nextCardKey: card.cardKey,
+        nextRecallMode: RecallMode.NEXT_STOP_FORWARD,
+        nextExpectedAnswer: 'correct_stop',
+        nextPromptStartedAt: new Date(),
+      },
+    });
+
+    // Pass 4: L3 -> L4
+    await coordinator.settleAttempt({
+      sessionId,
+      promptIndex: 4,
+      driverId: DEFAULT_DRIVER_ID,
+      targetVariantKey,
+      cardKey: card.cardKey,
+      recallMode: RecallMode.NEXT_STOP_FORWARD,
+      rawInput: 'correct_stop',
+      expectedAnswer: 'correct_stop',
+      outcome: RecallOutcome.PASS,
+      startedAt: new Date(),
+      answeredAt: new Date(),
+      durationMs: 400,
+      isLastPrompt: false,
+      nextPromptSnapshot: {
+        nextPromptIndex: 5,
+        nextCardKey: card.cardKey,
+        nextRecallMode: RecallMode.NEXT_STOP_FORWARD,
+        nextExpectedAnswer: 'correct_stop',
+        nextPromptStartedAt: new Date(),
+      },
+    });
+
+    // Pass 5: L4 -> MASTERED L5
+    const recoveryFinal = await coordinator.settleAttempt({
+      sessionId,
+      promptIndex: 5,
       driverId: DEFAULT_DRIVER_ID,
       targetVariantKey,
       cardKey: card.cardKey,
@@ -290,12 +468,17 @@ describe('Change 06: Recall Settlement Coordinator & Learning Review Outcome (Po
       isLastPrompt: true,
     });
 
-    expect(recoveryResult.card.state).toBe(CardState.MASTERED);
-    expect(recoveryResult.card.repetitions).toBe(6);
-    expect(recoveryResult.card.lapses).toBe(1); // retained
+    expect(recoveryFinal.card.state).toBe(CardState.MASTERED);
+    expect(recoveryFinal.card.srsLevel).toBe(5);
+    expect(recoveryFinal.card.repetitions).toBe(10);
+    expect(recoveryFinal.card.lapses).toBe(1); // retained
   });
 
-  it('(3) strictly preserves nextReviewAt unchanged across both PASS and FAIL', async () => {
+  it('(3) dynamically schedules nextReviewAt on PASS (interval ladder) and resets to 10m on FAIL via injected Clock', async () => {
+    const baseTime = new Date('2026-09-11T10:00:00.000Z');
+    const fixedClock = new FixedClock(baseTime);
+    const clockCoordinator = new PrismaRecallSettlementCoordinator(prisma, fixedClock);
+
     const startResult = await startSessionUseCase.execute({
       driverId: DEFAULT_DRIVER_ID,
       routeId,
@@ -305,15 +488,14 @@ describe('Change 06: Recall Settlement Coordinator & Learning Review Outcome (Po
 
     const progress = await learningRepo.findByDriverAndVariant(DEFAULT_DRIVER_ID, targetVariantKey);
     const card = progress!.cards[0];
-    const fixedReviewDate = new Date('2026-12-25T08:00:00.000Z');
 
-    await prisma.learningCard.update({
-      where: { id: card.id },
-      data: { nextReviewAt: fixedReviewDate },
-    });
+    // Initial card: NEW, L0, nextReviewAt: null
+    expect(card.state).toBe(CardState.NEW);
+    expect(card.srsLevel).toBe(0);
+    expect(card.nextReviewAt).toBeNull();
 
-    // PASS attempt
-    await coordinator.settleAttempt({
+    // 1. PASS at baseTime: NEW (L0) -> LEARNING (L1), nextReviewAt = baseTime + 1 day
+    await clockCoordinator.settleAttempt({
       sessionId,
       promptIndex: 0,
       driverId: DEFAULT_DRIVER_ID,
@@ -323,8 +505,8 @@ describe('Change 06: Recall Settlement Coordinator & Learning Review Outcome (Po
       rawInput: 'some_stop',
       expectedAnswer: 'some_stop',
       outcome: RecallOutcome.PASS,
-      startedAt: new Date(),
-      answeredAt: new Date(),
+      startedAt: baseTime,
+      answeredAt: baseTime,
       durationMs: 300,
       isLastPrompt: false,
       nextPromptSnapshot: {
@@ -332,15 +514,20 @@ describe('Change 06: Recall Settlement Coordinator & Learning Review Outcome (Po
         nextCardKey: card.cardKey,
         nextRecallMode: RecallMode.NEXT_STOP_FORWARD,
         nextExpectedAnswer: 'some_stop',
-        nextPromptStartedAt: new Date(),
+        nextPromptStartedAt: baseTime,
       },
     });
 
-    const cardAfterPass = await prisma.learningCard.findUnique({ where: { id: card.id } });
-    expect(cardAfterPass!.nextReviewAt?.toISOString()).toBe(fixedReviewDate.toISOString());
+    const cardAfterPass1 = await prisma.learningCard.findUnique({ where: { id: card.id } });
+    expect(cardAfterPass1!.state).toBe(CardState.LEARNING);
+    expect(cardAfterPass1!.srsLevel).toBe(1);
+    expect(cardAfterPass1!.nextReviewAt?.toISOString()).toBe('2026-09-12T10:00:00.000Z'); // +1d
 
-    // FAIL attempt
-    await coordinator.settleAttempt({
+    // 2. FAIL at T2 (2026-09-12T10:00:00.000Z): resets to L0, nextReviewAt = T2 + 10 minutes (strictly no max with previous date)
+    const time2 = new Date('2026-09-12T10:00:00.000Z');
+    fixedClock.setDate(time2);
+
+    await clockCoordinator.settleAttempt({
       sessionId,
       promptIndex: 1,
       driverId: DEFAULT_DRIVER_ID,
@@ -350,14 +537,48 @@ describe('Change 06: Recall Settlement Coordinator & Learning Review Outcome (Po
       rawInput: 'wrong_stop',
       expectedAnswer: 'some_stop',
       outcome: RecallOutcome.FAIL,
-      startedAt: new Date(),
-      answeredAt: new Date(),
+      startedAt: time2,
+      answeredAt: time2,
+      durationMs: 300,
+      isLastPrompt: false,
+      nextPromptSnapshot: {
+        nextPromptIndex: 2,
+        nextCardKey: card.cardKey,
+        nextRecallMode: RecallMode.NEXT_STOP_FORWARD,
+        nextExpectedAnswer: 'some_stop',
+        nextPromptStartedAt: time2,
+      },
+    });
+
+    const cardAfterFail = await prisma.learningCard.findUnique({ where: { id: card.id } });
+    expect(cardAfterFail!.state).toBe(CardState.LEARNING);
+    expect(cardAfterFail!.srsLevel).toBe(0);
+    expect(cardAfterFail!.nextReviewAt?.toISOString()).toBe('2026-09-12T10:10:00.000Z'); // T2 + 10m
+
+    // 3. PASS at T3 (2026-09-12T10:10:00.000Z): LEARNING (L0) -> REVIEW (L2), nextReviewAt = T3 + 3 days
+    const time3 = new Date('2026-09-12T10:10:00.000Z');
+    fixedClock.setDate(time3);
+
+    await clockCoordinator.settleAttempt({
+      sessionId,
+      promptIndex: 2,
+      driverId: DEFAULT_DRIVER_ID,
+      targetVariantKey,
+      cardKey: card.cardKey,
+      recallMode: RecallMode.NEXT_STOP_FORWARD,
+      rawInput: 'some_stop',
+      expectedAnswer: 'some_stop',
+      outcome: RecallOutcome.PASS,
+      startedAt: time3,
+      answeredAt: time3,
       durationMs: 300,
       isLastPrompt: true,
     });
 
-    const cardAfterFail = await prisma.learningCard.findUnique({ where: { id: card.id } });
-    expect(cardAfterFail!.nextReviewAt?.toISOString()).toBe(fixedReviewDate.toISOString());
+    const cardAfterPass2 = await prisma.learningCard.findUnique({ where: { id: card.id } });
+    expect(cardAfterPass2!.state).toBe(CardState.REVIEW);
+    expect(cardAfterPass2!.srsLevel).toBe(2);
+    expect(cardAfterPass2!.nextReviewAt?.toISOString()).toBe('2026-09-15T10:10:00.000Z'); // T3 + 3d
   });
 
   it('(4) guarantees concurrency safety and outside-transaction P2002 idempotency via Promise.all', async () => {
@@ -500,5 +721,117 @@ describe('Change 06: Recall Settlement Coordinator & Learning Review Outcome (Po
         },
       }),
     ).rejects.toThrow();
+  });
+
+  it('(7) Test B (Guard #1 & #2): guarantees serialized valid events and prevents stale-read lost updates across concurrent sessions on same card', async () => {
+    const fixedTime = new Date('2026-09-11T10:00:00.000Z');
+    const fixedClock = new FixedClock(fixedTime);
+    const clockCoordinator = new PrismaRecallSettlementCoordinator(prisma, fixedClock);
+
+    const progress = await learningRepo.findByDriverAndVariant(DEFAULT_DRIVER_ID, targetVariantKey);
+    const card = progress!.cards[0];
+
+    // Ensure initial card state is strictly NEW / L0
+    expect(card.state).toBe(CardState.NEW);
+    expect(card.srsLevel).toBe(0);
+    expect(card.repetitions).toBe(0);
+    expect(card.lapses).toBe(0);
+    expect(card.nextReviewAt).toBeNull();
+
+    // Create two distinct active sessions targeting the same variant for the driver
+    const sessionId1 = randomUUID();
+    const sessionId2 = randomUUID();
+
+    await prisma.recallSession.createMany({
+      data: [
+        {
+          id: sessionId1,
+          driverId: DEFAULT_DRIVER_ID,
+          routeId,
+          targetVariantKey,
+          status: 'IN_PROGRESS',
+          currentPromptIndex: 0,
+          currentCardKey: card.cardKey,
+          currentRecallMode: 'NEXT_STOP_FORWARD',
+          startedAt: fixedTime,
+        },
+        {
+          id: sessionId2,
+          driverId: DEFAULT_DRIVER_ID,
+          routeId,
+          targetVariantKey: `${targetVariantKey}-session2`,
+          status: 'IN_PROGRESS',
+          currentPromptIndex: 0,
+          currentCardKey: card.cardKey,
+          currentRecallMode: 'NEXT_STOP_FORWARD',
+          startedAt: fixedTime,
+        },
+      ],
+    });
+
+    const inputA = {
+      sessionId: sessionId1,
+      promptIndex: 0,
+      driverId: DEFAULT_DRIVER_ID,
+      targetVariantKey,
+      cardKey: card.cardKey,
+      recallMode: RecallMode.NEXT_STOP_FORWARD,
+      rawInput: 'stop_answer',
+      expectedAnswer: 'stop_answer',
+      outcome: RecallOutcome.PASS as const,
+      startedAt: fixedTime,
+      answeredAt: fixedTime,
+      durationMs: 300,
+      isLastPrompt: true,
+    };
+
+    const inputB = {
+      sessionId: sessionId2,
+      promptIndex: 0,
+      driverId: DEFAULT_DRIVER_ID,
+      targetVariantKey,
+      cardKey: card.cardKey,
+      recallMode: RecallMode.NEXT_STOP_FORWARD,
+      rawInput: 'stop_answer',
+      expectedAnswer: 'stop_answer',
+      outcome: RecallOutcome.PASS as const,
+      startedAt: fixedTime,
+      answeredAt: fixedTime,
+      durationMs: 350,
+      isLastPrompt: true,
+    };
+
+    // Concurrently settle Event A (from Session 1) and Event B (from Session 2) on SAME card
+    const [resA, resB] = await Promise.all([
+      clockCoordinator.settleAttempt(inputA),
+      clockCoordinator.settleAttempt(inputB),
+    ]);
+
+    // Both must be valid non-duplicate events
+    expect(resA.isDuplicate).toBe(false);
+    expect(resB.isDuplicate).toBe(false);
+
+    // Verify 2 distinct attempts exist in DB
+    const attempts = await prisma.recallAttempt.findMany({
+      where: {
+        sessionId: { in: [sessionId1, sessionId2] },
+        cardKey: card.cardKey,
+      },
+    });
+    expect(attempts).toHaveLength(2);
+
+    // Verify DB card final state:
+    // Event 1 transitions L0 -> L1 (1d, 2026-09-12T10:00:00.000Z)
+    // Event 2 (locked by SELECT FOR UPDATE) reads committed L1, transitions L1 -> L2 (3d, 2026-09-14T10:00:00.000Z)
+    const finalCard = await prisma.learningCard.findUnique({ where: { id: card.id } });
+    expect(finalCard!.state).toBe(CardState.REVIEW);
+    expect(finalCard!.srsLevel).toBe(2);
+    expect(finalCard!.repetitions).toBe(2);
+    expect(finalCard!.lapses).toBe(0);
+
+    // Critical Guard #2 verification:
+    // If Event B read stale L0, nextReviewAt would be 2026-09-12T10:00:00.000Z (T + 1d).
+    // Because SELECT FOR UPDATE serialized them, Event B used L1 to produce L2 with nextReviewAt = T + 3d!
+    expect(finalCard!.nextReviewAt?.toISOString()).toBe('2026-09-14T10:00:00.000Z');
   });
 });
