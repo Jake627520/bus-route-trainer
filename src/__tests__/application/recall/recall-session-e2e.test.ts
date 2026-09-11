@@ -19,6 +19,10 @@ import {
 } from '@/domain/recall/recall-session';
 import { SequentialTopologyPromptStrategy } from '@/domain/recall/prompt-selection-strategy';
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
+import { PrismaRecallSettlementCoordinator } from '@/infrastructure/learning/prisma-recall-settlement-coordinator';
+import { createRecallUseCases } from '@/infrastructure/recall/recall-composition';
+import { CardState } from '@/domain/learning/learning-card';
+import { ProgressStatus } from '@/domain/learning/driver-variant-progress';
 
 describe('Change 05 Recall Session Domain End-to-End Vertical Slice Integration', () => {
   const prisma = new PrismaClient();
@@ -31,6 +35,7 @@ describe('Change 05 Recall Session Domain End-to-End Vertical Slice Integration'
   const enrollUseCase = new EnrollVariantUseCase(learningRepo, getRouteVariantsUseCase);
 
   const recallRepo = new PrismaRecallRepository(prisma);
+  const coordinator = new PrismaRecallSettlementCoordinator(prisma);
   const nextStopStrategy = new SequentialTopologyPromptStrategy(RecallMode.NEXT_STOP_FORWARD);
   const stopNameStrategy = new SequentialTopologyPromptStrategy(RecallMode.STOP_NAME_RECOGNITION);
 
@@ -46,6 +51,7 @@ describe('Change 05 Recall Session Domain End-to-End Vertical Slice Integration'
     learningRepo,
     getRouteVariantsUseCase,
     nextStopStrategy,
+    coordinator,
   );
   const completeSessionUseCase = new CompleteRecallSessionUseCase(recallRepo);
 
@@ -218,6 +224,7 @@ describe('Change 05 Recall Session Domain End-to-End Vertical Slice Integration'
       learningRepo,
       getRouteVariantsUseCase,
       stopNameStrategy,
+      coordinator,
     );
 
     // 1. Start STOP_NAME_RECOGNITION session
@@ -304,6 +311,83 @@ describe('Change 05 Recall Session Domain End-to-End Vertical Slice Integration'
 
     // Clean up
     await completeSessionUseCase.execute({
+      sessionId,
+      action: 'ABANDON',
+    });
+  });
+
+  it('(4) factory createRecallUseCases executes production composition with PrismaRecallSettlementCoordinator', async () => {
+    // 0. Clean prior attempts and re-enroll for clean verification
+    await prisma.recallAttempt.deleteMany();
+    await prisma.recallSession.deleteMany();
+    await prisma.learningCard.deleteMany();
+    await prisma.driverVariantProgress.deleteMany();
+    await enrollUseCase.execute({
+      routeId,
+      variantKey: targetVariantKey,
+    });
+
+    // 1. Instantiate via production composition root
+    const recallUseCases = createRecallUseCases(prisma, nextStopStrategy);
+
+    // 2. Start recall session
+    const startResult = await recallUseCases.startSession.execute({
+      routeId,
+      variantKey: targetVariantKey,
+    });
+    const sessionId = startResult.session.id;
+
+    // Verify initial card state in DB
+    const progressBefore = await learningRepo.findByDriverAndVariant(
+      DEFAULT_DRIVER_ID,
+      targetVariantKey,
+    );
+    const targetCardKey = startResult.session.currentCardKey!;
+    const cardBefore = progressBefore!.cards.find((c) => c.cardKey === targetCardKey)!;
+    expect(cardBefore.state).toBe(CardState.NEW);
+    expect(cardBefore.repetitions).toBe(0);
+
+    // 3. Query expected answer from DB session snapshot
+    const dbSession = await recallRepo.findById(sessionId);
+    const expected = dbSession?.currentExpectedAnswer ?? '';
+
+    // 4. Submit answer through production use case
+    const submitResult = await recallUseCases.submitAnswer.execute({
+      sessionId,
+      promptIndex: 0,
+      rawInput: expected,
+    });
+    expect(submitResult.outcome).toBe(RecallOutcome.PASS);
+    expect(submitResult.promptIndex).toBe(0);
+
+    // 5. Verification of production wiring:
+    // (a) RecallAttempt created
+    const attempts = await recallRepo.findAttemptsBySessionId(sessionId);
+    expect(attempts).toHaveLength(1);
+    expect(attempts[0].promptIndex).toBe(0);
+
+    // (b) LearningCard state transitioned atomically from NEW to LEARNING
+    const progressAfter = await learningRepo.findByDriverAndVariant(
+      DEFAULT_DRIVER_ID,
+      targetVariantKey,
+    );
+    const cardAfter = progressAfter!.cards.find((c) => c.cardKey === targetCardKey)!;
+    expect(cardAfter.state).toBe(CardState.LEARNING);
+    expect(cardAfter.repetitions).toBe(1);
+    expect(cardAfter.lapses).toBe(0);
+
+    // (c) DriverVariantProgress status updated to IN_PROGRESS
+    expect(progressAfter!.status).toBe(ProgressStatus.IN_PROGRESS);
+
+    // (d) RecallSession cursor advanced
+    const sessionAfter = await recallRepo.findById(sessionId);
+    expect(sessionAfter?.currentPromptIndex).toBe(1);
+
+    // (e) nextReviewAt remains unchanged (null)
+    expect(cardAfter.nextReviewAt).toBeNull();
+
+    // Clean up
+    await recallUseCases.completeSession.execute({
       sessionId,
       action: 'ABANDON',
     });

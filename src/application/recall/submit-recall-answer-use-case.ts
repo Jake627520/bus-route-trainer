@@ -19,6 +19,8 @@ import {
 } from './get-current-recall-prompt-use-case';
 import { DEFAULT_DRIVER_ID } from '../learning/auth-constants';
 
+import { RecallSettlementCoordinator } from '../learning/recall-settlement-coordinator';
+
 export class PromptIndexMismatchError extends Error {
   constructor(message: string) {
     super(message);
@@ -47,6 +49,7 @@ export class SubmitRecallAnswerUseCase {
     private readonly learningRepo: LearningProgressRepository,
     private readonly getRouteVariantsUseCase: GetRouteVariantsUseCase,
     private readonly promptStrategy: PromptSelectionStrategy = new SequentialTopologyPromptStrategy(),
+    private readonly coordinator?: RecallSettlementCoordinator,
   ) {
     this.evaluator = new DeterministicRecallEvaluator();
   }
@@ -95,29 +98,34 @@ export class SubmitRecallAnswerUseCase {
       );
     }
 
+    const currentCardKey = session.currentCardKey;
+    const currentRecallMode = session.currentRecallMode;
+    const currentExpectedAnswer = session.currentExpectedAnswer;
+    const currentPromptStartedAt = session.currentPromptStartedAt;
+
     // 4. Deterministic evaluation strictly against snapshotted expectedAnswer
     const outcome = this.evaluator.evaluate(
-      session.currentRecallMode,
+      currentRecallMode,
       command.rawInput,
-      session.currentExpectedAnswer,
+      currentExpectedAnswer,
     );
 
     const now = new Date();
     const durationMs = Math.max(
       0,
-      now.getTime() - session.currentPromptStartedAt.getTime(),
+      now.getTime() - currentPromptStartedAt.getTime(),
     );
 
     const attempt = new RecallAttempt({
       id: randomUUID(),
       sessionId: session.id,
       promptIndex: session.currentPromptIndex,
-      cardKey: session.currentCardKey,
-      recallMode: session.currentRecallMode,
+      cardKey: currentCardKey,
+      recallMode: currentRecallMode,
       rawInput: command.rawInput,
-      expectedAnswer: session.currentExpectedAnswer,
+      expectedAnswer: currentExpectedAnswer,
       outcome,
-      startedAt: session.currentPromptStartedAt,
+      startedAt: currentPromptStartedAt,
       answeredAt: now,
       durationMs,
     });
@@ -174,7 +182,41 @@ export class SubmitRecallAnswerUseCase {
       session.complete(now);
     }
 
-    // 6. Persist attempt and session mutation atomically in one DB transaction
+    // 6. Persist attempt and session mutation (with coordinator if configured)
+    if (this.coordinator) {
+      const settlement = await this.coordinator.settleAttempt({
+        sessionId: session.id,
+        promptIndex: command.promptIndex,
+        driverId,
+        targetVariantKey: session.targetVariantKey,
+        cardKey: currentCardKey,
+        recallMode: currentRecallMode,
+        rawInput: command.rawInput,
+        expectedAnswer: currentExpectedAnswer,
+        outcome,
+        startedAt: currentPromptStartedAt,
+        answeredAt: now,
+        durationMs,
+        isLastPrompt: !nextPrompt,
+        nextPromptSnapshot: nextPrompt
+          ? {
+              nextPromptIndex,
+              nextCardKey: nextPrompt.cardKey,
+              nextRecallMode: nextPrompt.recallMode,
+              nextExpectedAnswer: nextPrompt.expectedAnswer,
+              nextPromptStartedAt: now,
+            }
+          : undefined,
+      });
+
+      return {
+        outcome: settlement.attempt.outcome,
+        promptIndex: settlement.attempt.promptIndex,
+        isSessionCompleted: settlement.session.status === SessionStatus.COMPLETED,
+      };
+    }
+
+    // Fallback: Legacy atomic attempt and session update
     try {
       await this.recallRepo.saveAttemptAndAdvanceSession(attempt, session);
 
