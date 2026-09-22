@@ -149,7 +149,7 @@
 ---
 
 ## Phase 7: Final Verification & Regression
-- [ ] 7.1 Run full regression suite (`npm test -- --run`).
-- [ ] 7.2 ESLint & Build check (`npm run lint`, `npm run build`).
-- [ ] 7.3 OpenSpec validation (`openspec validate 07-srs-scheduling`, `openspec doctor`).
-- [ ] 7.4 Git scope and diff audit.
+- [x] 7.1 Run full regression suite (`npm test -- --run`).
+- [x] 7.2 ESLint & Build check (`npm run lint`, `npm run build`).
+- [x] 7.3 OpenSpec validation (`openspec validate 07-srs-scheduling`, `openspec doctor`).
+- [x] 7.4 Git scope and diff audit.
