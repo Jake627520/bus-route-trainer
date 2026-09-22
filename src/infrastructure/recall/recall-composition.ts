@@ -16,6 +16,8 @@ import { SubmitSessionAnswerUseCase } from '@/application/recall/submit-session-
 import { PrismaSubmitSessionAnswerAdapter } from './prisma-submit-session-answer-adapter';
 import { AbandonRecallSessionUseCase } from '@/application/recall/abandon-recall-session-use-case';
 import { PrismaAbandonRecallSessionAdapter } from './prisma-abandon-recall-session-adapter';
+import { GetRecallSessionStateUseCase } from '@/application/recall/get-recall-session-state-use-case';
+import { PrismaGetRecallSessionStateAdapter } from './prisma-get-recall-session-state-adapter';
 import {
   PromptSelectionStrategy,
   SequentialTopologyPromptStrategy,
@@ -30,6 +32,7 @@ export interface RecallUseCases {
   submitSessionAnswer: SubmitSessionAnswerUseCase;
   completeSession: CompleteRecallSessionUseCase;
   abandonSession: AbandonRecallSessionUseCase;
+  getSessionState: GetRecallSessionStateUseCase;
   coordinator: PrismaRecallSettlementCoordinator;
 }
 
@@ -71,6 +74,8 @@ export function createRecallUseCases(
   const completeSession = new CompleteRecallSessionUseCase(recallRepo);
   const abandonSessionPort = new PrismaAbandonRecallSessionAdapter(prisma);
   const abandonSession = new AbandonRecallSessionUseCase(abandonSessionPort);
+  const getSessionStatePort = new PrismaGetRecallSessionStateAdapter(prisma);
+  const getSessionState = new GetRecallSessionStateUseCase(getSessionStatePort);
 
   return {
     startSession,
@@ -81,6 +86,7 @@ export function createRecallUseCases(
     submitSessionAnswer,
     completeSession,
     abandonSession,
+    getSessionState,
     coordinator,
   };
 }
