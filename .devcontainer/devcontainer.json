@@ -1,0 +1,18 @@
+{
+  "name": "bus-route-trainer",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "remoteUser": "node",
+  // 一進容器就備妥：裝依賴、生 Prisma client、套用 migration（DB 已由 depends_on 等到 healthy）。
+  "postCreateCommand": "npm ci && npx prisma generate && npx prisma migrate deploy",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Prisma.prisma",
+        "vitest.explorer",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}

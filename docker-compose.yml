@@ -1,0 +1,44 @@
+# 本機/CI 用的容器環境：app（Node 22）+ db（PostgreSQL）。
+# 用法：
+#   docker compose up -d db                         # 起資料庫
+#   docker compose run --rm app npm ci              # 裝依賴（到 named volume）
+#   docker compose run --rm app npx prisma migrate deploy
+#   docker compose run --rm app npm test
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bus_route_trainer
+    ports:
+      - "5432:5432" # 本機若已有 postgres 佔 5432，改成 "5433:5432" 即可
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bus_route_trainer"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    working_dir: /workspace
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # 容器間走 compose 網路，host 名稱就是服務名 db
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/bus_route_trainer"
+    ports:
+      - "3000:3000" # next dev
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/node_modules
+    command: sleep infinity
+
+volumes:
+  pgdata:
+  node_modules:

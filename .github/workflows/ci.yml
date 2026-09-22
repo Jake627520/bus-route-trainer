@@ -1,5 +1,7 @@
 name: CI
 
+# 與本機同一套容器環境（含 Postgres）跑 lint/test/build，
+# 修好舊 setup-node CI 缺 DB 導致整合測試失敗的問題。
 on:
   push:
     branches: [main]
@@ -8,29 +10,35 @@ on:
 
 jobs:
   verify:
-    name: Lint, Test, and Build
+    name: Lint, Test, Build (in container)
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'npm'
+      # 容器以非 root 的 node (uid 1000) 執行；把 checkout 交給它，
+      # 否則寫 .next/、prisma 產物到 bind-mount 會 EACCES。
+      - name: Make workspace writable by container user
+        run: sudo chown -R 1000:1000 .
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Build image
+        run: docker compose build
 
-      - name: Run ESLint
-        run: npm run lint
+      - name: Start Postgres (wait healthy)
+        run: docker compose up -d --wait db
 
-      - name: Run Tests (Vitest)
-        run: npm test
+      - name: Install deps (in container)
+        run: docker compose run --rm app npm ci
 
-      - name: Build Application (Next.js)
-        run: npm run build
-        env:
-          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/bus_route_trainer_test"
+      - name: Prisma generate + migrate
+        run: |
+          docker compose run --rm app npx prisma generate
+          docker compose run --rm app npx prisma migrate deploy
+
+      - name: Lint (in container)
+        run: docker compose run --rm app npm run lint
+
+      - name: Test (in container)
+        run: docker compose run --rm app npm test
+
+      - name: Build (in container)
+        run: docker compose run --rm app npm run build
