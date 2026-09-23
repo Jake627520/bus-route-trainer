@@ -52,7 +52,7 @@ describe('Change 12: VariantList reflects existing enrollment on load', () => {
     const v1Item = v1.closest('li')!;
     // 已報名：顯示狀態 + 開始練習、無報名鈕
     expect(within(v1Item).getByText(/學習中/)).toBeInTheDocument();
-    expect(within(v1Item).getByRole('link', { name: /開始練習/ })).toHaveAttribute('href', '/practice/recall');
+    expect(within(v1Item).getByRole('link', { name: /開始練習/ })).toHaveAttribute('href', '/practice/recall?routeId=R100&variantKey=V1');
     expect(within(v1Item).queryByRole('button', { name: /報名/ })).not.toBeInTheDocument();
 
     // 未報名的 V2：顯示報名鈕

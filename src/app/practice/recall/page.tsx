@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useRecallSession } from '@/application/recall/client/use-recall-session';
 import {
   Button,
@@ -11,7 +12,7 @@ import {
   Modal,
 } from '@/components/ui';
 
-export default function RecallPracticePage() {
+function RecallPracticeInner() {
   const {
     viewState,
     session,
@@ -31,10 +32,31 @@ export default function RecallPracticePage() {
     reset,
   } = useRecallSession();
 
-  // Route & session config state for IDLE form
-  const [routeId, setRouteId] = useState('66');
-  const [variantKey, setVariantKey] = useState('66-1-INBOUND');
-  const [sessionSize, setSessionSize] = useState('10');
+  // Change 13: deep-link 參數（?routeId=..&variantKey=..&size=..）
+  const searchParams = useSearchParams();
+  const spRouteId = searchParams.get('routeId');
+  const spVariantKey = searchParams.get('variantKey');
+  const spSize = searchParams.get('size');
+
+  // Route & session config state for IDLE form（無參數時沿用預設）
+  const [routeId, setRouteId] = useState(spRouteId ?? '66');
+  const [variantKey, setVariantKey] = useState(spVariantKey ?? '66-1-INBOUND');
+  const [sessionSize, setSessionSize] = useState(spSize ?? '10');
+
+  // Change 13: 帶 deep-link 參數時自動開始一次 session（ref 防重入）
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (autoStarted.current) return;
+    if (spRouteId && spVariantKey && viewState === 'IDLE') {
+      autoStarted.current = true;
+      const size = spSize ? parseInt(spSize, 10) : NaN;
+      startSession({
+        routeId: spRouteId,
+        variantKey: spVariantKey,
+        sessionSize: Number.isNaN(size) || size <= 0 ? undefined : size,
+      });
+    }
+  }, [spRouteId, spVariantKey, spSize, viewState, startSession]);
 
   // Input state for active question
   const [rawInput, setRawInput] = useState('');
@@ -363,5 +385,14 @@ export default function RecallPracticePage() {
         </Modal>
       </div>
     </main>
+  );
+}
+
+// useSearchParams 需包在 Suspense 內（Next 16 App Router）。
+export default function RecallPracticePage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-zinc-500">載入中…</div>}>
+      <RecallPracticeInner />
+    </Suspense>
   );
 }

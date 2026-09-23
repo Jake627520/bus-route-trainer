@@ -46,7 +46,7 @@ describe('Change 11: ReviewDashboard', () => {
     expect(within(items[0]).getByText(/V1|R1/)).toBeInTheDocument();
     expect(within(items[0]).getByText(/3\s*待複習/)).toBeInTheDocument();
     expect(within(items[0]).getByText(/下次複習/)).toBeInTheDocument();
-    expect(within(items[0]).getByRole('link', { name: /開始複習/ })).toHaveAttribute('href', '/practice/recall');
+    expect(within(items[0]).getByRole('link', { name: /開始複習/ })).toHaveAttribute('href', '/practice/recall?routeId=R1&variantKey=V1');
 
     // dueCount=0 淡化：顯示「無到期」而非數字徽章
     expect(within(items[1]).getByText(/無到期/)).toBeInTheDocument();
