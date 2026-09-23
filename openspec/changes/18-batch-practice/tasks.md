@@ -18,8 +18,8 @@
 
 ## Phase 18.4: 首頁整合 + 守門收尾
 - [x] Task 8: 把批次入口掛進首頁（提醒/待複習附近）；整合測試 until PASS <!-- id: 18-08 -->
-- [ ] Task 9: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 18-09 -->
-- [ ] Task 10: 建 `specs/` spec；`openspec archive 18-batch-practice`；開 PR <!-- id: 18-10 -->
+- [x] Task 9: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 18-09 -->
+- [x] Task 10: 建 `specs/` spec；`openspec archive 18-batch-practice`；開 PR <!-- id: 18-10 -->
 
 ## 注意
 - 純前端；重用 `startSession` / `useRecallSession` / `getReviewSummary`，不動後端。
