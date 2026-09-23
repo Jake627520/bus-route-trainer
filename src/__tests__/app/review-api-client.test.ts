@@ -20,7 +20,7 @@ describe('Change 11: ApiClient.getReviewSummary', () => {
     const summary: VariantReviewSummary[] = [
       {
         routeId: 'R1', variantKey: 'V1', directionId: 0, status: 'IN_PROGRESS',
-        dueCount: 3, newCount: 1, masteredCount: 4, totalCards: 10, nextReviewAt: '2026-09-24T00:00:00.000Z',
+        headsign: 'City → Uni', dueCount: 3, newCount: 1, masteredCount: 4, totalCards: 10, nextReviewAt: '2026-09-24T00:00:00.000Z',
       },
     ];
     mockFetch.mockResolvedValueOnce(res(200, { data: summary }));

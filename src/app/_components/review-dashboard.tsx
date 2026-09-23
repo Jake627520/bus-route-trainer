@@ -81,9 +81,10 @@ export function ReviewDashboard() {
                 {DIRECTION_LABEL[item.directionId] ?? `方向 ${item.directionId}`}
               </span>
               <span className="truncate font-medium text-zinc-900 dark:text-zinc-100">
-                路線 {item.routeId}
+                {item.headsign ?? '未標示終點'}
               </span>
             </div>
+            <p className="mt-0.5 text-xs text-zinc-500">路線 {item.routeId}</p>
             <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm">
               {item.dueCount > 0 ? (
                 <span className="rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-800 dark:bg-amber-900/50 dark:text-amber-200">

@@ -1,13 +1,22 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { PrismaLearningProgressRepository } from '@/infrastructure/learning/prisma-learning-progress-repository';
+import { PrismaGtfsReadRepository } from '@/infrastructure/gtfs/query/prisma-gtfs-read-repository';
+import { GetRouteVariantsUseCase } from '@/application/gtfs/get-route-variants-use-case';
+import { GtfsVariantHeadsignAdapter } from '@/infrastructure/gtfs/gtfs-variant-headsign-adapter';
 import { GetReviewSummaryUseCase } from '@/application/learning/get-review-summary-use-case';
 import { SystemClock } from '@/application/common/clock';
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
 
 const prisma = new PrismaClient();
 const progressRepository = new PrismaLearningProgressRepository(prisma);
-const getReviewSummaryUseCase = new GetReviewSummaryUseCase(progressRepository, new SystemClock());
+const gtfsReadRepository = new PrismaGtfsReadRepository(prisma);
+const headsignAdapter = new GtfsVariantHeadsignAdapter(new GetRouteVariantsUseCase(gtfsReadRepository));
+const getReviewSummaryUseCase = new GetReviewSummaryUseCase(
+  progressRepository,
+  new SystemClock(),
+  headsignAdapter
+);
 
 /**
  * Change 11: GET /api/review/summary

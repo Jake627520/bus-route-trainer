@@ -31,8 +31,8 @@ describe('Change 11: ReviewDashboard', () => {
     mockFetch.mockResolvedValueOnce(
       jsonRes(200, {
         data: [
-          { routeId: 'R1', variantKey: 'V1', directionId: 0, status: 'IN_PROGRESS', dueCount: 3, newCount: 1, masteredCount: 6, totalCards: 10, nextReviewAt: '2999-01-01T00:00:00.000Z' },
-          { routeId: 'R2', variantKey: 'V2', directionId: 1, status: 'NOT_STARTED', dueCount: 0, newCount: 0, masteredCount: 0, totalCards: 5, nextReviewAt: null },
+          { routeId: 'R1', variantKey: 'V1', directionId: 0, status: 'IN_PROGRESS', headsign: 'City → University', dueCount: 3, newCount: 1, masteredCount: 6, totalCards: 10, nextReviewAt: '2999-01-01T00:00:00.000Z' },
+          { routeId: 'R2', variantKey: 'V2', directionId: 1, status: 'NOT_STARTED', headsign: null, dueCount: 0, newCount: 0, masteredCount: 0, totalCards: 5, nextReviewAt: null },
         ],
       })
     );
@@ -41,6 +41,10 @@ describe('Change 11: ReviewDashboard', () => {
 
     const items = await screen.findAllByRole('listitem');
     expect(items).toHaveLength(2);
+
+    // Change 15: headsign 主標；null → 未標示終點
+    expect(within(items[0]).getByText('City → University')).toBeInTheDocument();
+    expect(within(items[1]).getByText(/未標示終點/)).toBeInTheDocument();
 
     // 依 API 順序：V1 在前
     expect(within(items[0]).getByText(/V1|R1/)).toBeInTheDocument();

@@ -12,9 +12,9 @@
 - [x] Task 4: DTO 加 headsign；use-case 接 port、分組查詢、補值 until PASS <!-- id: 15-04 -->
 
 ## Phase 15.3: API 接線 + 前端
-- [ ] Task 5: route.ts 接 headsign port（用 PrismaGtfsReadRepository + GetRouteVariantsUseCase 組裝 adapter）；整合測試確認回應含 headsign（afterAll 自清）until PASS <!-- id: 15-05 -->
-- [ ] Task 6: api-client `VariantReviewSummary` 加 headsign；更新既有 review-api-client 測試 <!-- id: 15-06 -->
-- [ ] Task 7: 寫失敗測試：ReviewDashboard 顯示 headsign（含 null→未標示終點）；實作 until PASS；既有 dashboard 測試補 headsign 欄位仍綠 <!-- id: 15-07 -->
+- [x] Task 5: route.ts 接 headsign port（用 PrismaGtfsReadRepository + GetRouteVariantsUseCase 組裝 adapter）；整合測試確認回應含 headsign（afterAll 自清）until PASS <!-- id: 15-05 -->
+- [x] Task 6: api-client `VariantReviewSummary` 加 headsign；更新既有 review-api-client 測試 <!-- id: 15-06 -->
+- [x] Task 7: 寫失敗測試：ReviewDashboard 顯示 headsign（含 null→未標示終點）；實作 until PASS；既有 dashboard 測試補 headsign 欄位仍綠 <!-- id: 15-07 -->
 
 ## Phase 15.4: 守門與收尾
 - [ ] Task 8: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 15-08 -->

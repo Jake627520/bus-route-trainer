@@ -49,6 +49,7 @@ export interface VariantReviewSummary {
   variantKey: string;
   directionId: number;
   status: ProgressStatus;
+  headsign: string | null;
   dueCount: number;
   newCount: number;
   masteredCount: number;
