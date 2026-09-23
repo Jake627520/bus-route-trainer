@@ -9,8 +9,8 @@
 - [x] Task 3: 實作 `ReviewReminder`（getReviewSummary → totalDue、取 items[0] deep-link）until PASS <!-- id: 16-03 -->
 
 ## Phase 16.2: 首頁整合
-- [ ] Task 4: 寫失敗測試：首頁最上方渲染 ReviewReminder（在「待複習」儀表板之上）<!-- id: 16-04 -->
-- [ ] Task 5: 把 ReviewReminder 掛進 `src/app/page.tsx` until PASS；既有首頁測試仍綠 <!-- id: 16-05 -->
+- [x] Task 4: 寫失敗測試：首頁最上方渲染 ReviewReminder（在「待複習」儀表板之上）<!-- id: 16-04 -->
+- [x] Task 5: 把 ReviewReminder 掛進 `src/app/page.tsx` until PASS；既有首頁測試仍綠 <!-- id: 16-05 -->
 
 ## Phase 16.3: 守門與收尾
 - [ ] Task 6: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 16-06 -->

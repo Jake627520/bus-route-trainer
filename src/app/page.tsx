@@ -1,3 +1,4 @@
+import { ReviewReminder } from '@/app/_components/review-reminder';
 import { ReviewDashboard } from '@/app/_components/review-dashboard';
 import { RouteList } from '@/app/_components/route-list';
 
@@ -12,6 +13,8 @@ export default function Home() {
           先看看今天要複習什麼，再選路線練習。
         </p>
       </header>
+
+      <ReviewReminder />
 
       <section aria-labelledby="review-heading" className="mb-10">
         <h2
