@@ -13,15 +13,17 @@ describe('GET /api/review/summary', () => {
   beforeAll(async () => {
     await prisma.$connect();
   });
-  afterAll(async () => {
-    await prisma.$disconnect();
-  });
-  beforeEach(async () => {
+  const cleanup = async () => {
     await prisma.recallAttempt.deleteMany();
     await prisma.recallSession.deleteMany();
     await prisma.learningCard.deleteMany();
     await prisma.driverVariantProgress.deleteMany();
+  };
+  afterAll(async () => {
+    await cleanup();
+    await prisma.$disconnect();
   });
+  beforeEach(cleanup);
 
   const FUTURE = new Date('2999-01-01T00:00:00.000Z');
   const PAST = new Date('2000-01-01T00:00:00.000Z');

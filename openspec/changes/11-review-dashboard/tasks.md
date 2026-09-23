@@ -21,7 +21,7 @@
 - [x] Task 10: 把「待複習」區塊掛進首頁 `/`（或獨立 `/review`，依提案開放問題定案）；補整合測試 until PASS <!-- id: 11-10 -->
 
 ## Phase 11.4: 守門與收尾
-- [ ] Task 11: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 11-11 -->
+- [x] Task 11: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 11-11 -->
 - [ ] Task 12: 建 `openspec/changes/11-review-dashboard/specs/` spec；`openspec archive 11-review-dashboard`；開 PR <!-- id: 11-12 -->
 
 ## 注意

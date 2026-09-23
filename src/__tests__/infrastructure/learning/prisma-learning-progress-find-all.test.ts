@@ -15,13 +15,15 @@ describe('PrismaLearningProgressRepository.findAllByDriver', () => {
   beforeAll(async () => {
     await prisma.$connect();
   });
-  afterAll(async () => {
-    await prisma.$disconnect();
-  });
-  beforeEach(async () => {
+  const cleanup = async () => {
     await prisma.learningCard.deleteMany();
     await prisma.driverVariantProgress.deleteMany();
+  };
+  afterAll(async () => {
+    await cleanup();
+    await prisma.$disconnect();
   });
+  beforeEach(cleanup);
 
   const seed = async (
     id: string, driverId: string, routeId: string, directionId: number, variantKey: string,
