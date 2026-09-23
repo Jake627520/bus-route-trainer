@@ -12,7 +12,7 @@
 - [x] Task 4: 實作重放（Map<cardKey,state>、UTC 日分桶、逐日快照）until PASS <!-- id: 17-04 -->
 
 ## Phase 17.3: API 端點
-- [ ] Task 5: 寫失敗測試 + 實作 `GET /api/review/mastery-trend`（DI 組裝 adapter；整合測試 afterAll 自清）until PASS <!-- id: 17-05 -->
+- [x] Task 5: 寫失敗測試 + 實作 `GET /api/review/mastery-trend`（DI 組裝 adapter；整合測試 afterAll 自清）until PASS <!-- id: 17-05 -->
 
 ## Phase 17.4: 前端圖表 + 首頁
 - [ ] Task 6: api-client 加 `MasteryTrendPoint` + `getMasteryTrend()`；契約測試 <!-- id: 17-06 -->
