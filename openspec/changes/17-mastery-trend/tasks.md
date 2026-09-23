@@ -18,7 +18,7 @@
 - [x] Task 6: api-client 加 `MasteryTrendPoint` + `getMasteryTrend()`；契約測試 <!-- id: 17-06 -->
 - [x] Task 7: 寫失敗測試：`MasteryTrend` 元件——有資料渲染 SVG（點數、aria-label）、空資料友善提示、載入/錯誤靜默 <!-- id: 17-07 -->
 - [x] Task 8: 實作 `MasteryTrend`（手刻 inline SVG polyline/area）until PASS <!-- id: 17-08 -->
-- [ ] Task 9: 寫失敗測試 + 把「精熟度趨勢」section 掛進首頁（待複習之下）until PASS；既有首頁測試仍綠 <!-- id: 17-09 -->
+- [x] Task 9: 寫失敗測試 + 把「精熟度趨勢」section 掛進首頁（待複習之下）until PASS；既有首頁測試仍綠 <!-- id: 17-09 -->
 
 ## Phase 17.5: 守門與收尾
 - [ ] Task 10: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 17-10 -->

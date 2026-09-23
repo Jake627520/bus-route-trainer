@@ -1,5 +1,6 @@
 import { ReviewReminder } from '@/app/_components/review-reminder';
 import { ReviewDashboard } from '@/app/_components/review-dashboard';
+import { MasteryTrend } from '@/app/_components/mastery-trend';
 import { RouteList } from '@/app/_components/route-list';
 
 export default function Home() {
@@ -24,6 +25,16 @@ export default function Home() {
           待複習
         </h2>
         <ReviewDashboard />
+      </section>
+
+      <section aria-labelledby="trend-heading" className="mb-10">
+        <h2
+          id="trend-heading"
+          className="mb-3 text-lg font-semibold text-zinc-900 dark:text-zinc-100"
+        >
+          精熟度趨勢
+        </h2>
+        <MasteryTrend />
       </section>
 
       <section aria-labelledby="routes-heading">
