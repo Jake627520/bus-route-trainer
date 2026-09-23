@@ -13,8 +13,8 @@
 - [x] Task 5: 把 ReviewReminder 掛進 `src/app/page.tsx` until PASS；既有首頁測試仍綠 <!-- id: 16-05 -->
 
 ## Phase 16.3: 守門與收尾
-- [ ] Task 6: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 16-06 -->
-- [ ] Task 7: 建 `specs/` spec；`openspec archive 16-review-reminder`；開 PR <!-- id: 16-07 -->
+- [x] Task 6: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 16-06 -->
+- [x] Task 7: 建 `specs/` spec；`openspec archive 16-review-reminder`；開 PR <!-- id: 16-07 -->
 
 ## 注意
 - 純前端；重用 `apiClient.getReviewSummary()`（summary 已依 dueCount 由多到少排序）。
