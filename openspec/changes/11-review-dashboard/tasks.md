@@ -5,9 +5,9 @@
 > 完成一個就勾起來並 commit。守門三綠：`eslint` / `vitest run --fileParallelism=false` / `next build`。
 
 ## Phase 11.1: 後端複習彙總 use-case
-- [ ] Task 1: 寫失敗測試：`GetReviewSummaryUseCase`——對每個 enrolled variant 計算 dueCount / newCount / nextReviewAt（含全到期、無卡、空 enrolled 邊界）<!-- id: 11-01 -->
-- [ ] Task 2: 若缺「列舉某 driver 全部 enrolled progress」查詢，於 learning-progress port + Prisma adapter 補方法（先寫測試）until PASS <!-- id: 11-02 -->
-- [ ] Task 3: 實作 `GetReviewSummaryUseCase`（組合 due/new/progress port + `isCardDue`）until PASS <!-- id: 11-03 -->
+- [x] Task 1: 寫失敗測試：`GetReviewSummaryUseCase`——對每個 enrolled variant 計算 dueCount / newCount / nextReviewAt（含全到期、無卡、空 enrolled 邊界）<!-- id: 11-01 -->
+- [x] Task 2: 若缺「列舉某 driver 全部 enrolled progress」查詢，於 learning-progress port + Prisma adapter 補方法（先寫測試）until PASS <!-- id: 11-02 -->
+- [x] Task 3: 實作 `GetReviewSummaryUseCase`（組合 due/new/progress port + `isCardDue`）until PASS <!-- id: 11-03 -->
 
 ## Phase 11.2: HTTP API
 - [ ] Task 4: 寫失敗測試：`GET /api/review/summary`——`{ data: VariantReviewSummary[] }` 成功、錯誤信封映射、driver 用 DEFAULT_DRIVER_ID <!-- id: 11-04 -->

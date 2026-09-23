@@ -11,9 +11,21 @@ import {
 import { LearningCard, CardType, CardState } from '@/domain/learning/learning-card';
 import { SrsLevel } from '@/domain/srs/srs-interval-policy';
 import { LearningProgressRepository } from '@/application/learning/learning-progress-repository.port';
+import { ListDriverProgressPort } from '@/application/learning/list-driver-progress-port';
 
-export class PrismaLearningProgressRepository implements LearningProgressRepository {
+export class PrismaLearningProgressRepository
+  implements LearningProgressRepository, ListDriverProgressPort
+{
   constructor(private readonly prisma: PrismaClient) {}
+
+  async findAllByDriver(driverId: string): Promise<DriverVariantProgress[]> {
+    const records = await this.prisma.driverVariantProgress.findMany({
+      where: { driverId },
+      include: { cards: { orderBy: { id: 'asc' } } },
+      orderBy: { enrolledAt: 'asc' },
+    });
+    return records.map((record) => this.toDomain(record));
+  }
 
   async findByDriverAndVariant(
     driverId: string,
