@@ -1,4 +1,5 @@
 import { ReviewReminder } from '@/app/_components/review-reminder';
+import { BatchPracticeButton } from '@/app/_components/batch-practice-button';
 import { ReviewDashboard } from '@/app/_components/review-dashboard';
 import { MasteryTrend } from '@/app/_components/mastery-trend';
 import { RouteList } from '@/app/_components/route-list';
@@ -16,6 +17,10 @@ export default function Home() {
       </header>
 
       <ReviewReminder />
+
+      <div className="mb-6">
+        <BatchPracticeButton />
+      </div>
 
       <section aria-labelledby="review-heading" className="mb-10">
         <h2
