@@ -45,6 +45,6 @@ Change 12 只要在 variant 列表載入時比對它，就能正確反映既有�
 - 修改：`src/app/_components/variant-list.tsx` 與其測試；可能微調 `ReviewDashboard`/api-client 無。
 - 完成後於 `specs/` 建 spec 並 archive。
 
-## 開放問題（請審核時定案）
-1. summary 抓取失敗時，除了降級為「未報名」，要不要在頁面角落顯示一個不中斷的小提示？（傾向不顯示，保持安靜降級。）
-2. 「開始練習」目前一律連 `/practice/recall`（全域練習佇列）。本 change 是否需要帶 variant 參數只練該 variant？（傾向維持現狀，帶參數屬後續。）
+## 決策（2026-09-23 人審定案）
+1. ✅ summary 抓取失敗 → **安靜降級**為「全部未報名」，不顯示任何提示。
+2. ✅ 「開始練習」**維持連全域 `/practice/recall`**，不帶 variant 參數（帶參數屬後續 change）。

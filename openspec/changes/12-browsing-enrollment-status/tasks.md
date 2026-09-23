@@ -15,7 +15,7 @@
 
 ## Phase 12.3: 守門與收尾
 - [x] Task 7: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 12-07 -->
-- [ ] Task 8: 建 `specs/` spec；`openspec archive 12-browsing-enrollment-status`；開 PR <!-- id: 12-08 -->
+- [x] Task 8: 建 `specs/` spec；`openspec archive 12-browsing-enrollment-status`；開 PR <!-- id: 12-08 -->
 
 ## 注意
 - 純前端；重用現有 `/api/routes/[id]/variants` 與 `/api/review/summary`，不動後端。
