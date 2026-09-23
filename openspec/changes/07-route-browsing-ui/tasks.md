@@ -3,8 +3,8 @@
 > 接手者（含 Antigravity）：從第一個未勾的 task 開始，照 TDD（先紅後綠），每步在容器內 `docker compose run --rm app npm test`。完成一個就勾起來並 commit。
 
 ## TDD Implementation Sequence
-- [ ] Task 1: 寫失敗測試 `api-client.test.ts`：解析 `{ data }` 成功與 `{ error }` 失敗兩種形狀 <!-- id: 07-01 -->
-- [ ] Task 2: 實作 `src/app/_lib/api-client.ts`（薄 fetch 封裝）until PASS <!-- id: 07-02 -->
+- [x] Task 1: 寫失敗測試 `api-client.test.ts`：解析 `{ data }` 成功與 `{ error }` 失敗兩種形狀 <!-- id: 07-01 -->
+- [x] Task 2: 實作 `src/app/_lib/api-client.ts`（薄 fetch 封裝）until PASS <!-- id: 07-02 -->
 - [ ] Task 3: 寫失敗測試：路線列表元件——載入中、成功渲染 shortName/longName、空清單 <!-- id: 07-03 -->
 - [ ] Task 4: 實作路線列表元件 + `src/app/page.tsx`（取代預設樣板）until PASS <!-- id: 07-04 -->
 - [ ] Task 5: 寫失敗測試：路線列表 API 錯誤時顯示錯誤訊息 <!-- id: 07-05 -->
