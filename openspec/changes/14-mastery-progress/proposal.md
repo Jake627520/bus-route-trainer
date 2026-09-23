@@ -36,6 +36,6 @@
 - 修改：`get-review-summary-use-case.ts`、`api-client.ts`（型別）、`review-dashboard.tsx` 及對應測試。
 - 完成後於 `specs/` 建 spec 並 archive。
 
-## 開放問題（請審核時定案）
-1. 進度條 label 用「精熟度」還是「已精熟 X/Y」？（傾向 ProgressBar 內建 `X / Y (Z%)` + label「精熟度」。）
-2. 精熟度為 0 的 variant 要不要仍顯示進度條？（傾向顯示，維持一致；0% 也是有效資訊。）
+## 決策（2026-09-23 人審定案）
+1. ✅ 進度條 label「精熟度」+ ProgressBar 內建 `X / Y (Z%)`。
+2. ✅ 精熟度 0 的 variant 仍顯示進度條（0% 也是有效資訊）。

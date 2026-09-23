@@ -11,6 +11,7 @@ export interface VariantReviewSummary {
   status: ProgressStatus;
   dueCount: number;
   newCount: number;
+  masteredCount: number;
   totalCards: number;
   /** 未到期卡片中最近的複習時間（ISO）；全到期或無未來卡則 null。 */
   nextReviewAt: string | null;
@@ -40,6 +41,7 @@ export class GetReviewSummaryUseCase {
 
       const dueCount = cards.filter((c) => isCardDue(c, now)).length;
       const newCount = cards.filter((c) => c.state === CardState.NEW).length;
+      const masteredCount = cards.filter((c) => c.state === CardState.MASTERED).length;
 
       const upcoming = cards
         .map((c) => c.nextReviewAt)
@@ -53,6 +55,7 @@ export class GetReviewSummaryUseCase {
         status: progress.status,
         dueCount,
         newCount,
+        masteredCount,
         totalCards: cards.length,
         nextReviewAt: upcoming.length > 0 ? upcoming[0].toISOString() : null,
       };

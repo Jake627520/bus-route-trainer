@@ -5,9 +5,9 @@
 > 整合測試務必 afterAll 自清（避免污染其他測試）。
 
 ## Phase 14.1: 後端 masteredCount
-- [ ] Task 1: 寫失敗測試：`GetReviewSummaryUseCase` 計算 masteredCount（全精熟/零精熟/無卡邊界）<!-- id: 14-01 -->
-- [ ] Task 2: 實作——DTO 加 masteredCount，use-case 計算 `state === MASTERED` 卡數 until PASS <!-- id: 14-02 -->
-- [ ] Task 3: 寫失敗測試 + 確認 `GET /api/review/summary` 回應含 masteredCount（整合測試，afterAll 自清）until PASS <!-- id: 14-03 -->
+- [x] Task 1: 寫失敗測試：`GetReviewSummaryUseCase` 計算 masteredCount（全精熟/零精熟/無卡邊界）<!-- id: 14-01 -->
+- [x] Task 2: 實作——DTO 加 masteredCount，use-case 計算 `state === MASTERED` 卡數 until PASS <!-- id: 14-02 -->
+- [x] Task 3: 寫失敗測試 + 確認 `GET /api/review/summary` 回應含 masteredCount（整合測試，afterAll 自清）until PASS <!-- id: 14-03 -->
 
 ## Phase 14.2: 前端顯示
 - [ ] Task 4: api-client `VariantReviewSummary` 型別加 masteredCount；更新既有 review-api-client 測試 <!-- id: 14-04 -->
