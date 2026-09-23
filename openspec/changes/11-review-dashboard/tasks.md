@@ -14,11 +14,11 @@
 - [x] Task 5: 實作 `src/app/api/review/summary/route.ts`（組裝 use-case + DI）until PASS <!-- id: 11-05 -->
 
 ## Phase 11.3: 前端 api-client + 儀表板
-- [ ] Task 6: 寫失敗測試：`api-client.getReviewSummary()` 解析 {data}/{error} <!-- id: 11-06 -->
-- [ ] Task 7: 實作 `getReviewSummary()` until PASS <!-- id: 11-07 -->
-- [ ] Task 8: 寫失敗測試：`ReviewDashboard` 元件——載入中/成功（渲染 dueCount 徽章、下次複習時間、開始複習 CTA href=/practice/recall）/空/錯誤，且依 dueCount 由多到少排序、dueCount=0 淡化 <!-- id: 11-08 -->
-- [ ] Task 9: 實作 `ReviewDashboard` until PASS <!-- id: 11-09 -->
-- [ ] Task 10: 把「待複習」區塊掛進首頁 `/`（或獨立 `/review`，依提案開放問題定案）；補整合測試 until PASS <!-- id: 11-10 -->
+- [x] Task 6: 寫失敗測試：`api-client.getReviewSummary()` 解析 {data}/{error} <!-- id: 11-06 -->
+- [x] Task 7: 實作 `getReviewSummary()` until PASS <!-- id: 11-07 -->
+- [x] Task 8: 寫失敗測試：`ReviewDashboard` 元件——載入中/成功（渲染 dueCount 徽章、下次複習時間、開始複習 CTA href=/practice/recall）/空/錯誤，且依 dueCount 由多到少排序、dueCount=0 淡化 <!-- id: 11-08 -->
+- [x] Task 9: 實作 `ReviewDashboard` until PASS <!-- id: 11-09 -->
+- [x] Task 10: 把「待複習」區塊掛進首頁 `/`（或獨立 `/review`，依提案開放問題定案）；補整合測試 until PASS <!-- id: 11-10 -->
 
 ## Phase 11.4: 守門與收尾
 - [ ] Task 11: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 11-11 -->

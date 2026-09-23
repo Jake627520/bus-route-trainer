@@ -44,6 +44,17 @@ export interface VariantProgress {
   totalCards: number;
 }
 
+export interface VariantReviewSummary {
+  routeId: string;
+  variantKey: string;
+  directionId: number;
+  status: ProgressStatus;
+  dueCount: number;
+  newCount: number;
+  totalCards: number;
+  nextReviewAt: string | null;
+}
+
 interface SuccessEnvelope<T> {
   data: T;
 }
@@ -125,6 +136,10 @@ export class ApiClient {
 
   getVariantProgress(variantKey: string): Promise<VariantProgress> {
     return this.request<VariantProgress>(`/api/progress/${encodeURIComponent(variantKey)}`);
+  }
+
+  getReviewSummary(): Promise<VariantReviewSummary[]> {
+    return this.request<VariantReviewSummary[]>('/api/review/summary');
   }
 }
 
