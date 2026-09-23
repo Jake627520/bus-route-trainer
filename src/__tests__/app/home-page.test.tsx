@@ -57,6 +57,24 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
     expect(banner.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
+  it('Change 18: renders the 練習全部到期 batch button when variants are due', async () => {
+    mockFetch.mockImplementation((url: string) => {
+      if (String(url).includes('/api/review/mastery-trend')) return Promise.resolve(jsonRes({ data: [] }));
+      if (String(url).includes('/api/review/summary')) {
+        return Promise.resolve(jsonRes({
+          data: [{ routeId: 'R1', variantKey: 'V1', directionId: 0, status: 'IN_PROGRESS', headsign: null, dueCount: 2, newCount: 0, masteredCount: 0, totalCards: 5, nextReviewAt: null }],
+        }));
+      }
+      if (String(url).includes('/api/routes')) return Promise.resolve(jsonRes({ data: [] }));
+      return Promise.reject(new Error(`unexpected url ${url}`));
+    });
+
+    render(<Home />);
+
+    const link = await screen.findByRole('link', { name: /練習全部到期/ });
+    expect(link.getAttribute('href') ?? '').toContain('/practice/recall?queue=');
+  });
+
   it('Change 17: renders a 精熟度趨勢 section below the 待複習 dashboard', async () => {
     render(<Home />);
 

@@ -17,7 +17,7 @@
 - [x] Task 7: 實作練習頁佇列讀取 + 批次進度 + 下一條流程 until PASS；既有 recall 頁 / deep-link 測試仍綠 <!-- id: 18-07 -->
 
 ## Phase 18.4: 首頁整合 + 守門收尾
-- [ ] Task 8: 把批次入口掛進首頁（提醒/待複習附近）；整合測試 until PASS <!-- id: 18-08 -->
+- [x] Task 8: 把批次入口掛進首頁（提醒/待複習附近）；整合測試 until PASS <!-- id: 18-08 -->
 - [ ] Task 9: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 18-09 -->
 - [ ] Task 10: 建 `specs/` spec；`openspec archive 18-batch-practice`；開 PR <!-- id: 18-10 -->
 
