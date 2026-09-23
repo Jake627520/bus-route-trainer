@@ -4,8 +4,8 @@
 > 守門三綠：`eslint` / `vitest run --fileParallelism=false` / `next build`。
 
 ## Phase 18.1: 佇列編碼 helper
-- [ ] Task 1: 寫失敗測試：`encodeQueue` / `parseQueue`（round-trip、variantKey 含冒號、壞字串→[]）<!-- id: 18-01 -->
-- [ ] Task 2: 實作 helper（JSON + encodeURIComponent，parse try/catch→[]）until PASS <!-- id: 18-02 -->
+- [x] Task 1: 寫失敗測試：`encodeQueue` / `parseQueue`（round-trip、variantKey 含冒號、壞字串→[]）<!-- id: 18-01 -->
+- [x] Task 2: 實作 helper（JSON + encodeURIComponent，parse try/catch→[]）until PASS <!-- id: 18-02 -->
 
 ## Phase 18.2: 入口按鈕
 - [ ] Task 3: 寫失敗測試：批次入口元件——由 summary 取 dueCount>0 組佇列、href=/practice/recall?queue=..、無到期不顯示、按鈕文案含路線數 <!-- id: 18-03 -->

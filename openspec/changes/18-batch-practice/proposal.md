@@ -52,8 +52,8 @@ PlanRecallSessionUseCase、已 archive 的 Change 05–10），風險高。**本
 - 修改：`src/app/practice/recall/page.tsx`（讀 queue、批次進度、下一條流程）、首頁、對應測試。
 - 完成後於 `specs/` 建 spec 並 archive。
 
-## 開放問題（請審核時定案）
-1. 採**前端編排（串接單 variant session）**，不動後端？（傾向如此，風險最低。）
-2. 路線之間**手動「下一條路線」按鈕**，而非自動連播？（傾向手動，司機可控、易測、不突兀。）
-3. 批次內容＝**所有 dueCount>0 的 variant**（依 summary 排序）？（傾向如此。）
-4. 入口按鈕放**首頁**（提醒橫幅附近）？（傾向首頁「待複習」區塊上方或提醒橫幅內。）
+## 決策（2026-09-24 人審定案）
+1. ✅ 前端編排（串接單 variant session），不動後端。
+2. ✅ 路線間手動「下一條路線」按鈕，非自動連播。
+3. ✅ 批次＝所有 dueCount>0 的 variant（依 summary 排序）。
+4. ✅ 入口按鈕放首頁「待複習」儀表板上方。
