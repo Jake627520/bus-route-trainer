@@ -13,8 +13,8 @@
 - [x] Task 8: 實作 variant 列表 + `src/app/routes/[routeId]/page.tsx` until PASS <!-- id: 07-08 -->
 - [x] Task 9: 寫失敗測試：點 Enroll → 呼叫 POST /api/progress/enroll → 畫面更新為已報名/進度 <!-- id: 07-09 -->
 - [x] Task 10: 實作 Enroll 互動 until PASS <!-- id: 07-10 -->
-- [ ] Task 11: 全套守門（容器內）：`npm run lint` + `npm test` + `npm run build` 全綠 <!-- id: 07-11 -->
-- [ ] Task 12: 更新 `openspec/specs/` 建 `route-browsing-ui` spec；archive 本 change；開 PR <!-- id: 07-12 -->
+- [x] Task 11: 全套守門（容器內）：`npm run lint` + `npm test` + `npm run build` 全綠 <!-- id: 07-11 -->
+- [x] Task 12: 更新 `openspec/specs/` 建 `route-browsing-ui` spec；archive 本 change；開 PR <!-- id: 07-12 -->
 
 ## 注意
 - 前端測試 **mock fetch**，不打真 DB（快、與後端整合測試分離）。
