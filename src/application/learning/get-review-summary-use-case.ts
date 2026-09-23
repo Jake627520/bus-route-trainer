@@ -1,5 +1,6 @@
 import { Clock } from '@/application/common/clock';
 import { ListDriverProgressPort } from '@/application/learning/list-driver-progress-port';
+import { VariantHeadsignQueryPort } from '@/application/learning/variant-headsign-query-port';
 import { ProgressStatus } from '@/domain/learning/driver-variant-progress';
 import { CardState } from '@/domain/learning/learning-card';
 import { isCardDue } from '@/domain/srs/is-card-due';
@@ -9,6 +10,7 @@ export interface VariantReviewSummary {
   variantKey: string;
   directionId: number;
   status: ProgressStatus;
+  headsign: string | null;
   dueCount: number;
   newCount: number;
   masteredCount: number;
@@ -29,12 +31,27 @@ export interface GetReviewSummaryCommand {
 export class GetReviewSummaryUseCase {
   constructor(
     private readonly progressPort: ListDriverProgressPort,
-    private readonly clock: Clock
+    private readonly clock: Clock,
+    private readonly headsignPort: VariantHeadsignQueryPort
   ) {}
 
   async execute(command: GetReviewSummaryCommand): Promise<VariantReviewSummary[]> {
     const now = this.clock.now();
     const enrolled = await this.progressPort.findAllByDriver(command.driverId);
+
+    // headsign 為增益：每個 distinct routeId 只查一次，任一路線查詢失敗則該路線降級為 null。
+    const headsignMap = new Map<string, string | null>();
+    const distinctRoutes = [...new Set(enrolled.map((p) => p.routeId))];
+    await Promise.all(
+      distinctRoutes.map(async (routeId) => {
+        try {
+          const list = await this.headsignPort.findHeadsignsByRoute(routeId);
+          for (const h of list) headsignMap.set(`${routeId}::${h.variantKey}`, h.headsign);
+        } catch {
+          /* 降級：該路線 headsign 留空 → null */
+        }
+      })
+    );
 
     const summaries: VariantReviewSummary[] = enrolled.map((progress) => {
       const cards = progress.cards;
@@ -53,6 +70,7 @@ export class GetReviewSummaryUseCase {
         variantKey: progress.targetVariantKey,
         directionId: progress.directionId,
         status: progress.status,
+        headsign: headsignMap.get(`${progress.routeId}::${progress.targetVariantKey}`) ?? null,
         dueCount,
         newCount,
         masteredCount,

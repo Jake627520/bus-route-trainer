@@ -69,6 +69,8 @@ describe('GET /api/review/summary', () => {
       masteredCount: 1,
       totalCards: 5,
       nextReviewAt: FUTURE.toISOString(),
+      // 未 seed GTFS 路線 → headsign 優雅降級為 null（欄位仍存在）
+      headsign: null,
     });
   });
 
