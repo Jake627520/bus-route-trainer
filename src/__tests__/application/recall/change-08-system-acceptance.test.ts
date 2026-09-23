@@ -60,6 +60,8 @@ describe('Change 08 System-Level Acceptance Suite (End-to-End Composition Root)'
     const cards = await Promise.all([
       prisma.learningCard.create({
         data: {
+          // 確定性遞增 id：讓計畫的 id-asc 選卡順序 = 建立順序，避免 uuid 隨機化造成 flaky。
+          id: `${variantKey}::card-1`,
           progressId: progress.id,
           cardKey: 'STOP::stop-1',
           cardType: 'STOP',
@@ -69,6 +71,7 @@ describe('Change 08 System-Level Acceptance Suite (End-to-End Composition Root)'
       }),
       prisma.learningCard.create({
         data: {
+          id: `${variantKey}::card-2`,
           progressId: progress.id,
           cardKey: 'STOP::stop-2',
           cardType: 'STOP',
@@ -78,6 +81,7 @@ describe('Change 08 System-Level Acceptance Suite (End-to-End Composition Root)'
       }),
       prisma.learningCard.create({
         data: {
+          id: `${variantKey}::card-3`,
           progressId: progress.id,
           cardKey: 'STOP::stop-3',
           cardType: 'STOP',
