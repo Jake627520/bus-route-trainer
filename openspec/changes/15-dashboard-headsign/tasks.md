@@ -17,8 +17,8 @@
 - [x] Task 7: 寫失敗測試：ReviewDashboard 顯示 headsign（含 null→未標示終點）；實作 until PASS；既有 dashboard 測試補 headsign 欄位仍綠 <!-- id: 15-07 -->
 
 ## Phase 15.4: 守門與收尾
-- [ ] Task 8: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 15-08 -->
-- [ ] Task 9: 建 `specs/` spec；`openspec archive 15-dashboard-headsign`；開 PR <!-- id: 15-09 -->
+- [x] Task 8: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 15-08 -->
+- [x] Task 9: 建 `specs/` spec；`openspec archive 15-dashboard-headsign`；開 PR <!-- id: 15-09 -->
 
 ## 注意
 - headsign 為增益：route 查詢失敗一律降級為 null，不得中斷 summary。
