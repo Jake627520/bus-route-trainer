@@ -4,8 +4,8 @@
 > 前端 mock fetch、後端整合測試打真 DB（afterAll 自清）。守門三綠：`eslint` / `vitest run --fileParallelism=false` / `next build`。
 
 ## Phase 17.1: 事件查詢 port + adapter
-- [ ] Task 1: 寫失敗測試（真 DB，afterAll 自清）：`MasteryHistoryQueryPort` adapter——依 session.driverId 撈 attempt 的 cardKey/resultingState/answeredAt，依 answeredAt 升冪 <!-- id: 17-01 -->
-- [ ] Task 2: 定義 port + Prisma adapter until PASS <!-- id: 17-02 -->
+- [x] Task 1: 寫失敗測試（真 DB，afterAll 自清）：`MasteryHistoryQueryPort` adapter——依 session.driverId 撈 attempt 的 cardKey/resultingState/answeredAt，依 answeredAt 升冪 <!-- id: 17-01 -->
+- [x] Task 2: 定義 port + Prisma adapter until PASS <!-- id: 17-02 -->
 
 ## Phase 17.2: 重放 use-case
 - [ ] Task 3: 寫失敗測試（純邏輯 fake port）：`GetMasteryTrendUseCase` 重放——每日快照 masteredCount、lapse 回落、同日多筆、無 attempt→[] <!-- id: 17-03 -->

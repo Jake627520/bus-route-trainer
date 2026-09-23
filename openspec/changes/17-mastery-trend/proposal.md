@@ -48,9 +48,8 @@ Change 17 交付**精熟度趨勢圖**：後端由 attempt 日誌重放出每日
 - 修改：`src/app/page.tsx`（掛入 section）、首頁整合測試。
 - 完成後於 `specs/` 建 spec 並 archive。
 
-## 開放問題（請審核時定案）
-1. 指標＝「每日結束時處於 MASTERED 狀態的卡數」（由 resultingState 重放，真實反映精熟度、會隨 lapse 回落）？
-   （傾向如此，最貼合「精熟度趨勢」語意。）
-2. 圖表＝**手刻 inline SVG**、不加 charting 依賴？（傾向如此，與專案「零多餘依賴」一致。）
-3. 位置＝首頁「待複習」儀表板**之下**新增「精熟度趨勢」section？（傾向如此，順著複習脈絡。）
-4. 日期分桶用 **UTC**（與 server 一致）？（傾向 UTC；zero-auth 單機情境影響小。）
+## 決策（2026-09-23 人審定案）
+1. ✅ 指標＝每日結束時處於 MASTERED 的卡數（resultingState 重放，隨 lapse 回落）。
+2. ✅ 圖表＝手刻 inline SVG，不加 charting 依賴。
+3. ✅ 位置＝首頁「待複習」儀表板之下新增「精熟度趨勢」section。
+4. ✅ 日期分桶用 UTC。
