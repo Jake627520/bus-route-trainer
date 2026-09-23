@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { parseQueue } from '@/app/_lib/practice-queue';
 import { useRecallSession } from '@/application/recall/client/use-recall-session';
 import {
   Button,
@@ -38,16 +39,24 @@ function RecallPracticeInner() {
   const spVariantKey = searchParams.get('variantKey');
   const spSize = searchParams.get('size');
 
+  // Change 18: 批次佇列（多路線）。解析失敗 → [] → 退回單 variant 行為。
+  const queue = useMemo(() => parseQueue(searchParams.get('queue')), [searchParams]);
+  const inBatch = queue.length > 0;
+  const [batchIndex, setBatchIndex] = useState(0);
+
   // Route & session config state for IDLE form（無參數時沿用預設）
   const [routeId, setRouteId] = useState(spRouteId ?? '66');
   const [variantKey, setVariantKey] = useState(spVariantKey ?? '66-1-INBOUND');
   const [sessionSize, setSessionSize] = useState(spSize ?? '10');
 
-  // Change 13: 帶 deep-link 參數時自動開始一次 session（ref 防重入）
+  // Change 13/18: 帶 deep-link 或批次佇列時自動開始一次（ref 防重入）
   const autoStarted = useRef(false);
   useEffect(() => {
-    if (autoStarted.current) return;
-    if (spRouteId && spVariantKey && viewState === 'IDLE') {
+    if (autoStarted.current || viewState !== 'IDLE') return;
+    if (queue.length > 0) {
+      autoStarted.current = true;
+      startSession({ routeId: queue[0].routeId, variantKey: queue[0].variantKey });
+    } else if (spRouteId && spVariantKey) {
       autoStarted.current = true;
       const size = spSize ? parseInt(spSize, 10) : NaN;
       startSession({
@@ -56,7 +65,15 @@ function RecallPracticeInner() {
         sessionSize: Number.isNaN(size) || size <= 0 ? undefined : size,
       });
     }
-  }, [spRouteId, spVariantKey, spSize, viewState, startSession]);
+  }, [queue, spRouteId, spVariantKey, spSize, viewState, startSession]);
+
+  // Change 18: 批次中前往下一條路線
+  const handleNextInBatch = () => {
+    const next = batchIndex + 1;
+    if (next >= queue.length) return;
+    setBatchIndex(next);
+    startSession({ routeId: queue[next].routeId, variantKey: queue[next].variantKey });
+  };
 
   // Input state for active question
   const [rawInput, setRawInput] = useState('');
@@ -116,6 +133,11 @@ function RecallPracticeInner() {
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Queensland Transit Depot Practice Mode
             </p>
+            {inBatch && (
+              <p className="mt-1 text-xs font-semibold text-sky-600 dark:text-sky-400">
+                批次練習 {batchIndex + 1} / {queue.length}
+              </p>
+            )}
           </div>
 
           {(viewState === 'ACTIVE' || viewState === 'FEEDBACK' || viewState === 'SUBMITTING') && (
@@ -322,10 +344,21 @@ function RecallPracticeInner() {
             <p className="text-sm text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto">
               You have completed all planned cards for this recall session. Your SRS memory intervals have been authoritatively updated on the server.
             </p>
+            {inBatch && batchIndex >= queue.length - 1 && (
+              <p className="text-base font-semibold text-emerald-600 dark:text-emerald-400">
+                全部完成 🎉
+              </p>
+            )}
             <div className="pt-4 flex justify-center gap-3">
-              <Button onClick={reset} size="lg">
-                Practice Again
-              </Button>
+              {inBatch && batchIndex < queue.length - 1 ? (
+                <Button onClick={handleNextInBatch} size="lg">
+                  下一條路線（{batchIndex + 2} / {queue.length}）
+                </Button>
+              ) : (
+                <Button onClick={reset} size="lg">
+                  Practice Again
+                </Button>
+              )}
             </div>
           </Card>
         )}
