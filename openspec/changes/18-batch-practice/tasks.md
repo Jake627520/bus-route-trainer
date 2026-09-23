@@ -8,8 +8,8 @@
 - [x] Task 2: 實作 helper（JSON + encodeURIComponent，parse try/catch→[]）until PASS <!-- id: 18-02 -->
 
 ## Phase 18.2: 入口按鈕
-- [ ] Task 3: 寫失敗測試：批次入口元件——由 summary 取 dueCount>0 組佇列、href=/practice/recall?queue=..、無到期不顯示、按鈕文案含路線數 <!-- id: 18-03 -->
-- [ ] Task 4: 實作入口元件 until PASS <!-- id: 18-04 -->
+- [x] Task 3: 寫失敗測試：批次入口元件——由 summary 取 dueCount>0 組佇列、href=/practice/recall?queue=..、無到期不顯示、按鈕文案含路線數 <!-- id: 18-03 -->
+- [x] Task 4: 實作入口元件 until PASS <!-- id: 18-04 -->
 
 ## Phase 18.3: 練習頁佇列流程
 - [ ] Task 5: 寫失敗測試（mock useSearchParams+useRecallSession）：有 queue → 自動開始第 0 條、header 顯示「批次練習 1/n」 <!-- id: 18-05 -->
