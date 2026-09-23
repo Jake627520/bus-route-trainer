@@ -43,6 +43,7 @@ describe('GET /api/review/summary', () => {
             { id: `c2-${variantKey}`, cardKey: 'STOP::b', cardType: 'STOP', state: 'REVIEW', nextReviewAt: PAST },
             { id: `c3-${variantKey}`, cardKey: 'STOP::c', cardType: 'STOP', state: 'REVIEW', nextReviewAt: FUTURE },
             { id: `c4-${variantKey}`, cardKey: 'STOP::d', cardType: 'STOP', state: 'NEW', nextReviewAt: null },
+            { id: `c5-${variantKey}`, cardKey: 'STOP::e', cardType: 'STOP', state: 'MASTERED', nextReviewAt: FUTURE },
           ],
         },
       },
@@ -65,7 +66,8 @@ describe('GET /api/review/summary', () => {
       status: 'IN_PROGRESS',
       dueCount: 2,
       newCount: 1,
-      totalCards: 4,
+      masteredCount: 1,
+      totalCards: 5,
       nextReviewAt: FUTURE.toISOString(),
     });
   });

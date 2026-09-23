@@ -31,13 +31,15 @@ describe('Change 11: GetReviewSummaryUseCase', () => {
 
   const past = new Date('2026-09-22T00:00:00.000Z');
   const future = new Date('2026-09-24T00:00:00.000Z');
+  const farFuture = new Date('2027-01-01T00:00:00.000Z');
 
-  it('computes due/new/total/nextReviewAt per variant and sorts by dueCount desc', async () => {
+  it('computes due/new/mastered/total/nextReviewAt per variant and sorts by dueCount desc', async () => {
     const a = progress('pA', 'R1', 0, 'V1', ProgressStatus.IN_PROGRESS, [
-      card('a1', 'pA', CardState.REVIEW, past),      // due
-      card('a2', 'pA', CardState.REVIEW, past),      // due
-      card('a3', 'pA', CardState.REVIEW, future),    // upcoming
-      card('a4', 'pA', CardState.NEW, null),         // new
+      card('a1', 'pA', CardState.REVIEW, past),        // due
+      card('a2', 'pA', CardState.REVIEW, past),        // due
+      card('a3', 'pA', CardState.REVIEW, future),      // upcoming
+      card('a4', 'pA', CardState.NEW, null),           // new
+      card('a5', 'pA', CardState.MASTERED, farFuture), // mastered (未到期，非最早)
     ]);
     const b = progress('pB', 'R2', 1, 'V2', ProgressStatus.NOT_STARTED, [
       card('b1', 'pB', CardState.REVIEW, past),      // due, no upcoming
@@ -51,11 +53,11 @@ describe('Change 11: GetReviewSummaryUseCase', () => {
 
     expect(result[0]).toEqual({
       routeId: 'R1', variantKey: 'V1', directionId: 0, status: ProgressStatus.IN_PROGRESS,
-      dueCount: 2, newCount: 1, totalCards: 4, nextReviewAt: future.toISOString(),
+      dueCount: 2, newCount: 1, masteredCount: 1, totalCards: 5, nextReviewAt: future.toISOString(),
     });
     expect(result[1]).toEqual({
       routeId: 'R2', variantKey: 'V2', directionId: 1, status: ProgressStatus.NOT_STARTED,
-      dueCount: 1, newCount: 0, totalCards: 1, nextReviewAt: null,
+      dueCount: 1, newCount: 0, masteredCount: 0, totalCards: 1, nextReviewAt: null,
     });
   });
 
