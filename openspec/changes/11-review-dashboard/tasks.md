@@ -22,7 +22,7 @@
 
 ## Phase 11.4: 守門與收尾
 - [x] Task 11: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 11-11 -->
-- [ ] Task 12: 建 `openspec/changes/11-review-dashboard/specs/` spec；`openspec archive 11-review-dashboard`；開 PR <!-- id: 11-12 -->
+- [x] Task 12: 建 `openspec/changes/11-review-dashboard/specs/` spec；`openspec archive 11-review-dashboard`；開 PR <!-- id: 11-12 -->
 
 ## 注意
 - 前端測試 mock fetch、不打真 DB；資料一律走新 `/api/review/summary`，前端不直接 import Prisma。
