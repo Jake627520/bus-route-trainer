@@ -10,8 +10,8 @@
 - [x] Task 3: 實作 `GetReviewSummaryUseCase`（組合 due/new/progress port + `isCardDue`）until PASS <!-- id: 11-03 -->
 
 ## Phase 11.2: HTTP API
-- [ ] Task 4: 寫失敗測試：`GET /api/review/summary`——`{ data: VariantReviewSummary[] }` 成功、錯誤信封映射、driver 用 DEFAULT_DRIVER_ID <!-- id: 11-04 -->
-- [ ] Task 5: 實作 `src/app/api/review/summary/route.ts`（組裝 use-case + DI）until PASS <!-- id: 11-05 -->
+- [x] Task 4: 寫失敗測試：`GET /api/review/summary`——`{ data: VariantReviewSummary[] }` 成功、錯誤信封映射、driver 用 DEFAULT_DRIVER_ID <!-- id: 11-04 -->
+- [x] Task 5: 實作 `src/app/api/review/summary/route.ts`（組裝 use-case + DI）until PASS <!-- id: 11-05 -->
 
 ## Phase 11.3: 前端 api-client + 儀表板
 - [ ] Task 6: 寫失敗測試：`api-client.getReviewSummary()` 解析 {data}/{error} <!-- id: 11-06 -->
