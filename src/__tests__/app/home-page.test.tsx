@@ -16,6 +16,7 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
 
   beforeEach(() => {
     mockFetch = vi.fn((url: string) => {
+      if (String(url).includes('/api/review/mastery-trend')) return Promise.resolve(jsonRes({ data: [] }));
       if (String(url).includes('/api/review/summary')) return Promise.resolve(jsonRes({ data: [] }));
       if (String(url).includes('/api/routes')) return Promise.resolve(jsonRes({ data: [] }));
       return Promise.reject(new Error(`unexpected url ${url}`));
@@ -38,6 +39,7 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
 
   it('Change 16: renders the review reminder banner above the 待複習 dashboard', async () => {
     mockFetch.mockImplementation((url: string) => {
+      if (String(url).includes('/api/review/mastery-trend')) return Promise.resolve(jsonRes({ data: [] }));
       if (String(url).includes('/api/review/summary')) {
         return Promise.resolve(jsonRes({
           data: [{ routeId: 'R1', variantKey: 'V1', directionId: 0, status: 'IN_PROGRESS', headsign: null, dueCount: 2, newCount: 0, masteredCount: 0, totalCards: 5, nextReviewAt: null }],
@@ -53,5 +55,17 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
     const heading = screen.getByRole('heading', { name: /待複習/ });
     // 提醒橫幅在儀表板標題之上
     expect(banner.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('Change 17: renders a 精熟度趨勢 section below the 待複習 dashboard', async () => {
+    render(<Home />);
+
+    const trendHeading = await screen.findByRole('heading', { name: /精熟度趨勢/ });
+    const reviewHeading = screen.getByRole('heading', { name: /待複習/ });
+    // 趨勢 section 在待複習儀表板之下
+    expect(reviewHeading.compareDocumentPosition(trendHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    const urls = mockFetch.mock.calls.map((c) => String(c[0]));
+    expect(urls.some((u) => u.includes('/api/review/mastery-trend'))).toBe(true);
   });
 });
