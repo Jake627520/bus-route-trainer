@@ -51,7 +51,7 @@ Change 11 交付**複習到期視覺化**：一條完整 vertical slice（新增
 - 修改：`src/app/page.tsx`（掛入待複習區塊）、可能補一個 learning-progress repository 查詢方法。
 - 完成後於 `openspec/changes/11-review-dashboard/specs/` 建 spec 並 archive。
 
-## 開放問題（請審核時定案）
-1. 待複習視圖放**首頁上方區塊**還是**獨立 `/review` 頁**？（傾向首頁區塊，司機一落地就看到。）
-2. `GET /api/review/summary` 是否也要回**未報名但有新卡**的 variant，還是只列 enrolled？（傾向只列 enrolled。）
-3. 相對時間顯示是否用既有 `date-fns`（已是相依）？
+## 決策（2026-09-23 人審定案）
+1. ✅ 待複習視圖放**首頁 `/` 上方區塊**（司機一落地就看到），非獨立頁。
+2. ✅ `GET /api/review/summary` **只列 enrolled variant**（未報名的走路線瀏覽報名流程）。
+3. ✅ 相對時間用既有相依 **`date-fns`**。
