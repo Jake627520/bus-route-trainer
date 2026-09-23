@@ -70,17 +70,20 @@ export interface ApiClientOptions {
 
 export class ApiClient {
   private readonly baseUrl: string;
-  private readonly fetchFn: typeof fetch;
+  private readonly fetchFn?: typeof fetch;
 
   constructor(options: ApiClientOptions = {}) {
     this.baseUrl = options.baseUrl ?? '';
-    this.fetchFn = options.fetchFn ?? globalThis.fetch;
+    // 不在建構時綁死 globalThis.fetch，改在呼叫時 late-bind，
+    // 才不會被稍後才替換 global fetch 的測試（vi.stubGlobal）錯過。
+    this.fetchFn = options.fetchFn;
   }
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
+    const doFetch = this.fetchFn ?? globalThis.fetch;
     let response: Response;
     try {
-      response = await this.fetchFn(`${this.baseUrl}${path}`, init);
+      response = await doFetch(`${this.baseUrl}${path}`, init);
     } catch {
       throw new ApiError('NETWORK_ERROR', 'Network request failed', 0);
     }

@@ -5,10 +5,10 @@
 ## TDD Implementation Sequence
 - [x] Task 1: 寫失敗測試 `api-client.test.ts`：解析 `{ data }` 成功與 `{ error }` 失敗兩種形狀 <!-- id: 07-01 -->
 - [x] Task 2: 實作 `src/app/_lib/api-client.ts`（薄 fetch 封裝）until PASS <!-- id: 07-02 -->
-- [ ] Task 3: 寫失敗測試：路線列表元件——載入中、成功渲染 shortName/longName、空清單 <!-- id: 07-03 -->
-- [ ] Task 4: 實作路線列表元件 + `src/app/page.tsx`（取代預設樣板）until PASS <!-- id: 07-04 -->
-- [ ] Task 5: 寫失敗測試：路線列表 API 錯誤時顯示錯誤訊息 <!-- id: 07-05 -->
-- [ ] Task 6: 實作錯誤狀態 until PASS <!-- id: 07-06 -->
+- [x] Task 3: 寫失敗測試：路線列表元件——載入中、成功渲染 shortName/longName、空清單 <!-- id: 07-03 -->
+- [x] Task 4: 實作路線列表元件 + `src/app/page.tsx`（取代預設樣板）until PASS <!-- id: 07-04 -->
+- [x] Task 5: 寫失敗測試：路線列表 API 錯誤時顯示錯誤訊息 <!-- id: 07-05 -->
+- [x] Task 6: 實作錯誤狀態 until PASS <!-- id: 07-06 -->
 - [ ] Task 7: 寫失敗測試：variant 列表元件（渲染 variants、顯示各自進度狀態） <!-- id: 07-07 -->
 - [ ] Task 8: 實作 variant 列表 + `src/app/routes/[routeId]/page.tsx` until PASS <!-- id: 07-08 -->
 - [ ] Task 9: 寫失敗測試：點 Enroll → 呼叫 POST /api/progress/enroll → 畫面更新為已報名/進度 <!-- id: 07-09 -->
