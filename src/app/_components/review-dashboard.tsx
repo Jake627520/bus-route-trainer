@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import { ProgressBar } from '@/components/ui';
 import {
   apiClient,
   ApiError,
@@ -101,6 +102,9 @@ export function ReviewDashboard() {
                   下次複習 {formatDistanceToNow(new Date(item.nextReviewAt), { addSuffix: true })}
                 </span>
               ) : null}
+            </div>
+            <div className="mt-2 max-w-[240px]">
+              <ProgressBar current={item.masteredCount} total={item.totalCards} label="精熟度" />
             </div>
           </div>
           <a

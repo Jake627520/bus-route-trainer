@@ -31,8 +31,8 @@ describe('Change 11: ReviewDashboard', () => {
     mockFetch.mockResolvedValueOnce(
       jsonRes(200, {
         data: [
-          { routeId: 'R1', variantKey: 'V1', directionId: 0, status: 'IN_PROGRESS', dueCount: 3, newCount: 1, totalCards: 10, nextReviewAt: '2999-01-01T00:00:00.000Z' },
-          { routeId: 'R2', variantKey: 'V2', directionId: 1, status: 'NOT_STARTED', dueCount: 0, newCount: 0, totalCards: 5, nextReviewAt: null },
+          { routeId: 'R1', variantKey: 'V1', directionId: 0, status: 'IN_PROGRESS', dueCount: 3, newCount: 1, masteredCount: 6, totalCards: 10, nextReviewAt: '2999-01-01T00:00:00.000Z' },
+          { routeId: 'R2', variantKey: 'V2', directionId: 1, status: 'NOT_STARTED', dueCount: 0, newCount: 0, masteredCount: 0, totalCards: 5, nextReviewAt: null },
         ],
       })
     );
@@ -51,6 +51,13 @@ describe('Change 11: ReviewDashboard', () => {
     // dueCount=0 淡化：顯示「無到期」而非數字徽章
     expect(within(items[1]).getByText(/無到期/)).toBeInTheDocument();
     expect(within(items[1]).queryByText(/待複習/)).not.toBeInTheDocument();
+
+    // Change 14: 精熟度進度條（6/10）
+    const bar = within(items[0]).getByRole('progressbar');
+    expect(bar).toHaveAttribute('aria-valuenow', '6');
+    expect(bar).toHaveAttribute('aria-valuemax', '10');
+    expect(within(items[0]).getByText(/精熟度/)).toBeInTheDocument();
+    expect(within(items[0]).getByText(/6\s*\/\s*10/)).toBeInTheDocument();
   });
 
   it('shows an empty state when no enrolled variants', async () => {

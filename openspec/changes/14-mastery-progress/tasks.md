@@ -10,9 +10,9 @@
 - [x] Task 3: 寫失敗測試 + 確認 `GET /api/review/summary` 回應含 masteredCount（整合測試，afterAll 自清）until PASS <!-- id: 14-03 -->
 
 ## Phase 14.2: 前端顯示
-- [ ] Task 4: api-client `VariantReviewSummary` 型別加 masteredCount；更新既有 review-api-client 測試 <!-- id: 14-04 -->
-- [ ] Task 5: 寫失敗測試：ReviewDashboard 每列渲染精熟度 ProgressBar（顯示 masteredCount/totalCards）<!-- id: 14-05 -->
-- [ ] Task 6: 實作 ReviewDashboard 精熟度進度條 until PASS；既有 dashboard 測試補 masteredCount 欄位仍綠 <!-- id: 14-06 -->
+- [x] Task 4: api-client `VariantReviewSummary` 型別加 masteredCount；更新既有 review-api-client 測試 <!-- id: 14-04 -->
+- [x] Task 5: 寫失敗測試：ReviewDashboard 每列渲染精熟度 ProgressBar（顯示 masteredCount/totalCards）<!-- id: 14-05 -->
+- [x] Task 6: 實作 ReviewDashboard 精熟度進度條 until PASS；既有 dashboard 測試補 masteredCount 欄位仍綠 <!-- id: 14-06 -->
 
 ## Phase 14.3: 守門與收尾
 - [ ] Task 7: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 14-07 -->

@@ -51,6 +51,7 @@ export interface VariantReviewSummary {
   status: ProgressStatus;
   dueCount: number;
   newCount: number;
+  masteredCount: number;
   totalCards: number;
   nextReviewAt: string | null;
 }
