@@ -104,7 +104,7 @@ export function ReviewDashboard() {
             </div>
           </div>
           <a
-            href="/practice/recall"
+            href={`/practice/recall?${new URLSearchParams({ routeId: item.routeId, variantKey: item.variantKey }).toString()}`}
             className="inline-flex min-h-[40px] shrink-0 items-center rounded-md bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
           >
             開始複習

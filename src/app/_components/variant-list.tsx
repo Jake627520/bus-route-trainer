@@ -165,7 +165,7 @@ export function VariantList({ routeId }: { routeId: string }) {
                 </span>
                 {enrolledStatus ? (
                   <a
-                    href="/practice/recall"
+                    href={`/practice/recall?${new URLSearchParams({ routeId: v.routeId, variantKey: v.variantKey }).toString()}`}
                     className="inline-flex min-h-[36px] items-center rounded-md bg-zinc-900 px-3 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900"
                   >
                     開始練習

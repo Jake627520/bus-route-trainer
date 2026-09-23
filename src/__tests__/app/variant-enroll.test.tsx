@@ -53,7 +53,7 @@ describe('Change 07/12: VariantList enroll interaction', () => {
     fireEvent.click(await screen.findByRole('button', { name: /報名/ }));
 
     expect(await screen.findByText(/已報名/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /開始練習/ })).toHaveAttribute('href', '/practice/recall');
+    expect(screen.getByRole('link', { name: /開始練習/ })).toHaveAttribute('href', '/practice/recall?routeId=R100&variantKey=V1');
     expect(screen.queryByRole('button', { name: /報名/ })).not.toBeInTheDocument();
 
     // 找出 enroll POST 呼叫：body 帶 routeId + variantKey，不含 driverId

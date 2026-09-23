@@ -4,9 +4,9 @@
 > 完成一個就勾起來並 commit。守門三綠：`eslint` / `vitest run --fileParallelism=false` / `next build`。
 
 ## Phase 13.1: CTA 帶參數
-- [ ] Task 1: 寫失敗測試：ReviewDashboard「開始練習」href = `/practice/recall?routeId=..&variantKey=..` <!-- id: 13-01 -->
-- [ ] Task 2: 寫失敗測試：VariantList 已報名列「開始練習」href 帶正確 routeId+variantKey <!-- id: 13-02 -->
-- [ ] Task 3: 實作兩處連結帶 query（`URLSearchParams` 組裝）until PASS <!-- id: 13-03 -->
+- [x] Task 1: 寫失敗測試：ReviewDashboard「開始練習」href = `/practice/recall?routeId=..&variantKey=..` <!-- id: 13-01 -->
+- [x] Task 2: 寫失敗測試：VariantList 已報名列「開始練習」href 帶正確 routeId+variantKey <!-- id: 13-02 -->
+- [x] Task 3: 實作兩處連結帶 query（`URLSearchParams` 組裝）until PASS <!-- id: 13-03 -->
 
 ## Phase 13.2: /practice/recall 消費參數
 - [ ] Task 4: 讀 Next 16 `use-search-params` 文件；將 page 拆為 `<Suspense>` wrapper + 內層練習元件 <!-- id: 13-04 -->

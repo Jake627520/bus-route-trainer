@@ -48,8 +48,6 @@ Change 13 讓「開始練習」**deep-link 帶上 `routeId` + `variantKey`**，`
   （Suspense 拆分 + 消費參數 + 自動開始）及對應測試。
 - 完成後於 `specs/` 建 spec 並 archive。
 
-## 開放問題（請審核時定案）
-1. deep-link 帶參數時**自動開始** session，還是只預填表單、讓司機再按一次「開始」？
-   （傾向**自動開始**——他已經按了「開始練習」，再要求按一次多餘。）
-2. 自動開始後若 `startSession` 失敗（如該 variant 無可練卡片 / 尚未報名），行為為何？
-   （傾向沿用 `useRecallSession` 既有錯誤/空狀態呈現，不特別處理。）
+## 決策（2026-09-23 人審定案）
+1. ✅ deep-link 帶參數 → **自動開始** session（不需再按一次）。
+2. ✅ 自動開始失敗 → **沿用 `useRecallSession` 既有錯誤/空狀態**，不特別處理。
