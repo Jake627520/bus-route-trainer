@@ -35,6 +35,6 @@ Change 16 交付**輕量 in-app 待複習提醒橫幅**：置於首頁最上方�
 - 修改：`src/app/page.tsx`（掛入橫幅）及首頁整合測試。
 - 完成後於 `specs/` 建 spec 並 archive。
 
-## 開放問題（請審核時定案）
-1. `totalDue === 0`（有 enrolled）時顯示鼓勵訊息，還是整條橫幅都不顯示？（傾向顯示鼓勵訊息，正向回饋。）
-2. 「開始複習」deep-link 到到期最多的 variant，還是連全域 `/practice/recall`？（傾向 deep-link 到最該複習者，最省一步。）
+## 決策（2026-09-23 人審定案）
+1. ✅ totalDue===0（有 enrolled）顯示鼓勵訊息「都完成了」，非整條消失。
+2. ✅ 「開始複習」deep-link 到到期最多的 variant（items[0]）。

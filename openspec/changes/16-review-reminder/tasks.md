@@ -4,9 +4,9 @@
 > 守門三綠：`eslint` / `vitest run --fileParallelism=false` / `next build`。
 
 ## Phase 16.1: ReviewReminder 橫幅
-- [ ] Task 1: 寫失敗測試：totalDue>0 → 顯示「你有 N 張卡片待複習」＋開始複習 CTA deep-link 到到期最多 variant <!-- id: 16-01 -->
-- [ ] Task 2: 寫失敗測試：totalDue===0 且有 enrolled → 鼓勵訊息「都完成了」；無 enrolled → 不顯示；載入中/錯誤 → 靜默（無 spinner/alert）<!-- id: 16-02 -->
-- [ ] Task 3: 實作 `ReviewReminder`（getReviewSummary → totalDue、取 items[0] deep-link）until PASS <!-- id: 16-03 -->
+- [x] Task 1: 寫失敗測試：totalDue>0 → 顯示「你有 N 張卡片待複習」＋開始複習 CTA deep-link 到到期最多 variant <!-- id: 16-01 -->
+- [x] Task 2: 寫失敗測試：totalDue===0 且有 enrolled → 鼓勵訊息「都完成了」；無 enrolled → 不顯示；載入中/錯誤 → 靜默（無 spinner/alert）<!-- id: 16-02 -->
+- [x] Task 3: 實作 `ReviewReminder`（getReviewSummary → totalDue、取 items[0] deep-link）until PASS <!-- id: 16-03 -->
 
 ## Phase 16.2: 首頁整合
 - [ ] Task 4: 寫失敗測試：首頁最上方渲染 ReviewReminder（在「待複習」儀表板之上）<!-- id: 16-04 -->
