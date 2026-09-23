@@ -15,8 +15,8 @@
 - [x] Task 6: 實作 ReviewDashboard 精熟度進度條 until PASS；既有 dashboard 測試補 masteredCount 欄位仍綠 <!-- id: 14-06 -->
 
 ## Phase 14.3: 守門與收尾
-- [ ] Task 7: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 14-07 -->
-- [ ] Task 8: 建 `specs/` spec；`openspec archive 14-mastery-progress`；開 PR <!-- id: 14-08 -->
+- [x] Task 7: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 14-07 -->
+- [x] Task 8: 建 `specs/` spec；`openspec archive 14-mastery-progress`；開 PR <!-- id: 14-08 -->
 
 ## 注意
 - masteredCount 與 newCount 同套 cards.filter 算法，無需新依賴/schema。
