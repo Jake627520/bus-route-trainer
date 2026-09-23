@@ -5,7 +5,6 @@ import {
   apiClient,
   ApiError,
   type RouteVariant,
-  type VariantProgress,
   type ProgressStatus,
 } from '@/app/_lib/api-client';
 
@@ -24,14 +23,15 @@ type ListState =
 
 interface RowState {
   enrolling: boolean;
-  progress: VariantProgress | null;
+  enrolledStatus: ProgressStatus | null;
   error: string | null;
 }
 
 /**
- * Change 07: 某路線的 variant 列表（client component）。
- * 渲染各 variant（headsign / 站數 / 方向）與各自進度狀態；
- * 點「報名」→ POST /api/progress/enroll → 該列更新為已報名/進度。
+ * Change 07 / 12: 某路線的 variant 列表（client component）。
+ * 渲染各 variant（headsign / 站數 / 方向）與各自報名狀態。
+ * 載入時並行抓 review summary，反映「既有報名」；未報名者可點「報名」
+ * → POST /api/progress/enroll → 該列更新。summary 為增益資料，失敗則安靜降級為未報名。
  */
 export function VariantList({ routeId }: { routeId: string }) {
   const [state, setState] = useState<ListState>({ phase: 'loading' });
@@ -39,6 +39,7 @@ export function VariantList({ routeId }: { routeId: string }) {
 
   useEffect(() => {
     let active = true;
+
     apiClient
       .getRouteVariants(routeId)
       .then((variants) => {
@@ -52,6 +53,26 @@ export function VariantList({ routeId }: { routeId: string }) {
           });
         }
       });
+
+    // 增益：反映既有報名。失敗安靜降級（不影響 variant 主列表、不顯示錯誤）。
+    apiClient
+      .getReviewSummary()
+      .then((summary) => {
+        if (!active) return;
+        setRows((prev) => {
+          const next = { ...prev };
+          for (const item of summary) {
+            if (!next[item.variantKey]) {
+              next[item.variantKey] = { enrolling: false, enrolledStatus: item.status, error: null };
+            }
+          }
+          return next;
+        });
+      })
+      .catch(() => {
+        /* 安靜降級：維持未報名 */
+      });
+
     return () => {
       active = false;
     };
@@ -60,17 +81,24 @@ export function VariantList({ routeId }: { routeId: string }) {
   const handleEnroll = async (variantKey: string) => {
     setRows((prev) => ({
       ...prev,
-      [variantKey]: { enrolling: true, progress: prev[variantKey]?.progress ?? null, error: null },
+      [variantKey]: {
+        enrolling: true,
+        enrolledStatus: prev[variantKey]?.enrolledStatus ?? null,
+        error: null,
+      },
     }));
     try {
       const progress = await apiClient.enroll({ routeId, variantKey });
-      setRows((prev) => ({ ...prev, [variantKey]: { enrolling: false, progress, error: null } }));
+      setRows((prev) => ({
+        ...prev,
+        [variantKey]: { enrolling: false, enrolledStatus: progress.status, error: null },
+      }));
     } catch (e) {
       setRows((prev) => ({
         ...prev,
         [variantKey]: {
           enrolling: false,
-          progress: null,
+          enrolledStatus: null,
           error: e instanceof ApiError ? e.message : '報名失敗',
         },
       }));
@@ -108,7 +136,7 @@ export function VariantList({ routeId }: { routeId: string }) {
     <ul className="flex flex-col gap-3">
       {state.variants.map((v) => {
         const row = rows[v.variantKey];
-        const progress = row?.progress ?? null;
+        const enrolledStatus = row?.enrolledStatus ?? null;
         return (
           <li
             key={v.variantKey}
@@ -133,9 +161,9 @@ export function VariantList({ routeId }: { routeId: string }) {
                   className="text-sm text-zinc-600 dark:text-zinc-300"
                   data-testid={`status-${v.variantKey}`}
                 >
-                  {progress ? STATUS_LABEL[progress.status] : '未報名'}
+                  {enrolledStatus ? STATUS_LABEL[enrolledStatus] : '未報名'}
                 </span>
-                {progress ? (
+                {enrolledStatus ? (
                   <a
                     href="/practice/recall"
                     className="inline-flex min-h-[36px] items-center rounded-md bg-zinc-900 px-3 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900"
