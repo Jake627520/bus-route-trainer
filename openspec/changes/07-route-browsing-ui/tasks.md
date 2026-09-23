@@ -11,8 +11,8 @@
 - [x] Task 6: 實作錯誤狀態 until PASS <!-- id: 07-06 -->
 - [x] Task 7: 寫失敗測試：variant 列表元件（渲染 variants、顯示各自進度狀態） <!-- id: 07-07 -->
 - [x] Task 8: 實作 variant 列表 + `src/app/routes/[routeId]/page.tsx` until PASS <!-- id: 07-08 -->
-- [ ] Task 9: 寫失敗測試：點 Enroll → 呼叫 POST /api/progress/enroll → 畫面更新為已報名/進度 <!-- id: 07-09 -->
-- [ ] Task 10: 實作 Enroll 互動 until PASS <!-- id: 07-10 -->
+- [x] Task 9: 寫失敗測試：點 Enroll → 呼叫 POST /api/progress/enroll → 畫面更新為已報名/進度 <!-- id: 07-09 -->
+- [x] Task 10: 實作 Enroll 互動 until PASS <!-- id: 07-10 -->
 - [ ] Task 11: 全套守門（容器內）：`npm run lint` + `npm test` + `npm run build` 全綠 <!-- id: 07-11 -->
 - [ ] Task 12: 更新 `openspec/specs/` 建 `route-browsing-ui` spec；archive 本 change；開 PR <!-- id: 07-12 -->
 
