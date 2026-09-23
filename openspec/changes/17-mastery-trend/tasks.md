@@ -21,8 +21,8 @@
 - [x] Task 9: 寫失敗測試 + 把「精熟度趨勢」section 掛進首頁（待複習之下）until PASS；既有首頁測試仍綠 <!-- id: 17-09 -->
 
 ## Phase 17.5: 守門與收尾
-- [ ] Task 10: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 17-10 -->
-- [ ] Task 11: 建 `specs/` spec；`openspec archive 17-mastery-trend`；開 PR <!-- id: 17-11 -->
+- [x] Task 10: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 17-10 -->
+- [x] Task 11: 建 `specs/` spec；`openspec archive 17-mastery-trend`；開 PR <!-- id: 17-11 -->
 
 ## 注意
 - 重放 use-case 為純邏輯，fake port 注入事件、免 DB；adapter 用真 DB 整合測試。
