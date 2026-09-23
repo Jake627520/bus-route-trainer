@@ -8,8 +8,8 @@
 - [x] Task 2: 定義 port + Prisma adapter until PASS <!-- id: 17-02 -->
 
 ## Phase 17.2: 重放 use-case
-- [ ] Task 3: 寫失敗測試（純邏輯 fake port）：`GetMasteryTrendUseCase` 重放——每日快照 masteredCount、lapse 回落、同日多筆、無 attempt→[] <!-- id: 17-03 -->
-- [ ] Task 4: 實作重放（Map<cardKey,state>、UTC 日分桶、逐日快照）until PASS <!-- id: 17-04 -->
+- [x] Task 3: 寫失敗測試（純邏輯 fake port）：`GetMasteryTrendUseCase` 重放——每日快照 masteredCount、lapse 回落、同日多筆、無 attempt→[] <!-- id: 17-03 -->
+- [x] Task 4: 實作重放（Map<cardKey,state>、UTC 日分桶、逐日快照）until PASS <!-- id: 17-04 -->
 
 ## Phase 17.3: API 端點
 - [ ] Task 5: 寫失敗測試 + 實作 `GET /api/review/mastery-trend`（DI 組裝 adapter；整合測試 afterAll 自清）until PASS <!-- id: 17-05 -->
