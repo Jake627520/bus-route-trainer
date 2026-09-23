@@ -16,7 +16,7 @@
 
 ## Phase 13.3: 守門與收尾
 - [x] Task 8: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 13-08 -->
-- [ ] Task 9: 建 `specs/` spec；`openspec archive 13-practice-deep-link`；開 PR <!-- id: 13-09 -->
+- [x] Task 9: 建 `specs/` spec；`openspec archive 13-practice-deep-link`；開 PR <!-- id: 13-09 -->
 
 ## 注意
 - 純前端；重用 `useRecallSession.startSession`，不動後端。
