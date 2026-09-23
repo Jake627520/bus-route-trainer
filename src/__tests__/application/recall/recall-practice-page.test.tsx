@@ -23,6 +23,12 @@ vi.mock('@/application/recall/client/recall-api', () => {
   };
 });
 
+// Change 13: 頁面改用 useSearchParams（需在 App Router 提供）。
+// 這些既有測試不走 deep-link，回空參數維持原本手動流程。
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 describe('Change 10 Phase 10.3: RecallPracticePage View States & UX Acceptance', () => {
   beforeEach(() => {
     vi.clearAllMocks();

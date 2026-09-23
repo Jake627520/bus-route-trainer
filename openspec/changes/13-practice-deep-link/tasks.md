@@ -9,13 +9,13 @@
 - [x] Task 3: 實作兩處連結帶 query（`URLSearchParams` 組裝）until PASS <!-- id: 13-03 -->
 
 ## Phase 13.2: /practice/recall 消費參數
-- [ ] Task 4: 讀 Next 16 `use-search-params` 文件；將 page 拆為 `<Suspense>` wrapper + 內層練習元件 <!-- id: 13-04 -->
-- [ ] Task 5: 寫失敗測試（mock `useSearchParams`）：帶 routeId+variantKey → 自動呼叫 `startSession` 一次且參數正確 <!-- id: 13-05 -->
-- [ ] Task 6: 寫失敗測試：無參數 → 不自動開始、維持手動 IDLE 表單 <!-- id: 13-06 -->
-- [ ] Task 7: 實作消費參數 + 自動開始（ref 防重入）until PASS；既有 recall 頁測試仍綠 <!-- id: 13-07 -->
+- [x] Task 4: 讀 Next 16 `use-search-params` 文件；將 page 拆為 `<Suspense>` wrapper + 內層練習元件 <!-- id: 13-04 -->
+- [x] Task 5: 寫失敗測試（mock `useSearchParams`）：帶 routeId+variantKey → 自動呼叫 `startSession` 一次且參數正確 <!-- id: 13-05 -->
+- [x] Task 6: 寫失敗測試：無參數 → 不自動開始、維持手動 IDLE 表單 <!-- id: 13-06 -->
+- [x] Task 7: 實作消費參數 + 自動開始（ref 防重入）until PASS；既有 recall 頁測試仍綠 <!-- id: 13-07 -->
 
 ## Phase 13.3: 守門與收尾
-- [ ] Task 8: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 13-08 -->
+- [x] Task 8: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 13-08 -->
 - [ ] Task 9: 建 `specs/` spec；`openspec archive 13-practice-deep-link`；開 PR <!-- id: 13-09 -->
 
 ## 注意
