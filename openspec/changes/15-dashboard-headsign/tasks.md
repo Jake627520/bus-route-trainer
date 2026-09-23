@@ -4,12 +4,12 @@
 > 前端 mock fetch、後端整合測試打真 DB（afterAll 自清）。守門三綠：`eslint` / `vitest run --fileParallelism=false` / `next build`。
 
 ## Phase 15.1: headsign 查詢 port + adapter
-- [ ] Task 1: 寫失敗測試：`VariantHeadsignQueryPort` adapter——包 GetRouteVariantsUseCase，映 (variantKey→headsign)，route 不存在→[] <!-- id: 15-01 -->
-- [ ] Task 2: 定義 port + 實作 adapter until PASS <!-- id: 15-02 -->
+- [x] Task 1: 寫失敗測試：`VariantHeadsignQueryPort` adapter——包 GetRouteVariantsUseCase，映 (variantKey→headsign)，route 不存在→[] <!-- id: 15-01 -->
+- [x] Task 2: 定義 port + 實作 adapter until PASS <!-- id: 15-02 -->
 
 ## Phase 15.2: use-case 補 headsign
-- [ ] Task 3: 寫失敗測試：`GetReviewSummaryUseCase` 按 routeId 分組查 headsign、補到每筆；查不到→null；某 route 查詢丟錯→該列 null 且不中斷其他列 <!-- id: 15-03 -->
-- [ ] Task 4: DTO 加 headsign；use-case 接 port、分組查詢、補值 until PASS <!-- id: 15-04 -->
+- [x] Task 3: 寫失敗測試：`GetReviewSummaryUseCase` 按 routeId 分組查 headsign、補到每筆；查不到→null；某 route 查詢丟錯→該列 null 且不中斷其他列 <!-- id: 15-03 -->
+- [x] Task 4: DTO 加 headsign；use-case 接 port、分組查詢、補值 until PASS <!-- id: 15-04 -->
 
 ## Phase 15.3: API 接線 + 前端
 - [ ] Task 5: route.ts 接 headsign port（用 PrismaGtfsReadRepository + GetRouteVariantsUseCase 組裝 adapter）；整合測試確認回應含 headsign（afterAll 自清）until PASS <!-- id: 15-05 -->

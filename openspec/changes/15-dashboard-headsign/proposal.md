@@ -48,6 +48,6 @@
   `review/summary/route.ts`（DI 接線）、`api-client.ts`、`review-dashboard.tsx` 及測試。
 - 完成後於 `specs/` 建 spec 並 archive。
 
-## 開放問題（請審核時定案）
-1. 儀表板主標用 headsign、次要顯示「路線 {routeId} · 方向」？（傾向如此，與 variant 列表一致。）
-2. headsign 查詢對 enrolled 的每個 distinct routeId 各查一次（分組）即可，不做快取層？（傾向如此，量小。）
+## 決策（2026-09-23 人審定案）
+1. ✅ 儀表板主標用 headsign（null→未標示終點），次要顯示「路線 {routeId} · 方向」。
+2. ✅ 每個 distinct routeId 各查一次（分組），不加快取層。
