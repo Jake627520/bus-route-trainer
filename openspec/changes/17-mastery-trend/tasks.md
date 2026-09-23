@@ -15,9 +15,9 @@
 - [x] Task 5: 寫失敗測試 + 實作 `GET /api/review/mastery-trend`（DI 組裝 adapter；整合測試 afterAll 自清）until PASS <!-- id: 17-05 -->
 
 ## Phase 17.4: 前端圖表 + 首頁
-- [ ] Task 6: api-client 加 `MasteryTrendPoint` + `getMasteryTrend()`；契約測試 <!-- id: 17-06 -->
-- [ ] Task 7: 寫失敗測試：`MasteryTrend` 元件——有資料渲染 SVG（點數、aria-label）、空資料友善提示、載入/錯誤靜默 <!-- id: 17-07 -->
-- [ ] Task 8: 實作 `MasteryTrend`（手刻 inline SVG polyline/area）until PASS <!-- id: 17-08 -->
+- [x] Task 6: api-client 加 `MasteryTrendPoint` + `getMasteryTrend()`；契約測試 <!-- id: 17-06 -->
+- [x] Task 7: 寫失敗測試：`MasteryTrend` 元件——有資料渲染 SVG（點數、aria-label）、空資料友善提示、載入/錯誤靜默 <!-- id: 17-07 -->
+- [x] Task 8: 實作 `MasteryTrend`（手刻 inline SVG polyline/area）until PASS <!-- id: 17-08 -->
 - [ ] Task 9: 寫失敗測試 + 把「精熟度趨勢」section 掛進首頁（待複習之下）until PASS；既有首頁測試仍綠 <!-- id: 17-09 -->
 
 ## Phase 17.5: 守門與收尾

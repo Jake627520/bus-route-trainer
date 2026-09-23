@@ -44,6 +44,11 @@ export interface VariantProgress {
   totalCards: number;
 }
 
+export interface MasteryTrendPoint {
+  date: string;
+  masteredCount: number;
+}
+
 export interface VariantReviewSummary {
   routeId: string;
   variantKey: string;
@@ -142,6 +147,10 @@ export class ApiClient {
 
   getReviewSummary(): Promise<VariantReviewSummary[]> {
     return this.request<VariantReviewSummary[]>('/api/review/summary');
+  }
+
+  getMasteryTrend(): Promise<MasteryTrendPoint[]> {
+    return this.request<MasteryTrendPoint[]>('/api/review/mastery-trend');
   }
 }
 
