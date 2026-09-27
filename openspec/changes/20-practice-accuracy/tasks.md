@@ -17,8 +17,8 @@
 - [x] Task 7: 寫失敗測試 + 把 AccuracyStat 掛進首頁 until PASS；既有首頁測試仍綠 <!-- id: 20-07 -->
 
 ## Phase 20.4: 守門與收尾
-- [ ] Task 8: 全套守門（lint + test + build 全綠）<!-- id: 20-08 -->
-- [ ] Task 9: 建 `specs/` spec；`openspec archive 20-practice-accuracy`；開 PR <!-- id: 20-09 -->
+- [x] Task 8: 全套守門（lint + test + build 全綠）<!-- id: 20-08 -->
+- [x] Task 9: 建 `specs/` spec；`openspec archive 20-practice-accuracy`；開 PR <!-- id: 20-09 -->
 
 ## 注意
 - accuracy = passed/total（total 0 → 0）；前端顯示 round(accuracy*100)%。
