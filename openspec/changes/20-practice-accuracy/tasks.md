@@ -4,9 +4,9 @@
 > 守門三綠：`eslint` / `vitest run --fileParallelism=false` / `next build`。
 
 ## Phase 20.1: 後端統計 port + use-case
-- [ ] Task 1: 寫失敗測試（真 DB）：adapter `countOutcomesByDriver(driverId)` → { total, passed }（seed PASS/FAIL、他 driver 排除）<!-- id: 20-01 -->
-- [ ] Task 2: 定義 port + Prisma adapter until PASS <!-- id: 20-02 -->
-- [ ] Task 3: 寫失敗測試（fake port）：`GetPracticeAccuracyUseCase` 算 accuracy（一般/全對/零題→accuracy 0）；實作 until PASS <!-- id: 20-03 -->
+- [x] Task 1: 寫失敗測試（真 DB）：adapter `countOutcomesByDriver(driverId)` → { total, passed }（seed PASS/FAIL、他 driver 排除）<!-- id: 20-01 -->
+- [x] Task 2: 定義 port + Prisma adapter until PASS <!-- id: 20-02 -->
+- [x] Task 3: 寫失敗測試（fake port）：`GetPracticeAccuracyUseCase` 算 accuracy（一般/全對/零題→accuracy 0）；實作 until PASS <!-- id: 20-03 -->
 
 ## Phase 20.2: API 端點
 - [ ] Task 4: 寫失敗測試 + 實作 `GET /api/review/accuracy`（整合測試 afterAll 自清）until PASS <!-- id: 20-04 -->
