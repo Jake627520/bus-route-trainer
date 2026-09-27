@@ -19,9 +19,9 @@ describe('PrismaMasteryHistoryAdapter', () => {
   afterAll(async () => { await cleanup(); await prisma.$disconnect(); });
   beforeEach(cleanup);
 
-  const seedSession = async (id: string, driverId: string) => {
+  const seedSession = async (id: string, driverId: string, targetVariantKey = 'V') => {
     await prisma.recallSession.create({
-      data: { id, driverId, routeId: 'R', targetVariantKey: 'V' },
+      data: { id, driverId, routeId: 'R', targetVariantKey },
     });
   };
   const seedAttempt = async (
@@ -54,5 +54,18 @@ describe('PrismaMasteryHistoryAdapter', () => {
 
   it('returns [] for a driver with no attempts', async () => {
     expect(await adapter.findMasteryEventsByDriver('nobody')).toEqual([]);
+  });
+
+  it('filters to a single variant when variantKey is given', async () => {
+    await seedSession('sA', 'driver_default_local', 'VA');
+    await seedSession('sB', 'driver_default_local', 'VB');
+    await seedAttempt('sA', 0, 'cardA', CardState.MASTERED, new Date('2026-01-01T00:00:00.000Z'));
+    await seedAttempt('sB', 0, 'cardB', CardState.MASTERED, new Date('2026-01-02T00:00:00.000Z'));
+
+    const onlyA = await adapter.findMasteryEventsByDriver('driver_default_local', 'VA');
+    expect(onlyA.map((e) => e.cardKey)).toEqual(['cardA']);
+
+    const all = await adapter.findMasteryEventsByDriver('driver_default_local');
+    expect(all.map((e) => e.cardKey)).toEqual(['cardA', 'cardB']);
   });
 });

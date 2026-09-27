@@ -149,8 +149,9 @@ export class ApiClient {
     return this.request<VariantReviewSummary[]>('/api/review/summary');
   }
 
-  getMasteryTrend(): Promise<MasteryTrendPoint[]> {
-    return this.request<MasteryTrendPoint[]>('/api/review/mastery-trend');
+  getMasteryTrend(variantKey?: string): Promise<MasteryTrendPoint[]> {
+    const q = variantKey ? `?variantKey=${encodeURIComponent(variantKey)}` : '';
+    return this.request<MasteryTrendPoint[]>(`/api/review/mastery-trend${q}`);
   }
 }
 

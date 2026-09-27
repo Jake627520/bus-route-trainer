@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { GetMasteryTrendUseCase } from '@/application/learning/get-mastery-trend-use-case';
 import {
   MasteryHistoryQueryPort,
@@ -54,5 +54,12 @@ describe('Change 17: GetMasteryTrendUseCase', () => {
   it('returns an empty array when there are no attempts', async () => {
     const useCase = new GetMasteryTrendUseCase(port([]));
     expect(await useCase.execute({ driverId: 'driver_default_local' })).toEqual([]);
+  });
+
+  it('passes variantKey through to the history port', async () => {
+    const spy = vi.fn(async () => []);
+    const useCase = new GetMasteryTrendUseCase({ findMasteryEventsByDriver: spy });
+    await useCase.execute({ driverId: 'driver_default_local', variantKey: 'VX' });
+    expect(spy).toHaveBeenCalledWith('driver_default_local', 'VX');
   });
 });

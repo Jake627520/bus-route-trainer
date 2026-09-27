@@ -11,6 +11,9 @@ export interface MasteryEvent {
 }
 
 export interface MasteryHistoryQueryPort {
-  /** 依 answeredAt 升冪回傳該 driver 的所有精熟事件。 */
-  findMasteryEventsByDriver(driverId: string): Promise<MasteryEvent[]>;
+  /**
+   * 依 answeredAt 升冪回傳該 driver 的精熟事件。
+   * 帶 variantKey 時只回該 variant（經 session.targetVariantKey 過濾）。
+   */
+  findMasteryEventsByDriver(driverId: string, variantKey?: string): Promise<MasteryEvent[]>;
 }

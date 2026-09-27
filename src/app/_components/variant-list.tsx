@@ -7,6 +7,7 @@ import {
   type RouteVariant,
   type ProgressStatus,
 } from '@/app/_lib/api-client';
+import { MasteryTrend } from '@/app/_components/mastery-trend';
 
 const DIRECTION_LABEL: Record<number, string> = { 0: '去程', 1: '返程' };
 
@@ -187,6 +188,11 @@ export function VariantList({ routeId }: { routeId: string }) {
               <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">
                 報名失敗：{row.error}
               </p>
+            ) : null}
+            {enrolledStatus ? (
+              <div className="mt-3 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                <MasteryTrend variantKey={v.variantKey} />
+              </div>
             ) : null}
           </li>
         );

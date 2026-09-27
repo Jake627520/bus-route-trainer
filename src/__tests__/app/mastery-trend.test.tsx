@@ -35,6 +35,14 @@ describe('Change 17: MasteryTrend', () => {
     expect(screen.getAllByTestId('trend-point')).toHaveLength(3);
   });
 
+  it('fetches the per-variant trend when a variantKey prop is given', async () => {
+    mockFetch.mockResolvedValueOnce(jsonRes({ data: [{ date: '2026-01-01', masteredCount: 1 }] }));
+    render(<MasteryTrend variantKey="V1:d0" />);
+    await screen.findByRole('img', { name: /精熟度趨勢/ });
+    const urls = mockFetch.mock.calls.map((c) => String(c[0]));
+    expect(urls.some((u) => u.includes('/api/review/mastery-trend?variantKey=V1%3Ad0'))).toBe(true);
+  });
+
   it('shows a friendly empty state when there is no trend data', async () => {
     mockFetch.mockResolvedValueOnce(jsonRes({ data: [] }));
     render(<MasteryTrend />);
