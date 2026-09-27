@@ -47,7 +47,7 @@ Change 17 的精熟度趨勢是**整體**（driver 全部卡）。司機想知�
   `mastery-trend.tsx`、`variant-list.tsx` 及對應測試。
 - 完成後於 `specs/` 建 spec 並 archive。
 
-## 開放問題（請審核時定案）
-1. 位置＝**路線詳情頁**每個已報名 variant 列下方 mini 趨勢？（傾向如此，per-variant 語境最貼切。）
-2. 沿用 `?variantKey=` 過濾同一端點（而非新端點）？（傾向如此，最小改動。）
-3. 未報名 variant 不顯示趨勢？（傾向如此，無資料。）
+## 決策（2026-09-27 人審定案）
+1. ✅ 位置＝路線詳情頁每個已報名 variant 列下方 mini 趨勢。
+2. ✅ 沿用 `?variantKey=` 過濾同一端點。
+3. ✅ 未報名 variant 不顯示趨勢。

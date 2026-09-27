@@ -12,9 +12,11 @@ import { CardState } from '@/domain/learning/learning-card';
 export class PrismaMasteryHistoryAdapter implements MasteryHistoryQueryPort {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async findMasteryEventsByDriver(driverId: string): Promise<MasteryEvent[]> {
+  async findMasteryEventsByDriver(driverId: string, variantKey?: string): Promise<MasteryEvent[]> {
     const rows = await this.prisma.recallAttempt.findMany({
-      where: { session: { driverId } },
+      where: {
+        session: variantKey ? { driverId, targetVariantKey: variantKey } : { driverId },
+      },
       orderBy: { answeredAt: 'asc' },
       select: { cardKey: true, resultingState: true, answeredAt: true },
     });

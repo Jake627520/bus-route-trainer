@@ -4,9 +4,9 @@
 > 前端 mock fetch、後端整合測試打真 DB（afterAll 自清）。守門三綠：`eslint` / `vitest run --fileParallelism=false` / `next build`。
 
 ## Phase 19.1: 後端 variantKey 過濾
-- [ ] Task 1: 寫失敗測試（真 DB）：adapter `findMasteryEventsByDriver(driverId, variantKey)` 只回該 variant 的事件（跨 variant seed）<!-- id: 19-01 -->
-- [ ] Task 2: port 加選用 variantKey；adapter where 條件式加 targetVariantKey until PASS <!-- id: 19-02 -->
-- [ ] Task 3: 寫失敗測試（fake port）：`GetMasteryTrendUseCase` command 帶 variantKey → 透傳給 port；實作 until PASS <!-- id: 19-03 -->
+- [x] Task 1: 寫失敗測試（真 DB）：adapter `findMasteryEventsByDriver(driverId, variantKey)` 只回該 variant 的事件（跨 variant seed）<!-- id: 19-01 -->
+- [x] Task 2: port 加選用 variantKey；adapter where 條件式加 targetVariantKey until PASS <!-- id: 19-02 -->
+- [x] Task 3: 寫失敗測試（fake port）：`GetMasteryTrendUseCase` command 帶 variantKey → 透傳給 port；實作 until PASS <!-- id: 19-03 -->
 
 ## Phase 19.2: API 端點
 - [ ] Task 4: 寫失敗測試 + 實作 `GET /api/review/mastery-trend?variantKey=`（過濾；無則整體）（整合測試 afterAll 自清）until PASS <!-- id: 19-04 -->

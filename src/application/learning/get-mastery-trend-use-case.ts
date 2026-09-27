@@ -10,6 +10,8 @@ export interface MasteryTrendPoint {
 
 export interface GetMasteryTrendCommand {
   driverId: string;
+  /** 帶入時只回該 variant 的趨勢；不帶則為整體趨勢。 */
+  variantKey?: string;
 }
 
 /**
@@ -21,7 +23,7 @@ export class GetMasteryTrendUseCase {
   constructor(private readonly historyPort: MasteryHistoryQueryPort) {}
 
   async execute(command: GetMasteryTrendCommand): Promise<MasteryTrendPoint[]> {
-    const events = await this.historyPort.findMasteryEventsByDriver(command.driverId);
+    const events = await this.historyPort.findMasteryEventsByDriver(command.driverId, command.variantKey);
 
     const state = new Map<string, CardState>();
     const points: MasteryTrendPoint[] = [];
