@@ -17,6 +17,7 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
   beforeEach(() => {
     mockFetch = vi.fn((url: string) => {
       if (String(url).includes('/api/review/mastery-trend')) return Promise.resolve(jsonRes({ data: [] }));
+      if (String(url).includes('/api/review/accuracy')) return Promise.resolve(jsonRes({ data: { totalAttempts: 0, passedAttempts: 0, accuracy: 0 } }));
       if (String(url).includes('/api/review/summary')) return Promise.resolve(jsonRes({ data: [] }));
       if (String(url).includes('/api/routes')) return Promise.resolve(jsonRes({ data: [] }));
       return Promise.reject(new Error(`unexpected url ${url}`));
@@ -40,6 +41,7 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
   it('Change 16: renders the review reminder banner above the 待複習 dashboard', async () => {
     mockFetch.mockImplementation((url: string) => {
       if (String(url).includes('/api/review/mastery-trend')) return Promise.resolve(jsonRes({ data: [] }));
+      if (String(url).includes('/api/review/accuracy')) return Promise.resolve(jsonRes({ data: { totalAttempts: 0, passedAttempts: 0, accuracy: 0 } }));
       if (String(url).includes('/api/review/summary')) {
         return Promise.resolve(jsonRes({
           data: [{ routeId: 'R1', variantKey: 'V1', directionId: 0, status: 'IN_PROGRESS', headsign: null, dueCount: 2, newCount: 0, masteredCount: 0, totalCards: 5, nextReviewAt: null }],
@@ -60,6 +62,7 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
   it('Change 18: renders the 練習全部到期 batch button when variants are due', async () => {
     mockFetch.mockImplementation((url: string) => {
       if (String(url).includes('/api/review/mastery-trend')) return Promise.resolve(jsonRes({ data: [] }));
+      if (String(url).includes('/api/review/accuracy')) return Promise.resolve(jsonRes({ data: { totalAttempts: 0, passedAttempts: 0, accuracy: 0 } }));
       if (String(url).includes('/api/review/summary')) {
         return Promise.resolve(jsonRes({
           data: [{ routeId: 'R1', variantKey: 'V1', directionId: 0, status: 'IN_PROGRESS', headsign: null, dueCount: 2, newCount: 0, masteredCount: 0, totalCards: 5, nextReviewAt: null }],
@@ -85,5 +88,20 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
 
     const urls = mockFetch.mock.calls.map((c) => String(c[0]));
     expect(urls.some((u) => u.includes('/api/review/mastery-trend'))).toBe(true);
+  });
+
+  it('Change 20: renders the practice accuracy stat when attempts exist', async () => {
+    mockFetch.mockImplementation((url: string) => {
+      if (String(url).includes('/api/review/accuracy')) {
+        return Promise.resolve(jsonRes({ data: { totalAttempts: 4, passedAttempts: 3, accuracy: 0.75 } }));
+      }
+      if (String(url).includes('/api/review/mastery-trend')) return Promise.resolve(jsonRes({ data: [] }));
+      if (String(url).includes('/api/review/summary')) return Promise.resolve(jsonRes({ data: [] }));
+      if (String(url).includes('/api/routes')) return Promise.resolve(jsonRes({ data: [] }));
+      return Promise.reject(new Error(`unexpected url ${url}`));
+    });
+
+    render(<Home />);
+    expect(await screen.findByText(/正確率\s*75\s*%/)).toBeInTheDocument();
   });
 });
