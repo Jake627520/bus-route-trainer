@@ -16,6 +16,17 @@ describe('GET /api/review/mastery-trend', () => {
   afterAll(async () => { await cleanup(); await prisma.$disconnect(); });
   beforeEach(cleanup);
 
+  const req = (qs = '') => new Request('http://localhost/api/review/mastery-trend' + qs);
+
+  const seedAttempt = async (sessionId: string, promptIndex: number, cardKey: string, iso: string) =>
+    prisma.recallAttempt.create({
+      data: {
+        sessionId, promptIndex, cardKey, recallMode: 'STOP_NAME_RECOGNITION',
+        rawInput: 'x', expectedAnswer: 'x', outcome: 'PASS',
+        startedAt: new Date(iso), answeredAt: new Date(iso), durationMs: 100, resultingState: 'MASTERED',
+      },
+    });
+
   it('returns the mastery trend for the default driver', async () => {
     await prisma.recallSession.create({ data: { id: 's1', driverId: DEFAULT_DRIVER_ID, routeId: 'R', targetVariantKey: 'V' } });
     await prisma.recallAttempt.create({
@@ -27,16 +38,32 @@ describe('GET /api/review/mastery-trend', () => {
       },
     });
 
-    const response = await GET();
+    const response = await GET(req());
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.data).toEqual([{ date: '2026-01-01', masteredCount: 1 }]);
   });
 
   it('returns an empty array when the driver has no attempts', async () => {
-    const response = await GET();
+    const response = await GET(req());
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.data).toEqual([]);
+  });
+
+  it('filters the trend by variantKey when the query param is present', async () => {
+    await prisma.recallSession.create({ data: { id: 'sA', driverId: DEFAULT_DRIVER_ID, routeId: 'R', targetVariantKey: 'VA' } });
+    await prisma.recallSession.create({ data: { id: 'sB', driverId: DEFAULT_DRIVER_ID, routeId: 'R', targetVariantKey: 'VB' } });
+    await seedAttempt('sA', 0, 'cardA', '2026-01-01T09:00:00.000Z');
+    await seedAttempt('sB', 0, 'cardB', '2026-01-02T09:00:00.000Z');
+
+    const filtered = await (await GET(req('?variantKey=VA'))).json();
+    expect(filtered.data).toEqual([{ date: '2026-01-01', masteredCount: 1 }]);
+
+    const overall = await (await GET(req())).json();
+    expect(overall.data).toEqual([
+      { date: '2026-01-01', masteredCount: 1 },
+      { date: '2026-01-02', masteredCount: 2 },
+    ]);
   });
 });

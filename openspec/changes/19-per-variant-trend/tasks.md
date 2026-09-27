@@ -9,7 +9,7 @@
 - [x] Task 3: 寫失敗測試（fake port）：`GetMasteryTrendUseCase` command 帶 variantKey → 透傳給 port；實作 until PASS <!-- id: 19-03 -->
 
 ## Phase 19.2: API 端點
-- [ ] Task 4: 寫失敗測試 + 實作 `GET /api/review/mastery-trend?variantKey=`（過濾；無則整體）（整合測試 afterAll 自清）until PASS <!-- id: 19-04 -->
+- [x] Task 4: 寫失敗測試 + 實作 `GET /api/review/mastery-trend?variantKey=`（過濾；無則整體）（整合測試 afterAll 自清）until PASS <!-- id: 19-04 -->
 
 ## Phase 19.3: 前端
 - [ ] Task 5: api-client `getMasteryTrend(variantKey?)` 附 query；契約測試 <!-- id: 19-05 -->

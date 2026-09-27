@@ -11,9 +11,10 @@ const getMasteryTrendUseCase = new GetMasteryTrendUseCase(new PrismaMasteryHisto
  * Change 17: GET /api/review/mastery-trend
  * 回傳 default driver 的每日精熟度時序（由 recall attempt 日誌重放）。
  */
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: Request): Promise<NextResponse> {
   try {
-    const data = await getMasteryTrendUseCase.execute({ driverId: DEFAULT_DRIVER_ID });
+    const variantKey = new URL(request.url).searchParams.get('variantKey') ?? undefined;
+    const data = await getMasteryTrendUseCase.execute({ driverId: DEFAULT_DRIVER_ID, variantKey });
     return NextResponse.json({ data }, { status: 200 });
   } catch {
     return NextResponse.json(
