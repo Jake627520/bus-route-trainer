@@ -12,8 +12,8 @@
 - [x] Task 4: 寫失敗測試 + 實作 `GET /api/review/accuracy`（整合測試 afterAll 自清）until PASS <!-- id: 20-04 -->
 
 ## Phase 20.3: 前端
-- [ ] Task 5: api-client `getPracticeAccuracy()` + 型別；契約測試 <!-- id: 20-05 -->
-- [ ] Task 6: 寫失敗測試：`AccuracyStat`——有紀錄顯示正確率%+答對/總題、零紀錄友善提示、載入/錯誤靜默；實作 until PASS <!-- id: 20-06 -->
+- [x] Task 5: api-client `getPracticeAccuracy()` + 型別；契約測試 <!-- id: 20-05 -->
+- [x] Task 6: 寫失敗測試：`AccuracyStat`——有紀錄顯示正確率%+答對/總題、零紀錄友善提示、載入/錯誤靜默；實作 until PASS <!-- id: 20-06 -->
 - [ ] Task 7: 寫失敗測試 + 把 AccuracyStat 掛進首頁 until PASS；既有首頁測試仍綠 <!-- id: 20-07 -->
 
 ## Phase 20.4: 守門與收尾

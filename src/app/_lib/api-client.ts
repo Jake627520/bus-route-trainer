@@ -49,6 +49,12 @@ export interface MasteryTrendPoint {
   masteredCount: number;
 }
 
+export interface PracticeAccuracy {
+  totalAttempts: number;
+  passedAttempts: number;
+  accuracy: number;
+}
+
 export interface VariantReviewSummary {
   routeId: string;
   variantKey: string;
@@ -152,6 +158,10 @@ export class ApiClient {
   getMasteryTrend(variantKey?: string): Promise<MasteryTrendPoint[]> {
     const q = variantKey ? `?variantKey=${encodeURIComponent(variantKey)}` : '';
     return this.request<MasteryTrendPoint[]>(`/api/review/mastery-trend${q}`);
+  }
+
+  getPracticeAccuracy(): Promise<PracticeAccuracy> {
+    return this.request<PracticeAccuracy>('/api/review/accuracy');
   }
 }
 
