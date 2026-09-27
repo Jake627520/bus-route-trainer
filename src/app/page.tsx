@@ -2,6 +2,7 @@ import { ReviewReminder } from '@/app/_components/review-reminder';
 import { BatchPracticeButton } from '@/app/_components/batch-practice-button';
 import { ReviewDashboard } from '@/app/_components/review-dashboard';
 import { MasteryTrend } from '@/app/_components/mastery-trend';
+import { AccuracyStat } from '@/app/_components/accuracy-stat';
 import { RouteList } from '@/app/_components/route-list';
 
 export default function Home() {
@@ -31,6 +32,10 @@ export default function Home() {
         </h2>
         <ReviewDashboard />
       </section>
+
+      <div className="mb-6">
+        <AccuracyStat />
+      </div>
 
       <section aria-labelledby="trend-heading" className="mb-10">
         <h2
