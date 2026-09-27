@@ -12,8 +12,8 @@
 - [x] Task 4: 寫失敗測試 + 實作 `GET /api/review/mastery-trend?variantKey=`（過濾；無則整體）（整合測試 afterAll 自清）until PASS <!-- id: 19-04 -->
 
 ## Phase 19.3: 前端
-- [ ] Task 5: api-client `getMasteryTrend(variantKey?)` 附 query；契約測試 <!-- id: 19-05 -->
-- [ ] Task 6: `MasteryTrend` 加選用 `variantKey` prop（有則抓該 variant）；測試涵蓋，且無 prop 行為不變 <!-- id: 19-06 -->
+- [x] Task 5: api-client `getMasteryTrend(variantKey?)` 附 query；契約測試 <!-- id: 19-05 -->
+- [x] Task 6: `MasteryTrend` 加選用 `variantKey` prop（有則抓該 variant）；測試涵蓋，且無 prop 行為不變 <!-- id: 19-06 -->
 - [ ] Task 7: 寫失敗測試：VariantList 已報名列渲染 `<MasteryTrend variantKey>`、未報名不渲染；實作 until PASS；既有 VariantList 測試無回歸 <!-- id: 19-07 -->
 
 ## Phase 19.4: 守門與收尾

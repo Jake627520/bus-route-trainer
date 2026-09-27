@@ -29,6 +29,12 @@ describe('Change 17: ApiClient.getMasteryTrend', () => {
     expect(mockFetch).toHaveBeenCalledWith('https://test.local/api/review/mastery-trend', undefined);
   });
 
+  it('appends ?variantKey= when a variantKey is given', async () => {
+    mockFetch.mockResolvedValueOnce(res(200, { data: [] }));
+    await client.getMasteryTrend('V1:d0:h');
+    expect(mockFetch).toHaveBeenCalledWith('https://test.local/api/review/mastery-trend?variantKey=V1%3Ad0%3Ah', undefined);
+  });
+
   it('maps { error } into a typed ApiError', async () => {
     mockFetch.mockResolvedValueOnce(res(500, { error: { code: 'INTERNAL_ERROR', message: 'boom' } }));
     const err = await client.getMasteryTrend().catch((e) => e);

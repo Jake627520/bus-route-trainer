@@ -8,13 +8,13 @@ import { apiClient, type MasteryTrendPoint } from '@/app/_lib/api-client';
  * 由 GET /api/review/mastery-trend 取每日精熟卡數，手刻 inline SVG 折線圖（不加 charting 依賴）。
  * 空資料→友善提示；載入中/錯誤→靜默（增益，不阻塞首頁）。
  */
-export function MasteryTrend() {
+export function MasteryTrend({ variantKey }: { variantKey?: string } = {}) {
   const [points, setPoints] = useState<MasteryTrendPoint[] | null>(null);
 
   useEffect(() => {
     let active = true;
     apiClient
-      .getMasteryTrend()
+      .getMasteryTrend(variantKey)
       .then((p) => {
         if (active) setPoints(p);
       })
@@ -24,7 +24,7 @@ export function MasteryTrend() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [variantKey]);
 
   if (points === null) return null; // 載入中 / 錯誤 → 不顯示
 
