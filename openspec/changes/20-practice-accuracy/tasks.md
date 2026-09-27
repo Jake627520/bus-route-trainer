@@ -9,7 +9,7 @@
 - [x] Task 3: 寫失敗測試（fake port）：`GetPracticeAccuracyUseCase` 算 accuracy（一般/全對/零題→accuracy 0）；實作 until PASS <!-- id: 20-03 -->
 
 ## Phase 20.2: API 端點
-- [ ] Task 4: 寫失敗測試 + 實作 `GET /api/review/accuracy`（整合測試 afterAll 自清）until PASS <!-- id: 20-04 -->
+- [x] Task 4: 寫失敗測試 + 實作 `GET /api/review/accuracy`（整合測試 afterAll 自清）until PASS <!-- id: 20-04 -->
 
 ## Phase 20.3: 前端
 - [ ] Task 5: api-client `getPracticeAccuracy()` + 型別；契約測試 <!-- id: 20-05 -->
