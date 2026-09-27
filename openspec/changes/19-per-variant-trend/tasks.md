@@ -17,8 +17,8 @@
 - [x] Task 7: 寫失敗測試：VariantList 已報名列渲染 `<MasteryTrend variantKey>`、未報名不渲染；實作 until PASS；既有 VariantList 測試無回歸 <!-- id: 19-07 -->
 
 ## Phase 19.4: 守門與收尾
-- [ ] Task 8: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 19-08 -->
-- [ ] Task 9: 建 `specs/` spec；`openspec archive 19-per-variant-trend`；開 PR <!-- id: 19-09 -->
+- [x] Task 8: 全套守門（`npm run lint` + `npm test` + `npm run build` 全綠）<!-- id: 19-08 -->
+- [x] Task 9: 建 `specs/` spec；`openspec archive 19-per-variant-trend`；開 PR <!-- id: 19-09 -->
 
 ## 注意
 - variantKey 為選用參數，全鏈路向下相容（Change 17 整體趨勢不變）。
