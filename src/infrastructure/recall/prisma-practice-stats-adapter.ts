@@ -10,10 +10,11 @@ import {
 export class PrismaPracticeStatsAdapter implements PracticeStatsQueryPort {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async countOutcomesByDriver(driverId: string): Promise<OutcomeCounts> {
+  async countOutcomesByDriver(driverId: string, variantKey?: string): Promise<OutcomeCounts> {
+    const session = variantKey ? { driverId, targetVariantKey: variantKey } : { driverId };
     const [total, passed] = await Promise.all([
-      this.prisma.recallAttempt.count({ where: { session: { driverId } } }),
-      this.prisma.recallAttempt.count({ where: { session: { driverId }, outcome: 'PASS' } }),
+      this.prisma.recallAttempt.count({ where: { session } }),
+      this.prisma.recallAttempt.count({ where: { session, outcome: 'PASS' } }),
     ]);
     return { total, passed };
   }

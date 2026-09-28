@@ -9,6 +9,8 @@ export interface PracticeAccuracy {
 
 export interface GetPracticeAccuracyCommand {
   driverId: string;
+  /** 帶入時只計該 variant 的正確率。 */
+  variantKey?: string;
 }
 
 /**
@@ -18,7 +20,7 @@ export class GetPracticeAccuracyUseCase {
   constructor(private readonly statsPort: PracticeStatsQueryPort) {}
 
   async execute(command: GetPracticeAccuracyCommand): Promise<PracticeAccuracy> {
-    const { total, passed } = await this.statsPort.countOutcomesByDriver(command.driverId);
+    const { total, passed } = await this.statsPort.countOutcomesByDriver(command.driverId, command.variantKey);
     return {
       totalAttempts: total,
       passedAttempts: passed,

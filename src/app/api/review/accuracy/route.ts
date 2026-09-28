@@ -11,9 +11,10 @@ const getPracticeAccuracyUseCase = new GetPracticeAccuracyUseCase(new PrismaPrac
  * Change 20: GET /api/review/accuracy
  * 回傳 default driver 的整體練習正確率。
  */
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: Request): Promise<NextResponse> {
   try {
-    const data = await getPracticeAccuracyUseCase.execute({ driverId: DEFAULT_DRIVER_ID });
+    const variantKey = new URL(request.url).searchParams.get('variantKey') ?? undefined;
+    const data = await getPracticeAccuracyUseCase.execute({ driverId: DEFAULT_DRIVER_ID, variantKey });
     return NextResponse.json({ data }, { status: 200 });
   } catch {
     return NextResponse.json(

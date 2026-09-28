@@ -20,6 +20,12 @@ describe('Change 20: ApiClient.getPracticeAccuracy', () => {
     expect(mockFetch).toHaveBeenCalledWith('https://test.local/api/review/accuracy', undefined);
   });
 
+  it('appends ?variantKey= when a variantKey is given', async () => {
+    mockFetch.mockResolvedValueOnce(res(200, { data: { totalAttempts: 0, passedAttempts: 0, accuracy: 0 } }));
+    await client.getPracticeAccuracy('V1:d0');
+    expect(mockFetch).toHaveBeenCalledWith('https://test.local/api/review/accuracy?variantKey=V1%3Ad0', undefined);
+  });
+
   it('maps { error } into a typed ApiError', async () => {
     mockFetch.mockResolvedValueOnce(res(500, { error: { code: 'INTERNAL_ERROR', message: 'boom' } }));
     const err = await client.getPracticeAccuracy().catch((e) => e);

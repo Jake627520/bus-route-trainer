@@ -160,8 +160,9 @@ export class ApiClient {
     return this.request<MasteryTrendPoint[]>(`/api/review/mastery-trend${q}`);
   }
 
-  getPracticeAccuracy(): Promise<PracticeAccuracy> {
-    return this.request<PracticeAccuracy>('/api/review/accuracy');
+  getPracticeAccuracy(variantKey?: string): Promise<PracticeAccuracy> {
+    const q = variantKey ? `?variantKey=${encodeURIComponent(variantKey)}` : '';
+    return this.request<PracticeAccuracy>(`/api/review/accuracy${q}`);
   }
 }
 
