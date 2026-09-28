@@ -17,6 +17,7 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
   beforeEach(() => {
     mockFetch = vi.fn((url: string) => {
       if (String(url).includes('/api/review/mastery-trend')) return Promise.resolve(jsonRes({ data: [] }));
+      if (String(url).includes('/api/review/streak')) return Promise.resolve(jsonRes({ data: { currentStreak: 0, longestStreak: 0, lastPracticedOn: null } }));
       if (String(url).includes('/api/review/accuracy')) return Promise.resolve(jsonRes({ data: { totalAttempts: 0, passedAttempts: 0, accuracy: 0 } }));
       if (String(url).includes('/api/review/summary')) return Promise.resolve(jsonRes({ data: [] }));
       if (String(url).includes('/api/routes')) return Promise.resolve(jsonRes({ data: [] }));
@@ -41,6 +42,7 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
   it('Change 16: renders the review reminder banner above the 待複習 dashboard', async () => {
     mockFetch.mockImplementation((url: string) => {
       if (String(url).includes('/api/review/mastery-trend')) return Promise.resolve(jsonRes({ data: [] }));
+      if (String(url).includes('/api/review/streak')) return Promise.resolve(jsonRes({ data: { currentStreak: 0, longestStreak: 0, lastPracticedOn: null } }));
       if (String(url).includes('/api/review/accuracy')) return Promise.resolve(jsonRes({ data: { totalAttempts: 0, passedAttempts: 0, accuracy: 0 } }));
       if (String(url).includes('/api/review/summary')) {
         return Promise.resolve(jsonRes({
@@ -62,6 +64,7 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
   it('Change 18: renders the 練習全部到期 batch button when variants are due', async () => {
     mockFetch.mockImplementation((url: string) => {
       if (String(url).includes('/api/review/mastery-trend')) return Promise.resolve(jsonRes({ data: [] }));
+      if (String(url).includes('/api/review/streak')) return Promise.resolve(jsonRes({ data: { currentStreak: 0, longestStreak: 0, lastPracticedOn: null } }));
       if (String(url).includes('/api/review/accuracy')) return Promise.resolve(jsonRes({ data: { totalAttempts: 0, passedAttempts: 0, accuracy: 0 } }));
       if (String(url).includes('/api/review/summary')) {
         return Promise.resolve(jsonRes({
@@ -96,6 +99,7 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
         return Promise.resolve(jsonRes({ data: { totalAttempts: 4, passedAttempts: 3, accuracy: 0.75 } }));
       }
       if (String(url).includes('/api/review/mastery-trend')) return Promise.resolve(jsonRes({ data: [] }));
+      if (String(url).includes('/api/review/streak')) return Promise.resolve(jsonRes({ data: { currentStreak: 0, longestStreak: 0, lastPracticedOn: null } }));
       if (String(url).includes('/api/review/summary')) return Promise.resolve(jsonRes({ data: [] }));
       if (String(url).includes('/api/routes')) return Promise.resolve(jsonRes({ data: [] }));
       return Promise.reject(new Error(`unexpected url ${url}`));
@@ -103,5 +107,19 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
 
     render(<Home />);
     expect(await screen.findByText(/正確率\s*75\s*%/)).toBeInTheDocument();
+  });
+
+  it('Change 22: renders the practice streak stat when there is history', async () => {
+    mockFetch.mockImplementation((url: string) => {
+      if (String(url).includes('/api/review/streak')) return Promise.resolve(jsonRes({ data: { currentStreak: 3, longestStreak: 5, lastPracticedOn: '2026-03-10' } }));
+      if (String(url).includes('/api/review/accuracy')) return Promise.resolve(jsonRes({ data: { totalAttempts: 0, passedAttempts: 0, accuracy: 0 } }));
+      if (String(url).includes('/api/review/mastery-trend')) return Promise.resolve(jsonRes({ data: [] }));
+      if (String(url).includes('/api/review/summary')) return Promise.resolve(jsonRes({ data: [] }));
+      if (String(url).includes('/api/routes')) return Promise.resolve(jsonRes({ data: [] }));
+      return Promise.reject(new Error(`unexpected url ${url}`));
+    });
+
+    render(<Home />);
+    expect(await screen.findByText(/連續練習\s*3\s*天/)).toBeInTheDocument();
   });
 });

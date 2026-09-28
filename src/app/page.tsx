@@ -3,6 +3,7 @@ import { BatchPracticeButton } from '@/app/_components/batch-practice-button';
 import { ReviewDashboard } from '@/app/_components/review-dashboard';
 import { MasteryTrend } from '@/app/_components/mastery-trend';
 import { AccuracyStat } from '@/app/_components/accuracy-stat';
+import { StreakStat } from '@/app/_components/streak-stat';
 import { RouteList } from '@/app/_components/route-list';
 
 export default function Home() {
@@ -33,7 +34,8 @@ export default function Home() {
         <ReviewDashboard />
       </section>
 
-      <div className="mb-6">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2">
+        <StreakStat />
         <AccuracyStat />
       </div>
 
