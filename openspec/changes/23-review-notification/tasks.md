@@ -12,7 +12,7 @@
 
 ## Phase 23.3: 守門與收尾
 - [x] Task 5: 全套守門（lint + test + build 全綠）<!-- id: 23-05 -->
-- [ ] Task 6: 建 `specs/` spec；`openspec archive 23-review-notification`；開 PR <!-- id: 23-06 -->
+- [x] Task 6: 建 `specs/` spec；`openspec archive 23-review-notification`；開 PR <!-- id: 23-06 -->
 
 ## 注意
 - 測試 mock `globalThis.Notification`（constructor spy + 靜態 permission + requestPermission）；不支援案例不 stub。
