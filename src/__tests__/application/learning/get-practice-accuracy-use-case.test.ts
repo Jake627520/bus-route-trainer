@@ -8,6 +8,7 @@ import { PracticeStatsQueryPort } from '@/application/learning/practice-stats-qu
 describe('Change 20: GetPracticeAccuracyUseCase', () => {
   const port = (total: number, passed: number): PracticeStatsQueryPort => ({
     countOutcomesByDriver: async () => ({ total, passed }),
+    findAttemptDates: async () => [],
   });
 
   it('computes accuracy = passed / total', async () => {

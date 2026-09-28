@@ -15,7 +15,7 @@
 - [x] Task 7: 寫失敗測試 + 把 StreakStat 掛進首頁 until PASS；既有首頁測試仍綠 <!-- id: 22-07 -->
 
 ## Phase 22.3: 守門與收尾
-- [ ] Task 8: 全套守門（lint + test + build 全綠）<!-- id: 22-08 -->
+- [x] Task 8: 全套守門（lint + test + build 全綠）<!-- id: 22-08 -->
 - [ ] Task 9: 建 `specs/` spec；`openspec archive 22-practice-streak`；開 PR <!-- id: 22-09 -->
 
 ## 注意
