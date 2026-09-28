@@ -18,8 +18,8 @@ describe('PrismaPracticeStatsAdapter', () => {
   afterAll(async () => { await cleanup(); await prisma.$disconnect(); });
   beforeEach(cleanup);
 
-  const seedSession = (id: string, driverId: string) =>
-    prisma.recallSession.create({ data: { id, driverId, routeId: 'R', targetVariantKey: 'V' } });
+  const seedSession = (id: string, driverId: string, targetVariantKey = 'V') =>
+    prisma.recallSession.create({ data: { id, driverId, routeId: 'R', targetVariantKey } });
 
   const seedAttempt = (sessionId: string, promptIndex: number, outcome: 'PASS' | 'FAIL') =>
     prisma.recallAttempt.create({
@@ -43,5 +43,16 @@ describe('PrismaPracticeStatsAdapter', () => {
 
   it('returns zeros for a driver with no attempts', async () => {
     expect(await adapter.countOutcomesByDriver('nobody')).toEqual({ total: 0, passed: 0 });
+  });
+
+  it('filters counts by variantKey when given', async () => {
+    await seedSession('sA', 'driver_default_local', 'VA');
+    await seedSession('sB', 'driver_default_local', 'VB');
+    await seedAttempt('sA', 0, 'PASS');
+    await seedAttempt('sA', 1, 'FAIL');
+    await seedAttempt('sB', 0, 'PASS');
+
+    expect(await adapter.countOutcomesByDriver('driver_default_local', 'VA')).toEqual({ total: 2, passed: 1 });
+    expect(await adapter.countOutcomesByDriver('driver_default_local')).toEqual({ total: 3, passed: 2 });
   });
 });

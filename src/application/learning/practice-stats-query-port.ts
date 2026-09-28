@@ -7,6 +7,6 @@ export interface OutcomeCounts {
 }
 
 export interface PracticeStatsQueryPort {
-  /** 統計某 driver 的 attempt 總數與 PASS 數。 */
-  countOutcomesByDriver(driverId: string): Promise<OutcomeCounts>;
+  /** 統計某 driver 的 attempt 總數與 PASS 數；帶 variantKey 時只計該 variant。 */
+  countOutcomesByDriver(driverId: string, variantKey?: string): Promise<OutcomeCounts>;
 }

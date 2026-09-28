@@ -4,9 +4,9 @@
 > 守門三綠：`eslint` / `vitest run --fileParallelism=false` / `next build`。
 
 ## Phase 21.1: 後端 variantKey 過濾
-- [ ] Task 1: 寫失敗測試（真 DB）：adapter `countOutcomesByDriver(driverId, variantKey)` 只計該 variant（跨 variant seed）<!-- id: 21-01 -->
-- [ ] Task 2: port 加選用 variantKey；adapter where 條件式加 targetVariantKey；use-case command 加 variantKey 透傳 until PASS <!-- id: 21-02 -->
-- [ ] Task 3: 寫失敗測試 + 實作 `GET /api/review/accuracy?variantKey=`（整合測試 afterAll 自清）until PASS <!-- id: 21-03 -->
+- [x] Task 1: 寫失敗測試（真 DB）：adapter `countOutcomesByDriver(driverId, variantKey)` 只計該 variant（跨 variant seed）<!-- id: 21-01 -->
+- [x] Task 2: port 加選用 variantKey；adapter where 條件式加 targetVariantKey；use-case command 加 variantKey 透傳 until PASS <!-- id: 21-02 -->
+- [x] Task 3: 寫失敗測試 + 實作 `GET /api/review/accuracy?variantKey=`（整合測試 afterAll 自清）until PASS <!-- id: 21-03 -->
 
 ## Phase 21.2: 前端
 - [ ] Task 4: api-client `getPracticeAccuracy(variantKey?)` 附 query；契約測試 <!-- id: 21-04 -->
