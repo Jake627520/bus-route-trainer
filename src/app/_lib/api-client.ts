@@ -55,6 +55,12 @@ export interface PracticeAccuracy {
   accuracy: number;
 }
 
+export interface PracticeStreak {
+  currentStreak: number;
+  longestStreak: number;
+  lastPracticedOn: string | null;
+}
+
 export interface VariantReviewSummary {
   routeId: string;
   variantKey: string;
@@ -163,6 +169,10 @@ export class ApiClient {
   getPracticeAccuracy(variantKey?: string): Promise<PracticeAccuracy> {
     const q = variantKey ? `?variantKey=${encodeURIComponent(variantKey)}` : '';
     return this.request<PracticeAccuracy>(`/api/review/accuracy${q}`);
+  }
+
+  getPracticeStreak(): Promise<PracticeStreak> {
+    return this.request<PracticeStreak>('/api/review/streak');
   }
 }
 
