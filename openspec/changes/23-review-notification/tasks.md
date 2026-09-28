@@ -8,7 +8,7 @@
 - [x] Task 3: 實作 `ReviewNotifier`（偵測支援/權限、default 按鈕、granted 抓 summary 發一則、ref 防重入）until PASS <!-- id: 23-03 -->
 
 ## Phase 23.2: 首頁整合
-- [ ] Task 4: 寫失敗測試 + 把 ReviewNotifier 掛進首頁 until PASS；既有首頁測試仍綠 <!-- id: 23-04 -->
+- [x] Task 4: 寫失敗測試 + 把 ReviewNotifier 掛進首頁 until PASS；既有首頁測試仍綠 <!-- id: 23-04 -->
 
 ## Phase 23.3: 守門與收尾
 - [ ] Task 5: 全套守門（lint + test + build 全綠）<!-- id: 23-05 -->

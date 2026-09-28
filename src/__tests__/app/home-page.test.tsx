@@ -109,6 +109,16 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
     expect(await screen.findByText(/正確率\s*75\s*%/)).toBeInTheDocument();
   });
 
+  it('Change 23: offers the enable-notification button on home when permission is default', async () => {
+    class MockNotification {
+      static permission: NotificationPermission = 'default';
+      static requestPermission = vi.fn(async () => 'granted' as NotificationPermission);
+    }
+    vi.stubGlobal('Notification', MockNotification);
+    render(<Home />);
+    expect(await screen.findByRole('button', { name: /開啟複習提醒/ })).toBeInTheDocument();
+  });
+
   it('Change 22: renders the practice streak stat when there is history', async () => {
     mockFetch.mockImplementation((url: string) => {
       if (String(url).includes('/api/review/streak')) return Promise.resolve(jsonRes({ data: { currentStreak: 3, longestStreak: 5, lastPracticedOn: '2026-03-10' } }));

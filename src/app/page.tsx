@@ -1,3 +1,4 @@
+import { ReviewNotifier } from '@/app/_components/review-notifier';
 import { ReviewReminder } from '@/app/_components/review-reminder';
 import { BatchPracticeButton } from '@/app/_components/batch-practice-button';
 import { ReviewDashboard } from '@/app/_components/review-dashboard';
@@ -17,6 +18,10 @@ export default function Home() {
           先看看今天要複習什麼，再選路線練習。
         </p>
       </header>
+
+      <div className="mb-4">
+        <ReviewNotifier />
+      </div>
 
       <ReviewReminder />
 
