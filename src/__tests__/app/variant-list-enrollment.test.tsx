@@ -22,6 +22,7 @@ describe('Change 12: VariantList reflects existing enrollment on load', () => {
   const dispatch = (handlers: { variants?: Response | Error; summary?: Response | Error }) =>
     vi.fn((url: string) => {
       if (String(url).includes('/api/review/mastery-trend')) return Promise.resolve(jsonRes(200, { data: [] }));
+      if (String(url).includes('/api/review/accuracy')) return Promise.resolve(jsonRes(200, { data: { totalAttempts: 4, passedAttempts: 3, accuracy: 0.75 } }));
       if (String(url).includes('/api/review/summary')) {
         const s = handlers.summary ?? jsonRes(200, { data: [] });
         return s instanceof Error ? Promise.reject(s) : Promise.resolve(s);
@@ -65,6 +66,9 @@ describe('Change 12: VariantList reflects existing enrollment on load', () => {
     const trendUrls = mockFetch.mock.calls.map((c) => String(c[0])).filter((u) => u.includes('/api/review/mastery-trend'));
     expect(trendUrls.some((u) => u.includes('variantKey=V1'))).toBe(true);
     expect(trendUrls.some((u) => u.includes('variantKey=V2'))).toBe(false);
+
+    // Change 21: 已報名 V1 顯示 compact 正確率
+    expect(await within(v1Item).findByText(/正確率\s*75\s*%/)).toBeInTheDocument();
   });
 
   it('silently degrades to all-not-enrolled when the summary request fails', async () => {

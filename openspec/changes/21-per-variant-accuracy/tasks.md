@@ -11,7 +11,7 @@
 ## Phase 21.2: 前端
 - [x] Task 4: api-client `getPracticeAccuracy(variantKey?)` 附 query；契約測試 <!-- id: 21-04 -->
 - [x] Task 5: `AccuracyStat` 加選用 `variantKey` prop（有→compact 內嵌、抓該 variant；無→大卡不變）；測試涵蓋 <!-- id: 21-05 -->
-- [ ] Task 6: 寫失敗測試：VariantList 已報名列顯示該 variant compact 正確率（帶 variantKey）；實作 until PASS；既有 variant 測試無回歸 <!-- id: 21-06 -->
+- [x] Task 6: 寫失敗測試：VariantList 已報名列顯示該 variant compact 正確率（帶 variantKey）；實作 until PASS；既有 variant 測試無回歸 <!-- id: 21-06 -->
 
 ## Phase 21.3: 守門與收尾
 - [ ] Task 7: 全套守門（lint + test + build 全綠）<!-- id: 21-07 -->
