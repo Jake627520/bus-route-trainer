@@ -4,10 +4,10 @@
 > 守門三綠：`eslint` / `vitest run --fileParallelism=false` / `next build`。
 
 ## Phase 22.1: 後端
-- [ ] Task 1: 寫失敗測試（真 DB）：adapter `findAttemptDates(driverId)` → 去重 UTC 日期升冪（跨 session、排除他 driver）<!-- id: 22-01 -->
-- [ ] Task 2: port 加 findAttemptDates；Prisma adapter until PASS <!-- id: 22-02 -->
-- [ ] Task 3: 寫失敗測試（fake port + fixedClock）：`GetPracticeStreakUseCase` 算 currentStreak（今天/昨天 active、更早→0）、longestStreak、lastPracticedOn、無資料→0/0/null；實作 until PASS <!-- id: 22-03 -->
-- [ ] Task 4: 寫失敗測試 + 實作 `GET /api/review/streak`（整合測試 afterAll 自清）until PASS <!-- id: 22-04 -->
+- [x] Task 1: 寫失敗測試（真 DB）：adapter `findAttemptDates(driverId)` → 去重 UTC 日期升冪（跨 session、排除他 driver）<!-- id: 22-01 -->
+- [x] Task 2: port 加 findAttemptDates；Prisma adapter until PASS <!-- id: 22-02 -->
+- [x] Task 3: 寫失敗測試（fake port + fixedClock）：`GetPracticeStreakUseCase` 算 currentStreak（今天/昨天 active、更早→0）、longestStreak、lastPracticedOn、無資料→0/0/null；實作 until PASS <!-- id: 22-03 -->
+- [x] Task 4: 寫失敗測試 + 實作 `GET /api/review/streak`（整合測試 afterAll 自清）until PASS <!-- id: 22-04 -->
 
 ## Phase 22.2: 前端
 - [ ] Task 5: api-client `getPracticeStreak()` + 型別；契約測試 <!-- id: 22-05 -->

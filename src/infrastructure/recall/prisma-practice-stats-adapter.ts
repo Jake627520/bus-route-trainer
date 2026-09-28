@@ -18,4 +18,15 @@ export class PrismaPracticeStatsAdapter implements PracticeStatsQueryPort {
     ]);
     return { total, passed };
   }
+
+  async findAttemptDates(driverId: string): Promise<string[]> {
+    const rows = await this.prisma.recallAttempt.findMany({
+      where: { session: { driverId } },
+      select: { answeredAt: true },
+      orderBy: { answeredAt: 'asc' },
+    });
+    const dates = new Set<string>();
+    for (const r of rows) dates.add(r.answeredAt.toISOString().slice(0, 10));
+    return [...dates].sort();
+  }
 }

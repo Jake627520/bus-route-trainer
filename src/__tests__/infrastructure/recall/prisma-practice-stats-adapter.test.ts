@@ -45,6 +45,26 @@ describe('PrismaPracticeStatsAdapter', () => {
     expect(await adapter.countOutcomesByDriver('nobody')).toEqual({ total: 0, passed: 0 });
   });
 
+  const seedAttemptAt = (sessionId: string, promptIndex: number, iso: string) =>
+    prisma.recallAttempt.create({
+      data: {
+        sessionId, promptIndex, cardKey: `c${promptIndex}`, recallMode: 'STOP_NAME_RECOGNITION',
+        rawInput: 'x', expectedAnswer: 'x', outcome: 'PASS',
+        startedAt: new Date(iso), answeredAt: new Date(iso), durationMs: 100, resultingState: 'REVIEW',
+      },
+    });
+
+  it('findAttemptDates returns distinct UTC dates ascending, excluding other drivers', async () => {
+    await seedSession('s1', 'driver_default_local');
+    await seedSession('s2', 'other');
+    await seedAttemptAt('s1', 0, '2026-03-02T09:00:00.000Z');
+    await seedAttemptAt('s1', 1, '2026-03-01T20:00:00.000Z');
+    await seedAttemptAt('s1', 2, '2026-03-02T21:00:00.000Z'); // 同日重複
+    await seedAttemptAt('s2', 0, '2026-03-05T00:00:00.000Z'); // 他 driver
+
+    expect(await adapter.findAttemptDates('driver_default_local')).toEqual(['2026-03-01', '2026-03-02']);
+  });
+
   it('filters counts by variantKey when given', async () => {
     await seedSession('sA', 'driver_default_local', 'VA');
     await seedSession('sB', 'driver_default_local', 'VB');
