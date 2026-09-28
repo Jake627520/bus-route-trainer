@@ -3,9 +3,9 @@
 > TDD（先紅後綠）。前端 mock fetch + mock Notification API。守門三綠：`eslint` / `vitest run --fileParallelism=false` / `next build`。
 
 ## Phase 23.1: ReviewNotifier
-- [ ] Task 1: 寫失敗測試：permission `default` → 顯示「開啟複習提醒」按鈕；點擊呼叫 `Notification.requestPermission` <!-- id: 23-01 -->
-- [ ] Task 2: 寫失敗測試：permission `granted` + 到期>0 → 觸發 `new Notification`（body 含數量）、無按鈕；到期=0 不觸發；`denied`/不支援 → 不顯示不觸發 <!-- id: 23-02 -->
-- [ ] Task 3: 實作 `ReviewNotifier`（偵測支援/權限、default 按鈕、granted 抓 summary 發一則、ref 防重入）until PASS <!-- id: 23-03 -->
+- [x] Task 1: 寫失敗測試：permission `default` → 顯示「開啟複習提醒」按鈕；點擊呼叫 `Notification.requestPermission` <!-- id: 23-01 -->
+- [x] Task 2: 寫失敗測試：permission `granted` + 到期>0 → 觸發 `new Notification`（body 含數量）、無按鈕；到期=0 不觸發；`denied`/不支援 → 不顯示不觸發 <!-- id: 23-02 -->
+- [x] Task 3: 實作 `ReviewNotifier`（偵測支援/權限、default 按鈕、granted 抓 summary 發一則、ref 防重入）until PASS <!-- id: 23-03 -->
 
 ## Phase 23.2: 首頁整合
 - [ ] Task 4: 寫失敗測試 + 把 ReviewNotifier 掛進首頁 until PASS；既有首頁測試仍綠 <!-- id: 23-04 -->
