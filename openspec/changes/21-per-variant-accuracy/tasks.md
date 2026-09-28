@@ -14,8 +14,8 @@
 - [x] Task 6: 寫失敗測試：VariantList 已報名列顯示該 variant compact 正確率（帶 variantKey）；實作 until PASS；既有 variant 測試無回歸 <!-- id: 21-06 -->
 
 ## Phase 21.3: 守門與收尾
-- [ ] Task 7: 全套守門（lint + test + build 全綠）<!-- id: 21-07 -->
-- [ ] Task 8: 建 `specs/` spec；`openspec archive 21-per-variant-accuracy`；開 PR <!-- id: 21-08 -->
+- [x] Task 7: 全套守門（lint + test + build 全綠）<!-- id: 21-07 -->
+- [x] Task 8: 建 `specs/` spec；`openspec archive 21-per-variant-accuracy`；開 PR <!-- id: 21-08 -->
 
 ## 注意
 - variantKey 為選用，全鏈路向下相容（Change 20 整體正確率不變）。
