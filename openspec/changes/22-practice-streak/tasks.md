@@ -16,7 +16,7 @@
 
 ## Phase 22.3: 守門與收尾
 - [x] Task 8: 全套守門（lint + test + build 全綠）<!-- id: 22-08 -->
-- [ ] Task 9: 建 `specs/` spec；`openspec archive 22-practice-streak`；開 PR <!-- id: 22-09 -->
+- [x] Task 9: 建 `specs/` spec；`openspec archive 22-practice-streak`；開 PR <!-- id: 22-09 -->
 
 ## 注意
 - streak 為純邏輯（fake port + 固定 clock 測試）；UTC 分日（answeredAt.toISOString().slice(0,10)）。
