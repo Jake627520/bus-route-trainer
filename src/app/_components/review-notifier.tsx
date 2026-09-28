@@ -1,28 +1,29 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { apiClient } from '@/app/_lib/api-client';
 
 type PermState = NotificationPermission | 'unsupported';
 
-function readPermission(): PermState {
-  if (typeof window === 'undefined' || !('Notification' in window)) return 'unsupported';
-  return Notification.permission;
-}
+const isSupported = () => typeof window !== 'undefined' && 'Notification' in window;
+const noopSubscribe = () => () => {};
+const clientSnapshot = (): PermState => (isSupported() ? Notification.permission : 'unsupported');
+const serverSnapshot = (): PermState => 'unsupported';
 
 /**
  * Change 23: 前景 Web Notification 複習提醒（client component）。
  * - default：顯示「開啟複習提醒」按鈕 → 請求權限。
  * - granted：不顯示 UI；掛載時抓 review summary，到期總數>0 發一則系統通知（ref 防重入）。
  * - denied / 不支援：不顯示、不動作。
+ *
+ * 以 useSyncExternalStore 讀取權限（SSR 安全，避免 effect 內 setState）；
+ * 請求權限後以 override 反映新狀態。
  */
 export function ReviewNotifier() {
-  const [perm, setPerm] = useState<PermState>('unsupported');
+  const externalPerm = useSyncExternalStore(noopSubscribe, clientSnapshot, serverSnapshot);
+  const [override, setOverride] = useState<PermState | null>(null);
+  const perm = override ?? externalPerm;
   const notified = useRef(false);
-
-  useEffect(() => {
-    setPerm(readPermission());
-  }, []);
 
   useEffect(() => {
     if (perm !== 'granted' || notified.current) return;
@@ -46,12 +47,12 @@ export function ReviewNotifier() {
   }, [perm]);
 
   const enable = async () => {
-    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (!isSupported()) return;
     const result = await Notification.requestPermission();
-    setPerm(result);
+    setOverride(result);
   };
 
-  if (perm !== 'default') return null; // unsupported / granted / denied → 無按鈕
+  if (perm !== 'default') return null;
 
   return (
     <button

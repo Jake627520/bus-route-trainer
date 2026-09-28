@@ -11,7 +11,7 @@
 - [x] Task 4: 寫失敗測試 + 把 ReviewNotifier 掛進首頁 until PASS；既有首頁測試仍綠 <!-- id: 23-04 -->
 
 ## Phase 23.3: 守門與收尾
-- [ ] Task 5: 全套守門（lint + test + build 全綠）<!-- id: 23-05 -->
+- [x] Task 5: 全套守門（lint + test + build 全綠）<!-- id: 23-05 -->
 - [ ] Task 6: 建 `specs/` spec；`openspec archive 23-review-notification`；開 PR <!-- id: 23-06 -->
 
 ## 注意
