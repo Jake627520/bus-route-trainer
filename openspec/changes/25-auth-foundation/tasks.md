@@ -7,9 +7,9 @@
 - [x] Task 2: `signSession`/`verifySession`（HMAC + exp + 竄改/過期）測試 + 實作 <!-- id: 25-02 -->
 
 ## Phase 25.2: schema + repository + use-cases
-- [ ] Task 3: Prisma `Driver` model + migration <!-- id: 25-03 -->
-- [ ] Task 4: `DriverAccountRepository` port + Prisma adapter（findByUsername / create）整合測試 + 實作 <!-- id: 25-04 -->
-- [ ] Task 5: `RegisterDriverUseCase`（雜湊、重複 username→衝突）、`AuthenticateDriverUseCase`（驗證→driver/null）測試 + 實作 <!-- id: 25-05 -->
+- [x] Task 3: Prisma `Driver` model + migration <!-- id: 25-03 -->
+- [x] Task 4: `DriverAccountRepository` port + Prisma adapter（findByUsername / create）整合測試 + 實作 <!-- id: 25-04 -->
+- [x] Task 5: `RegisterDriverUseCase`（雜湊、重複 username→衝突）、`AuthenticateDriverUseCase`（驗證→driver/null）測試 + 實作 <!-- id: 25-05 -->
 
 ## Phase 25.3: API + helper + 登入頁
 - [ ] Task 6: `POST /api/auth/register`（201 / 409 重複 / 400 缺欄）整合測試 + 實作 <!-- id: 25-06 -->
