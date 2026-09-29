@@ -12,9 +12,9 @@
 - [x] Task 5: `RegisterDriverUseCase`（雜湊、重複 username→衝突）、`AuthenticateDriverUseCase`（驗證→driver/null）測試 + 實作 <!-- id: 25-05 -->
 
 ## Phase 25.3: API + helper + 登入頁
-- [ ] Task 6: `POST /api/auth/register`（201 / 409 重複 / 400 缺欄）整合測試 + 實作 <!-- id: 25-06 -->
-- [ ] Task 7: `POST /api/auth/login`（成功設 httpOnly cookie / 401 錯誤）、`POST /api/auth/logout`（清 cookie）測試 + 實作 <!-- id: 25-07 -->
-- [ ] Task 8: `resolveDriverId(request)`（有效 session→driverId、否則 DEFAULT_DRIVER_ID）測試 + 實作 <!-- id: 25-08 -->
+- [x] Task 6: `POST /api/auth/register`（201 / 409 重複 / 400 缺欄）整合測試 + 實作 <!-- id: 25-06 -->
+- [x] Task 7: `POST /api/auth/login`（成功設 httpOnly cookie / 401 錯誤）、`POST /api/auth/logout`（清 cookie）測試 + 實作 <!-- id: 25-07 -->
+- [x] Task 8: `resolveDriverId(request)`（有效 session→driverId、否則 DEFAULT_DRIVER_ID）測試 + 實作 <!-- id: 25-08 -->
 - [ ] Task 9: `/login` 頁（登入 + 註冊表單、mock fetch）測試 + 實作 <!-- id: 25-09 -->
 
 ## Phase 25.4: 守門與收尾
