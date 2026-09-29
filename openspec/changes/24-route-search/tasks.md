@@ -8,8 +8,8 @@
 - [x] Task 3: 實作 RouteList 搜尋框 + 過濾 until PASS；既有 RouteList 測試（四態）無回歸 <!-- id: 24-03 -->
 
 ## Phase 24.2: 守門與收尾
-- [ ] Task 4: 全套守門（lint + test + build 全綠）<!-- id: 24-04 -->
-- [ ] Task 5: 建 `specs/` spec；`openspec archive 24-route-search`；開 PR <!-- id: 24-05 -->
+- [x] Task 4: 全套守門（lint + test + build 全綠）<!-- id: 24-04 -->
+- [x] Task 5: 建 `specs/` spec；`openspec archive 24-route-search`；開 PR <!-- id: 24-05 -->
 
 ## 注意
 - 客戶端過濾（已取得的 routes）；不新增 API。
