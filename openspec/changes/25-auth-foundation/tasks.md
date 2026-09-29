@@ -15,11 +15,11 @@
 - [x] Task 6: `POST /api/auth/register`（201 / 409 重複 / 400 缺欄）整合測試 + 實作 <!-- id: 25-06 -->
 - [x] Task 7: `POST /api/auth/login`（成功設 httpOnly cookie / 401 錯誤）、`POST /api/auth/logout`（清 cookie）測試 + 實作 <!-- id: 25-07 -->
 - [x] Task 8: `resolveDriverId(request)`（有效 session→driverId、否則 DEFAULT_DRIVER_ID）測試 + 實作 <!-- id: 25-08 -->
-- [ ] Task 9: `/login` 頁（登入 + 註冊表單、mock fetch）測試 + 實作 <!-- id: 25-09 -->
+- [x] Task 9: `/login` 頁（登入 + 註冊表單、mock fetch）測試 + 實作 <!-- id: 25-09 -->
 
 ## Phase 25.4: 守門與收尾
-- [ ] Task 10: 全套守門（lint + test + build 全綠；不破壞既有 591）<!-- id: 25-10 -->
-- [ ] Task 11: 建 `specs/` spec；`openspec archive 25-auth-foundation`；開 PR <!-- id: 25-11 -->
+- [x] Task 10: 全套守門（lint + test + build 全綠；615 tests）<!-- id: 25-10 -->
+- [x] Task 11: 建 `specs/` spec；`openspec archive 25-auth-foundation`；開 PR <!-- id: 25-11 -->
 
 ## 注意
 - 密碼用 scrypt、cookie 用 HMAC 簽章（`AUTH_SECRET` 環境變數，測試用固定值）；不加第三方依賴。
