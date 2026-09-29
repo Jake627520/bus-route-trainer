@@ -227,3 +227,14 @@ model RecallAttempt {
   @@index([cardKey])
   @@map("recall_attempt")
 }
+
+// Change 25: 司機帳號（帳號+密碼認證）。driverId 於既有資料為 soft-ref 字串，此表獨立。
+model Driver {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  passwordSalt String   @map("password_salt")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("driver")
+}
