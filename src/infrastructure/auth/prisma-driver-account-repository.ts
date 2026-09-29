@@ -18,6 +18,13 @@ export class PrismaDriverAccountRepository implements DriverAccountRepository {
       : null;
   }
 
+  async findById(id: string): Promise<DriverAccount | null> {
+    const row = await this.prisma.driver.findUnique({ where: { id } });
+    return row
+      ? { id: row.id, username: row.username, passwordHash: row.passwordHash, passwordSalt: row.passwordSalt }
+      : null;
+  }
+
   async create(input: CreateDriverAccountInput): Promise<DriverAccount> {
     const row = await this.prisma.driver.create({
       data: {

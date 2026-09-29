@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPracticeStatsAdapter } from '@/infrastructure/recall/prisma-practice-stats-adapter';
 import { GetPracticeStreakUseCase } from '@/application/learning/get-practice-streak-use-case';
 import { SystemClock } from '@/application/common/clock';
-import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
+import { resolveDriverId } from '@/app/_lib/session';
 
 const prisma = new PrismaClient();
 const getPracticeStreakUseCase = new GetPracticeStreakUseCase(
@@ -12,12 +12,12 @@ const getPracticeStreakUseCase = new GetPracticeStreakUseCase(
 );
 
 /**
- * Change 22: GET /api/review/streak
- * 回傳 default driver 的練習連續天數（current/longest）與最近練習日。
+ * Change 22 / 26: GET /api/review/streak
+ * 回傳登入司機（或未登入時 DEFAULT）的練習連續天數（current/longest）與最近練習日。
  */
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: Request): Promise<NextResponse> {
   try {
-    const data = await getPracticeStreakUseCase.execute({ driverId: DEFAULT_DRIVER_ID });
+    const data = await getPracticeStreakUseCase.execute({ driverId: resolveDriverId(request) });
     return NextResponse.json({ data }, { status: 200 });
   } catch {
     return NextResponse.json(

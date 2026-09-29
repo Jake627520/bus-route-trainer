@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { POST } from '@/app/api/progress/enroll/route';
+import { signSession } from '@/infrastructure/auth/session-token';
+import { SESSION_COOKIE, getAuthSecret } from '@/app/_lib/session';
 
 describe('POST /api/progress/enroll Route Handler Integration Tests', () => {
   const prisma = new PrismaClient();
@@ -118,6 +120,23 @@ describe('POST /api/progress/enroll Route Handler Integration Tests', () => {
     const body = await response.json();
     expect(body).toHaveProperty('error');
     expect(body.error.code).toBe('INVALID_REQUEST');
+  });
+
+  it('enrolls under the logged-in driver from the session cookie (Change 26)', async () => {
+    const variantKey = 'R66_DIR0_stop_rbwh>stop_kg>stop_uq';
+    const token = signSession({ driverId: 'drv-carol' }, getAuthSecret(), 3600_000);
+    const request = new Request('http://localhost/api/progress/enroll', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', cookie: `${SESSION_COOKIE}=${encodeURIComponent(token)}` },
+      body: JSON.stringify({ routeId: 'R66', variantKey }),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(201);
+
+    const rows = await prisma.driverVariantProgress.findMany({ where: { targetVariantKey: variantKey } });
+    expect(rows).toHaveLength(1);
+    expect(rows[0].driverId).toBe('drv-carol');
   });
 
   it('returns 404 Not Found (VARIANT_NOT_FOUND) when variant does not exist in GTFS', async () => {

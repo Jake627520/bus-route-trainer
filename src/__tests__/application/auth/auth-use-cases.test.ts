@@ -10,6 +10,7 @@ function fakeRepo(seed: DriverAccount[] = []): DriverAccountRepository {
   const rows = [...seed];
   return {
     findByUsername: async (u) => rows.find((r) => r.username === u) ?? null,
+    findById: async (id) => rows.find((r) => r.id === id) ?? null,
     create: async (input: CreateDriverAccountInput) => {
       const acc: DriverAccount = { id: `id-${rows.length + 1}`, ...input };
       rows.push(acc);

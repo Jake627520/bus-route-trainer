@@ -1,36 +1,23 @@
-import { signSession, verifySession } from '@/infrastructure/auth/session-token';
+import { signSession } from '@/infrastructure/auth/session-token';
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
+import {
+  SESSION_COOKIE,
+  SESSION_TTL_MS,
+  getAuthSecret,
+  readSessionDriverId,
+} from '@/infrastructure/auth/session-cookie';
 
-export const SESSION_COOKIE = 'brt_session';
-const TTL_MS = 7 * 24 * 3600 * 1000; // 7 天
+// Re-export（保留既有 import 路徑 @/app/_lib/session）。
+export { SESSION_COOKIE, getAuthSecret, readSessionDriverId };
 
-/** AUTH_SECRET 由環境提供；未設時用不安全的 dev 後備（正式環境務必設定）。 */
-export function getAuthSecret(): string {
-  return process.env.AUTH_SECRET ?? 'dev-insecure-secret-change-me';
-}
-
-function readCookie(request: Request, name: string): string | null {
-  const header = request.headers.get('cookie');
-  if (!header) return null;
-  for (const part of header.split(';')) {
-    const idx = part.indexOf('=');
-    if (idx === -1) continue;
-    if (part.slice(0, idx).trim() === name) return decodeURIComponent(part.slice(idx + 1).trim());
-  }
-  return null;
-}
-
-/** 有效 session → 其 driverId；否則後備 DEFAULT_DRIVER_ID（Change 26 改為強制）。 */
+/** 有效 session → 其 driverId；否則後備 DEFAULT_DRIVER_ID（相容 zero-auth；頁面保護由 proxy 負責）。 */
 export function resolveDriverId(request: Request): string {
-  const token = readCookie(request, SESSION_COOKIE);
-  if (!token) return DEFAULT_DRIVER_ID;
-  const payload = verifySession(token, getAuthSecret());
-  return payload?.driverId ?? DEFAULT_DRIVER_ID;
+  return readSessionDriverId(request) ?? DEFAULT_DRIVER_ID;
 }
 
 export function sessionSetCookie(driverId: string): string {
-  const token = signSession({ driverId }, getAuthSecret(), TTL_MS);
-  return `${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${TTL_MS / 1000}`;
+  const token = signSession({ driverId }, getAuthSecret(), SESSION_TTL_MS);
+  return `${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_TTL_MS / 1000}`;
 }
 
 export function sessionClearCookie(): string {

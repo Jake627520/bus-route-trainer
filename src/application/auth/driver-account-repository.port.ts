@@ -16,5 +16,6 @@ export interface CreateDriverAccountInput {
 
 export interface DriverAccountRepository {
   findByUsername(username: string): Promise<DriverAccount | null>;
+  findById(id: string): Promise<DriverAccount | null>;
   create(input: CreateDriverAccountInput): Promise<DriverAccount>;
 }

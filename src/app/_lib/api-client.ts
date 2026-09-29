@@ -74,6 +74,11 @@ export interface VariantReviewSummary {
   nextReviewAt: string | null;
 }
 
+export interface AuthMe {
+  id: string;
+  username: string;
+}
+
 interface SuccessEnvelope<T> {
   data: T;
 }
@@ -173,6 +178,20 @@ export class ApiClient {
 
   getPracticeStreak(): Promise<PracticeStreak> {
     return this.request<PracticeStreak>('/api/review/streak');
+  }
+
+  /** 目前登入司機；未登入（401）回 null。 */
+  async getMe(): Promise<AuthMe | null> {
+    try {
+      return await this.request<AuthMe>('/api/auth/me');
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) return null;
+      throw error;
+    }
+  }
+
+  async logout(): Promise<void> {
+    await this.request<{ ok: true }>('/api/auth/logout', { method: 'POST' });
   }
 }
 

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { PrismaMasteryHistoryAdapter } from '@/infrastructure/recall/prisma-mastery-history-adapter';
 import { GetMasteryTrendUseCase } from '@/application/learning/get-mastery-trend-use-case';
-import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
+import { resolveDriverId } from '@/app/_lib/session';
 
 const prisma = new PrismaClient();
 const getMasteryTrendUseCase = new GetMasteryTrendUseCase(new PrismaMasteryHistoryAdapter(prisma));
@@ -14,7 +14,7 @@ const getMasteryTrendUseCase = new GetMasteryTrendUseCase(new PrismaMasteryHisto
 export async function GET(request: Request): Promise<NextResponse> {
   try {
     const variantKey = new URL(request.url).searchParams.get('variantKey') ?? undefined;
-    const data = await getMasteryTrendUseCase.execute({ driverId: DEFAULT_DRIVER_ID, variantKey });
+    const data = await getMasteryTrendUseCase.execute({ driverId: resolveDriverId(request), variantKey });
     return NextResponse.json({ data }, { status: 200 });
   } catch {
     return NextResponse.json(

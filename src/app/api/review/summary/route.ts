@@ -6,7 +6,7 @@ import { GetRouteVariantsUseCase } from '@/application/gtfs/get-route-variants-u
 import { GtfsVariantHeadsignAdapter } from '@/infrastructure/gtfs/gtfs-variant-headsign-adapter';
 import { GetReviewSummaryUseCase } from '@/application/learning/get-review-summary-use-case';
 import { SystemClock } from '@/application/common/clock';
-import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
+import { resolveDriverId } from '@/app/_lib/session';
 
 const prisma = new PrismaClient();
 const progressRepository = new PrismaLearningProgressRepository(prisma);
@@ -19,13 +19,12 @@ const getReviewSummaryUseCase = new GetReviewSummaryUseCase(
 );
 
 /**
- * Change 11: GET /api/review/summary
- * 回傳 default driver 每個 enrolled variant 的複習彙總（到期/新卡/下次複習）。
- * Zero-auth：driver 用 DEFAULT_DRIVER_ID，client 不送 driverId。
+ * Change 11 / 26: GET /api/review/summary
+ * 回傳登入司機（或未登入時 DEFAULT）每個 enrolled variant 的複習彙總（到期/新卡/下次複習）。
  */
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: Request): Promise<NextResponse> {
   try {
-    const summaries = await getReviewSummaryUseCase.execute({ driverId: DEFAULT_DRIVER_ID });
+    const summaries = await getReviewSummaryUseCase.execute({ driverId: resolveDriverId(request) });
     return NextResponse.json({ data: summaries }, { status: 200 });
   } catch {
     return NextResponse.json(

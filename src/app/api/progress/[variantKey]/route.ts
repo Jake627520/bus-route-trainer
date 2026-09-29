@@ -7,6 +7,7 @@ import {
   GetVariantProgressUseCase,
   ProgressNotFoundError,
 } from '@/application/learning/get-variant-progress-use-case';
+import { resolveDriverId } from '@/app/_lib/session';
 
 const prisma = new PrismaClient();
 const learningRepo = new PrismaLearningProgressRepository(prisma);
@@ -15,7 +16,7 @@ const getRouteVariantsUseCase = new GetRouteVariantsUseCase(gtfsReadRepo);
 const getVariantProgressUseCase = new GetVariantProgressUseCase(learningRepo, getRouteVariantsUseCase);
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ variantKey: string }> }
 ) {
   try {
@@ -30,7 +31,7 @@ export async function GET(
 
     // Next.js App Router already provides the decoded parameter.
     // We strictly do NOT call decodeURIComponent again, avoiding double-decoding risks.
-    const progress = await getVariantProgressUseCase.execute({ variantKey });
+    const progress = await getVariantProgressUseCase.execute({ driverId: resolveDriverId(request), variantKey });
 
     return NextResponse.json({ data: progress }, { status: 200 });
   } catch (error: unknown) {
