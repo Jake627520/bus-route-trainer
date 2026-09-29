@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { RouteList } from '@/app/_components/route-list';
 
@@ -71,5 +71,44 @@ describe('Change 07: RouteList', () => {
     const alert = await screen.findByRole('alert');
     expect(alert).toBeInTheDocument();
     expect(alert).toHaveTextContent(/無法載入|error|失敗/i);
+  });
+
+  const twoRoutes = () =>
+    mockFetch.mockResolvedValueOnce(
+      jsonRes(200, {
+        data: [
+          { id: 'R100', shortName: '100', longName: 'City → University', routeType: 3 },
+          { id: 'R200', shortName: '200', longName: 'Beach Loop', routeType: 3 },
+        ],
+      })
+    );
+
+  it('Change 24: filters routes by shortName/longName (case-insensitive) and restores on clear', async () => {
+    twoRoutes();
+    render(<RouteList />);
+    await screen.findByText('City → University');
+
+    const box = screen.getByRole('searchbox', { name: /搜尋路線/ });
+
+    fireEvent.change(box, { target: { value: '100' } });
+    expect(screen.getByText('City → University')).toBeInTheDocument();
+    expect(screen.queryByText('Beach Loop')).not.toBeInTheDocument();
+
+    fireEvent.change(box, { target: { value: 'beach' } }); // 不分大小寫
+    expect(screen.getByText('Beach Loop')).toBeInTheDocument();
+    expect(screen.queryByText('City → University')).not.toBeInTheDocument();
+
+    fireEvent.change(box, { target: { value: '' } }); // 清空還原
+    expect(screen.getByText('City → University')).toBeInTheDocument();
+    expect(screen.getByText('Beach Loop')).toBeInTheDocument();
+  });
+
+  it('Change 24: shows a no-match hint while keeping the search box', async () => {
+    twoRoutes();
+    render(<RouteList />);
+    const box = await screen.findByRole('searchbox', { name: /搜尋路線/ });
+    fireEvent.change(box, { target: { value: 'zzz' } });
+    expect(screen.getByText(/找不到符合的路線/)).toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: /搜尋路線/ })).toBeInTheDocument();
   });
 });

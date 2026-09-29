@@ -16,6 +16,7 @@ type State =
  */
 export function RouteList() {
   const [state, setState] = useState<State>({ phase: 'loading' });
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -64,21 +65,45 @@ export function RouteList() {
     );
   }
 
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? state.routes.filter(
+        (r) =>
+          r.shortName.toLowerCase().includes(q) || r.longName.toLowerCase().includes(q)
+      )
+    : state.routes;
+
   return (
-    <ul className="flex flex-col gap-3">
-      {state.routes.map((route) => (
-        <li key={route.id}>
-          <Link
-            href={`/routes/${route.id}`}
-            className="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-4 transition-colors hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600"
-          >
-            <span className="inline-flex min-w-[3rem] justify-center rounded-md bg-zinc-900 px-2 py-1 text-sm font-bold text-white dark:bg-zinc-100 dark:text-zinc-900">
-              {route.shortName}
-            </span>
-            <span className="text-zinc-800 dark:text-zinc-200">{route.longName}</span>
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <div className="flex flex-col gap-3">
+      <input
+        type="search"
+        aria-label="搜尋路線"
+        placeholder="搜尋路線（號碼或名稱）"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+      />
+      {filtered.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
+          找不到符合的路線。
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {filtered.map((route) => (
+            <li key={route.id}>
+              <Link
+                href={`/routes/${route.id}`}
+                className="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-4 transition-colors hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600"
+              >
+                <span className="inline-flex min-w-[3rem] justify-center rounded-md bg-zinc-900 px-2 py-1 text-sm font-bold text-white dark:bg-zinc-100 dark:text-zinc-900">
+                  {route.shortName}
+                </span>
+                <span className="text-zinc-800 dark:text-zinc-200">{route.longName}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
