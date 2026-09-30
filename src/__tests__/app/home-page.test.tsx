@@ -7,7 +7,11 @@ import Home from '@/app/page';
 /**
  * Change 11 Task 10: 首頁整合——「待複習」區塊在路線列表之上。
  * mock fetch 依 URL 路由回應，兩個 client 區塊都掛在同一頁。
+ * Change 26: 首頁多了 AuthStatus（用 useRouter）→ mock next/navigation；
+ * /api/auth/me 未匹配時 fetch reject 會被 AuthStatus 內 .catch 靜默吞掉，不影響斷言。
  */
+const push = vi.hoisted(() => vi.fn());
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
 describe('Change 11: Home page integrates review dashboard above route list', () => {
   let mockFetch: ReturnType<typeof vi.fn>;
 

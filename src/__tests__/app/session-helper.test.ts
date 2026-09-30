@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveDriverId, sessionSetCookie, sessionClearCookie, SESSION_COOKIE, getAuthSecret } from '@/app/_lib/session';
+import { resolveDriverId, readSessionDriverId, sessionSetCookie, sessionClearCookie, SESSION_COOKIE, getAuthSecret } from '@/app/_lib/session';
 import { signSession } from '@/infrastructure/auth/session-token';
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
 
@@ -25,6 +25,16 @@ describe('Change 25: session helper', () => {
     const token = signSession({ driverId: 'drv-2' }, getAuthSecret(), 3600_000);
     const req = reqWithCookie(`theme=dark; ${SESSION_COOKIE}=${encodeURIComponent(token)}; x=1`);
     expect(resolveDriverId(req)).toBe('drv-2');
+  });
+
+  it('readSessionDriverId returns driverId for valid session, null otherwise (Change 26)', () => {
+    const token = signSession({ driverId: 'drv-7' }, getAuthSecret(), 3600_000);
+    expect(readSessionDriverId(reqWithCookie(`${SESSION_COOKIE}=${encodeURIComponent(token)}`))).toBe('drv-7');
+    // 無 cookie / 亂碼 / 過期 → null（與 resolveDriverId 的 DEFAULT 後備區隔）
+    expect(readSessionDriverId(reqWithCookie())).toBeNull();
+    expect(readSessionDriverId(reqWithCookie(`${SESSION_COOKIE}=garbage`))).toBeNull();
+    const expired = signSession({ driverId: 'drv-x' }, getAuthSecret(), -1000);
+    expect(readSessionDriverId(reqWithCookie(`${SESSION_COOKIE}=${encodeURIComponent(expired)}`))).toBeNull();
   });
 
   it('builds httpOnly set/clear cookies', () => {

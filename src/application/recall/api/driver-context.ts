@@ -1,4 +1,5 @@
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
+import { readSessionDriverId } from '@/infrastructure/auth/session-cookie';
 
 export class ClientSuppliedDriverIdError extends Error {
   constructor(message = 'Client is strictly forbidden from specifying driverId. Identity is resolved server-side.') {
@@ -50,6 +51,12 @@ export class UnauthenticatedError extends Error {
 export function resolveAuthenticatedDriver(request?: Request): string {
   if (request) {
     assertNoDriverIdInUrl(request);
+
+    // Change 26: 登入 session cookie 是第一等身分，跨環境有效（不需 trusted gateway）。
+    const sessionDriverId = readSessionDriverId(request);
+    if (sessionDriverId) {
+      return sessionDriverId;
+    }
   }
 
   const isTestEnv = process.env.NODE_ENV === 'test';

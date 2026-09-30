@@ -6,11 +6,15 @@ import { MasteryTrend } from '@/app/_components/mastery-trend';
 import { AccuracyStat } from '@/app/_components/accuracy-stat';
 import { StreakStat } from '@/app/_components/streak-stat';
 import { RouteList } from '@/app/_components/route-list';
+import { AuthStatus } from '@/app/_components/auth-status';
 
 export default function Home() {
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:py-16">
       <header className="mb-8">
+        <div className="mb-4 flex justify-end">
+          <AuthStatus />
+        </div>
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
           路線記憶訓練器
         </h1>

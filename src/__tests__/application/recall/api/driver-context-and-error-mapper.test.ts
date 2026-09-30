@@ -8,6 +8,8 @@ import {
 } from '@/application/recall/api/driver-context';
 import { handleApiError } from '@/application/recall/api/error-mapper';
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
+import { signSession } from '@/infrastructure/auth/session-token';
+import { SESSION_COOKIE, getAuthSecret } from '@/infrastructure/auth/session-cookie';
 import { DriverNotEnrolledError } from '@/application/recall/start-planned-recall-session-use-case';
 import {
   SessionNotFoundError,
@@ -116,6 +118,40 @@ describe('Change 09 Auth & Error Boundary Contract Unit Tests', () => {
         headers: { 'x-authenticated-driver-id': 'test-seam-driver' },
       });
       expect(resolveAuthenticatedDriver(req)).toBe('test-seam-driver');
+    });
+
+    // Change 26: 登入 session cookie 是第一等身分，跨環境有效
+    it('5. resolves the logged-in driver from a valid session cookie (Change 26)', () => {
+      const token = signSession({ driverId: 'drv-session' }, getAuthSecret(), 3600_000);
+      const req = new Request('http://localhost/api/recall/sessions', {
+        headers: { cookie: `${SESSION_COOKIE}=${encodeURIComponent(token)}` },
+      });
+      expect(resolveAuthenticatedDriver(req)).toBe('drv-session');
+    });
+
+    it('6. accepts a valid session cookie in production without trusted gateway (Change 26)', () => {
+      const origEnv = process.env.NODE_ENV;
+      const origTrust = process.env.TRUST_UPSTREAM_DRIVER_HEADER;
+      try {
+        (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
+        delete process.env.TRUST_UPSTREAM_DRIVER_HEADER;
+        const token = signSession({ driverId: 'drv-prod' }, getAuthSecret(), 3600_000);
+        const req = new Request('http://localhost/api/recall/sessions', {
+          headers: { cookie: `${SESSION_COOKIE}=${encodeURIComponent(token)}` },
+        });
+        expect(resolveAuthenticatedDriver(req)).toBe('drv-prod');
+      } finally {
+        (process.env as Record<string, string | undefined>).NODE_ENV = origEnv;
+        if (origTrust !== undefined) process.env.TRUST_UPSTREAM_DRIVER_HEADER = origTrust;
+      }
+    });
+
+    it('7. still rejects a driverId in the URL even with a session cookie (Change 26)', () => {
+      const token = signSession({ driverId: 'drv-session' }, getAuthSecret(), 3600_000);
+      const req = new Request('http://localhost/api/recall/sessions?driverId=hacker', {
+        headers: { cookie: `${SESSION_COOKIE}=${encodeURIComponent(token)}` },
+      });
+      expect(() => resolveAuthenticatedDriver(req)).toThrow(ClientSuppliedDriverIdError);
     });
   });
 
