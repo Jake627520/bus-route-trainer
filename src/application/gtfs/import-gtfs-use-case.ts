@@ -25,13 +25,24 @@ export interface ImportGtfsReport {
   stopTimesCount: number;
 }
 
+/** Change 28: 匯入過濾選項。routeTypes 給定時只匯入這些 route_type 的路線（例：[3]=公車）。 */
+export interface ImportFilter {
+  routeTypes?: number[];
+}
+
 export class ImportGtfsUseCase {
   constructor(private readonly repository: GtfsRepository) {}
 
   public async execute(
     feedDirPath: string,
-    options?: TransactionOptions
+    options?: TransactionOptions,
+    filter?: ImportFilter
   ): Promise<ImportGtfsReport> {
+    // route-type 過濾：keptRouteIds/keptTripIds 在兩段間共用，確保 routes→trips→stop_times 一致串聯。
+    const routeTypeFilter =
+      filter?.routeTypes && filter.routeTypes.length > 0 ? new Set(filter.routeTypes) : null;
+    const keptRouteIds = new Set<string>();
+    const keptTripIds = new Set<string>();
     const agencyFile = path.join(feedDirPath, 'agency.txt');
     const routesFile = path.join(feedDirPath, 'routes.txt');
     const stopsFile = path.join(feedDirPath, 'stops.txt');
@@ -59,6 +70,8 @@ export class ImportGtfsUseCase {
     if (!fs.existsSync(routesFile)) throw new Error('routes.txt is required but missing');
     for await (const row of parseCsvStream(fs.createReadStream(routesFile))) {
       const parsed = routeRowSchema.parse(row);
+      if (routeTypeFilter && !routeTypeFilter.has(parsed.routeType)) continue;
+      keptRouteIds.add(parsed.id);
       validator.registerRoute(parsed.id, parsed.agencyId, {
         shortName: parsed.shortName,
         longName: parsed.longName,
@@ -102,6 +115,8 @@ export class ImportGtfsUseCase {
     if (!fs.existsSync(tripsFile)) throw new Error('trips.txt is required but missing');
     for await (const row of parseCsvStream(fs.createReadStream(tripsFile))) {
       const parsed = tripRowSchema.parse(row);
+      if (routeTypeFilter && !keptRouteIds.has(parsed.routeId)) continue;
+      keptTripIds.add(parsed.id);
       validator.registerTrip(parsed.id, parsed.routeId, parsed.serviceId, {
         directionId: parsed.directionId,
         tripHeadsign: parsed.tripHeadsign,
@@ -125,6 +140,7 @@ export class ImportGtfsUseCase {
 
     for await (const row of parseCsvStream(fs.createReadStream(stopTimesFile))) {
       const parsed = stopTimeRowSchema.parse(row);
+      if (routeTypeFilter && !keptTripIds.has(parsed.tripId)) continue;
       validator.registerStopTime(parsed.tripId, parsed.stopSequence, parsed.stopId, {
         arrivalTime: parsed.arrivalTime,
         departureTime: parsed.departureTime,
@@ -166,6 +182,7 @@ export class ImportGtfsUseCase {
       let routeChunk = [];
       for await (const row of parseCsvStream(fs.createReadStream(routesFile))) {
         const p = routeRowSchema.parse(row);
+        if (routeTypeFilter && !keptRouteIds.has(p.id)) continue;
         routeChunk.push({
           id: p.id,
           shortName: p.shortName,
@@ -255,6 +272,7 @@ export class ImportGtfsUseCase {
       let tripChunk = [];
       for await (const row of parseCsvStream(fs.createReadStream(tripsFile))) {
         const p = tripRowSchema.parse(row);
+        if (routeTypeFilter && !keptTripIds.has(p.id)) continue;
         tripChunk.push({
           id: p.id,
           routeId: p.routeId,
@@ -277,6 +295,7 @@ export class ImportGtfsUseCase {
       let stChunk = [];
       for await (const row of parseCsvStream(fs.createReadStream(stopTimesFile))) {
         const p = stopTimeRowSchema.parse(row);
+        if (routeTypeFilter && !keptTripIds.has(p.tripId)) continue;
         stChunk.push({
           tripId: p.tripId,
           stopSequence: p.stopSequence,

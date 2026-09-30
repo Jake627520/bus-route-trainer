@@ -4,22 +4,52 @@ import { ImportGtfsUseCase } from '../src/application/gtfs/import-gtfs-use-case'
 import { PrismaGtfsRepository } from '../src/infrastructure/gtfs/importer/prisma-gtfs-repository';
 
 async function main(): Promise<void> {
-  const feedDirArg = process.argv[2];
+  const args = process.argv.slice(2);
+  const flags = args.filter((a) => a.startsWith('--'));
+  const positional = args.filter((a) => !a.startsWith('--'));
+  const feedDirArg = positional[0];
   if (!feedDirArg) {
     console.error('Error: Please provide the GTFS feed directory path as an argument.');
-    console.error('Usage: npx tsx scripts/import-gtfs.ts <path-to-gtfs-feed-dir>');
+    console.error('Usage: npx tsx scripts/import-gtfs.ts <path-to-gtfs-feed-dir> [--bus-only] [--route-types=3,4]');
     process.exit(1);
   }
 
+  // 過濾：--bus-only 等同 --route-types=3；--route-types=a,b 自訂。
+  let routeTypes: number[] | undefined;
+  const routeTypesFlag = flags.find((f) => f.startsWith('--route-types='));
+  if (routeTypesFlag) {
+    routeTypes = routeTypesFlag
+      .slice('--route-types='.length)
+      .split(',')
+      .map((s) => Number(s.trim()))
+      .filter((n) => Number.isInteger(n));
+  } else if (flags.includes('--bus-only')) {
+    routeTypes = [3];
+  }
+
+  // 大型 feed 的持久化在單一交易內完成，需要較長逾時（Prisma 預設 60s 不夠）。
+  const txTimeoutFlag = flags.find((f) => f.startsWith('--tx-timeout-ms='));
+  const timeoutMs = txTimeoutFlag
+    ? Number(txTimeoutFlag.slice('--tx-timeout-ms='.length))
+    : 1_800_000; // 30 分鐘
+
   const feedDirPath = path.resolve(process.cwd(), feedDirArg);
   console.log(`[GTFS Importer] Initialising import from: ${feedDirPath}`);
+  if (routeTypes) {
+    console.log(`[GTFS Importer] route_type filter: [${routeTypes.join(', ')}]`);
+  }
+  console.log(`[GTFS Importer] transaction timeout: ${timeoutMs} ms`);
 
   const prisma = new PrismaClient();
   const repository = new PrismaGtfsRepository(prisma);
   const useCase = new ImportGtfsUseCase(repository);
 
   try {
-    const report = await useCase.execute(feedDirPath);
+    const report = await useCase.execute(
+      feedDirPath,
+      { timeoutMs, maxWaitMs: 30_000 },
+      routeTypes ? { routeTypes } : undefined
+    );
     console.log('\n[GTFS Importer] Import completed successfully.');
     console.log('--------------------------------------------------');
     console.log(`Agencies persisted:       ${report.agencyCount}`);
