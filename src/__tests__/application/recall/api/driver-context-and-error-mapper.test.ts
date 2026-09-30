@@ -132,10 +132,14 @@ describe('Change 09 Auth & Error Boundary Contract Unit Tests', () => {
     it('6. accepts a valid session cookie in production without trusted gateway (Change 26)', () => {
       const origEnv = process.env.NODE_ENV;
       const origTrust = process.env.TRUST_UPSTREAM_DRIVER_HEADER;
+      const origSecret = process.env.AUTH_SECRET;
       try {
+        // Change 27: production 需設 AUTH_SECRET（否則 getAuthSecret 守衛會 throw）
+        process.env.AUTH_SECRET = 'prod-strong-secret';
+        // 先用 prod 密鑰簽 token，再切到 production 環境驗
+        const token = signSession({ driverId: 'drv-prod' }, getAuthSecret(), 3600_000);
         (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
         delete process.env.TRUST_UPSTREAM_DRIVER_HEADER;
-        const token = signSession({ driverId: 'drv-prod' }, getAuthSecret(), 3600_000);
         const req = new Request('http://localhost/api/recall/sessions', {
           headers: { cookie: `${SESSION_COOKIE}=${encodeURIComponent(token)}` },
         });
@@ -143,6 +147,8 @@ describe('Change 09 Auth & Error Boundary Contract Unit Tests', () => {
       } finally {
         (process.env as Record<string, string | undefined>).NODE_ENV = origEnv;
         if (origTrust !== undefined) process.env.TRUST_UPSTREAM_DRIVER_HEADER = origTrust;
+        if (origSecret === undefined) delete process.env.AUTH_SECRET;
+        else process.env.AUTH_SECRET = origSecret;
       }
     });
 
