@@ -32,6 +32,8 @@ services:
     environment:
       # 容器間走 compose 網路，host 名稱就是服務名 db
       DATABASE_URL: "postgresql://postgres:postgres@db:5432/bus_route_trainer"
+      # 本地/CI 無連線池，DIRECT_URL 與 DATABASE_URL 相同（prod 在 Vercel 才分流）
+      DIRECT_URL: "postgresql://postgres:postgres@db:5432/bus_route_trainer"
     ports:
       - "3000:3000" # next dev
     volumes:

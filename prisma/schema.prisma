@@ -3,8 +3,11 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Serverless（Vercel）：DATABASE_URL 用 pooled 連線；DIRECT_URL 用 direct 連線供 migrate。
+  // 本地開發可讓兩者指向同一個 DB。
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ==========================================
