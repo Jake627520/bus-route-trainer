@@ -1,0 +1,7 @@
+trip_id,arrival_time,departure_time,stop_id,stop_sequence,stop_headsign,pickup_type,drop_off_type,shape_dist_traveled,timepoint
+TBUS,08:00:00,08:00:00,S1,1,,,,0.0,1
+TBUS,08:15:00,08:16:00,S2,2,,,,5.2,1
+TFERRY,09:00:00,09:00:00,S3,1,,,,0.0,1
+TFERRY,09:20:00,09:20:00,S2,2,,,,4.0,1
+TTRAIN,07:00:00,07:00:00,S4,1,,,,0.0,1
+TTRAIN,07:30:00,07:30:00,S1,2,,,,8.0,1

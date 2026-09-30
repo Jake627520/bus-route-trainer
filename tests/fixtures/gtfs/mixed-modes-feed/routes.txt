@@ -1,0 +1,4 @@
+route_id,agency_id,route_short_name,route_long_name,route_type
+BUS1,TRANS_QLD,66,"Bus RBWH - UQ Lakes",3
+FERRY1,TRANS_QLD,F1,"CityCat Ferry",4
+TRAIN1,TRANS_QLD,SHORNCLIFFE,"Shorncliffe Line",2

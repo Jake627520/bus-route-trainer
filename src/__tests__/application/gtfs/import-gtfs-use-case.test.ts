@@ -16,6 +16,7 @@ describe('ImportGtfsUseCase (Pass 1 Streaming Validation + Pass 2 Atomic Persist
   const multiAgencyFeedDir = path.join(fixturesDir, 'multi-agency-feed');
   const invalidAgencyFeedDir = path.join(fixturesDir, 'invalid-agency-feed');
   const caseBFeedDir = path.join(fixturesDir, 'case-b-feed');
+  const mixedModesFeedDir = path.join(fixturesDir, 'mixed-modes-feed');
 
   beforeAll(async () => {
     await prisma.$connect();
@@ -120,5 +121,34 @@ describe('ImportGtfsUseCase (Pass 1 Streaming Validation + Pass 2 Atomic Persist
     expect(report.calendarsCount).toBe(0);
     expect(report.calendarDatesCount).toBe(2);
     expect(report.tripsCount).toBe(1);
+  });
+
+  // Change 28: bus-first 過濾（route_type=3），排除 ferry(4)/train(2)。
+  describe('route-type filter (Change 28)', () => {
+    it('imports only bus routes and their trips/stop-times when routeTypes=[3]', async () => {
+      const report = await useCase.execute(mixedModesFeedDir, undefined, { routeTypes: [3] });
+
+      // 只留 bus route + 其 trip + 其 stop_times；stops/calendars 全留（參照安全）
+      expect(report.routesCount).toBe(1);
+      expect(report.tripsCount).toBe(1);
+      expect(report.stopTimesCount).toBe(2);
+
+      const routes = await prisma.gtfsRoute.findMany();
+      expect(routes.map((r) => r.id)).toEqual(['BUS1']);
+      expect(routes[0].routeType).toBe(3);
+
+      const trips = await prisma.gtfsTrip.findMany();
+      expect(trips.map((t) => t.id)).toEqual(['TBUS']);
+
+      const stopTimes = await prisma.gtfsStopTime.findMany();
+      expect(stopTimes.every((st) => st.tripId === 'TBUS')).toBe(true);
+    });
+
+    it('imports every route when no filter is given (backward compatible)', async () => {
+      const report = await useCase.execute(mixedModesFeedDir);
+      expect(report.routesCount).toBe(3);
+      expect(report.tripsCount).toBe(3);
+      expect(report.stopTimesCount).toBe(6);
+    });
   });
 });
