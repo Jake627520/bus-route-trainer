@@ -6,7 +6,7 @@ import { GetRouteVariantsUseCase } from '@/application/gtfs/get-route-variants-u
 import { GtfsVariantHeadsignAdapter } from '@/infrastructure/gtfs/gtfs-variant-headsign-adapter';
 import { GetReviewSummaryUseCase } from '@/application/learning/get-review-summary-use-case';
 import { SystemClock } from '@/application/common/clock';
-import { resolveDriverId } from '@/app/_lib/session';
+import { readSessionDriverId, unauthorizedResponse } from '@/app/_lib/session';
 
 const prisma = new PrismaClient();
 const progressRepository = new PrismaLearningProgressRepository(prisma);
@@ -24,7 +24,9 @@ const getReviewSummaryUseCase = new GetReviewSummaryUseCase(
  */
 export async function GET(request: Request): Promise<NextResponse> {
   try {
-    const summaries = await getReviewSummaryUseCase.execute({ driverId: resolveDriverId(request) });
+    const driverId = readSessionDriverId(request);
+    if (!driverId) return unauthorizedResponse();
+    const summaries = await getReviewSummaryUseCase.execute({ driverId });
     return NextResponse.json({ data: summaries }, { status: 200 });
   } catch {
     return NextResponse.json(

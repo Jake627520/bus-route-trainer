@@ -123,7 +123,7 @@ describe('GetVariantProgressUseCase Unit Tests', () => {
 
     await learningRepo.saveProgressWithCards(progress);
 
-    const result = await useCase.execute({ variantKey: sampleVariantKey });
+    const result = await useCase.execute({ driverId: DEFAULT_DRIVER_ID, variantKey: sampleVariantKey });
 
     expect(result.id).toBe(progressId);
     expect(result.cards).toHaveLength(3);
@@ -142,7 +142,7 @@ describe('GetVariantProgressUseCase Unit Tests', () => {
 
   it('throws ProgressNotFoundError (404) when driver has not enrolled', async () => {
     await expect(
-      useCase.execute({ variantKey: 'R66_DIR0_unenrolled' })
+      useCase.execute({ driverId: DEFAULT_DRIVER_ID, variantKey: 'R66_DIR0_unenrolled' })
     ).rejects.toThrow(ProgressNotFoundError);
   });
 
@@ -169,7 +169,7 @@ describe('GetVariantProgressUseCase Unit Tests', () => {
     await learningRepo.saveProgressWithCards(progress);
 
     // GTFS repository returns null for R999
-    const result = await useCase.execute({ variantKey: legacyVariantKey });
+    const result = await useCase.execute({ driverId: DEFAULT_DRIVER_ID, variantKey: legacyVariantKey });
 
     expect(result.id).toBe(progressId);
     expect(result.cards).toHaveLength(1);

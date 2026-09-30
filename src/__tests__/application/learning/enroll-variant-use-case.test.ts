@@ -89,6 +89,7 @@ describe('EnrollVariantUseCase Unit & Concurrency Tests', () => {
 
   it('enrolls driver in variant, generating N STOP and (N-1) NEXT_STOP cards', async () => {
     const result = await useCase.execute({
+      driverId: DEFAULT_DRIVER_ID,
       routeId: sampleRouteId,
       variantKey: sampleVariantKey,
     });
@@ -107,12 +108,14 @@ describe('EnrollVariantUseCase Unit & Concurrency Tests', () => {
 
   it('sequential repeat enrollment is idempotent and does not create duplicate cards', async () => {
     const first = await useCase.execute({
+      driverId: DEFAULT_DRIVER_ID,
       routeId: sampleRouteId,
       variantKey: sampleVariantKey,
     });
     expect(first.isNew).toBe(true);
 
     const second = await useCase.execute({
+      driverId: DEFAULT_DRIVER_ID,
       routeId: sampleRouteId,
       variantKey: sampleVariantKey,
     });
@@ -152,6 +155,7 @@ describe('EnrollVariantUseCase Unit & Concurrency Tests', () => {
   it('throws VariantNotFoundError (404) when target variant does not exist', async () => {
     await expect(
       useCase.execute({
+        driverId: DEFAULT_DRIVER_ID,
         routeId: sampleRouteId,
         variantKey: 'R66_DIR0_nonexistent>route',
       })
