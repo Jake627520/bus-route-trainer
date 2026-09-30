@@ -62,13 +62,15 @@ describe('Change 12: VariantList reflects existing enrollment on load', () => {
     expect(within(v2Item).getByText(/未報名/)).toBeInTheDocument();
     expect(within(v2Item).getByRole('button', { name: /報名/ })).toBeInTheDocument();
 
+    // Change 21: 已報名 V1 顯示 compact 正確率
+    // （先等這個 awaited 斷言：正確率渲染代表 V1 的 per-variant fetch 已全數發出，
+    //  避免下方同步檢查 trend URL 時 fetch 尚未派發造成 flake）
+    expect(await within(v1Item).findByText(/正確率\s*75\s*%/)).toBeInTheDocument();
+
     // Change 19: 已報名 V1 抓其 per-variant 趨勢；未報名 V2 不抓
     const trendUrls = mockFetch.mock.calls.map((c) => String(c[0])).filter((u) => u.includes('/api/review/mastery-trend'));
     expect(trendUrls.some((u) => u.includes('variantKey=V1'))).toBe(true);
     expect(trendUrls.some((u) => u.includes('variantKey=V2'))).toBe(false);
-
-    // Change 21: 已報名 V1 顯示 compact 正確率
-    expect(await within(v1Item).findByText(/正確率\s*75\s*%/)).toBeInTheDocument();
   });
 
   it('silently degrades to all-not-enrolled when the summary request fails', async () => {
