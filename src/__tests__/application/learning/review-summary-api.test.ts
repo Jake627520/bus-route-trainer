@@ -2,20 +2,15 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { GET } from '@/app/api/review/summary/route';
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
-import { signSession } from '@/infrastructure/auth/session-token';
-import { SESSION_COOKIE, getAuthSecret } from '@/app/_lib/session';
+import { sessionCookie } from '@/__tests__/helpers/session';
 
 /**
- * Change 11 Task 4 / 26: GET /api/review/summary 整合測試（真 DB）。
- * 無 session→DEFAULT_DRIVER_ID；帶 session→登入司機。
+ * Change 11 Task 4 / 29: GET /api/review/summary 整合測試（真 DB）。
+ * 帶 session→登入司機資料；無 session→401。
  */
 const reqNoCookie = () => new Request('http://localhost/api/review/summary');
-const reqWithSession = (driverId: string) => {
-  const token = signSession({ driverId }, getAuthSecret(), 3600_000);
-  return new Request('http://localhost/api/review/summary', {
-    headers: { cookie: `${SESSION_COOKIE}=${encodeURIComponent(token)}` },
-  });
-};
+const reqWithSession = (driverId: string) =>
+  new Request('http://localhost/api/review/summary', { headers: { cookie: sessionCookie(driverId) } });
 describe('GET /api/review/summary', () => {
   const prisma = new PrismaClient();
 
@@ -62,7 +57,7 @@ describe('GET /api/review/summary', () => {
   it('returns per-variant review summary for the default driver', async () => {
     await seedProgress('V1');
 
-    const response = await GET(reqNoCookie());
+    const response = await GET(reqWithSession(DEFAULT_DRIVER_ID));
     expect(response.status).toBe(200);
     const body = await response.json();
 
@@ -84,10 +79,16 @@ describe('GET /api/review/summary', () => {
   });
 
   it('returns an empty data array when the driver has no enrolled variants', async () => {
-    const response = await GET(reqNoCookie());
+    const response = await GET(reqWithSession(DEFAULT_DRIVER_ID));
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.data).toEqual([]);
+  });
+
+  it('returns 401 when unauthenticated (Change 29)', async () => {
+    const res = await GET(reqNoCookie());
+    expect(res.status).toBe(401);
+    expect((await res.json()).error.code).toBe('UNAUTHENTICATED');
   });
 
   it('isolates by logged-in driver from the session cookie (Change 26)', async () => {
@@ -95,7 +96,7 @@ describe('GET /api/review/summary', () => {
     await seedProgress('V1');
     const other = await GET(reqWithSession('drv-bob'));
     expect((await other.json()).data).toEqual([]);
-    const def = await GET(reqNoCookie());
+    const def = await GET(reqWithSession(DEFAULT_DRIVER_ID));
     expect((await def.json()).data).toHaveLength(1);
   });
 });

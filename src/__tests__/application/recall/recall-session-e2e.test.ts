@@ -90,6 +90,7 @@ describe('Change 05 Recall Session Domain End-to-End Vertical Slice Integration'
 
     // 4. Enroll driver in the variant
     const enrollResult = await enrollUseCase.execute({
+      driverId: DEFAULT_DRIVER_ID,
       routeId,
       variantKey: targetVariantKey,
     });
@@ -323,6 +324,7 @@ describe('Change 05 Recall Session Domain End-to-End Vertical Slice Integration'
     await prisma.learningCard.deleteMany();
     await prisma.driverVariantProgress.deleteMany();
     await enrollUseCase.execute({
+      driverId: DEFAULT_DRIVER_ID,
       routeId,
       variantKey: targetVariantKey,
     });

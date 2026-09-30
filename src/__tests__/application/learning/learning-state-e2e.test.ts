@@ -10,6 +10,8 @@ import { EnrollVariantUseCase } from '@/application/learning/enroll-variant-use-
 import { PrismaLearningProgressRepository } from '@/infrastructure/learning/prisma-learning-progress-repository';
 import { PrismaGtfsReadRepository } from '@/infrastructure/gtfs/query/prisma-gtfs-read-repository';
 import { GetRouteVariantsUseCase } from '@/application/gtfs/get-route-variants-use-case';
+import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
+import { sessionCookie } from '@/__tests__/helpers/session';
 
 describe('Change 04 Driver Learning State End-to-End Vertical Slice Integration', () => {
   const prisma = new PrismaClient();
@@ -74,7 +76,7 @@ describe('Change 04 Driver Learning State End-to-End Vertical Slice Integration'
     // 2. Enroll default driver via Change 04 POST /api/progress/enroll
     const enrollReq = new Request('http://localhost/api/progress/enroll', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', cookie: sessionCookie(DEFAULT_DRIVER_ID) },
       body: JSON.stringify({
         routeId: 'R66',
         variantKey: enrolledVariantKey,
@@ -87,7 +89,9 @@ describe('Change 04 Driver Learning State End-to-End Vertical Slice Integration'
 
     // 3. Query progress via Change 04 GET /api/progress/[variantKey] with URL encoding
     const encodedKey = encodeURIComponent(enrolledVariantKey);
-    const getReq = new Request(`http://localhost/api/progress/${encodedKey}`);
+    const getReq = new Request(`http://localhost/api/progress/${encodedKey}`, {
+      headers: { cookie: sessionCookie(DEFAULT_DRIVER_ID) },
+    });
     const getRes = await getProgressHandler(getReq, {
       params: Promise.resolve({ variantKey: enrolledVariantKey }),
     });

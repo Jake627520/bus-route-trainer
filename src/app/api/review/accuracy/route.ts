@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPracticeStatsAdapter } from '@/infrastructure/recall/prisma-practice-stats-adapter';
 import { GetPracticeAccuracyUseCase } from '@/application/learning/get-practice-accuracy-use-case';
-import { resolveDriverId } from '@/app/_lib/session';
+import { readSessionDriverId, unauthorizedResponse } from '@/app/_lib/session';
 
 const prisma = new PrismaClient();
 const getPracticeAccuracyUseCase = new GetPracticeAccuracyUseCase(new PrismaPracticeStatsAdapter(prisma));
@@ -13,8 +13,10 @@ const getPracticeAccuracyUseCase = new GetPracticeAccuracyUseCase(new PrismaPrac
  */
 export async function GET(request: Request): Promise<NextResponse> {
   try {
+    const driverId = readSessionDriverId(request);
+    if (!driverId) return unauthorizedResponse();
     const variantKey = new URL(request.url).searchParams.get('variantKey') ?? undefined;
-    const data = await getPracticeAccuracyUseCase.execute({ driverId: resolveDriverId(request), variantKey });
+    const data = await getPracticeAccuracyUseCase.execute({ driverId, variantKey });
     return NextResponse.json({ data }, { status: 200 });
   } catch {
     return NextResponse.json(

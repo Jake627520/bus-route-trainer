@@ -2,9 +2,10 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { GET } from '@/app/api/review/accuracy/route';
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
+import { sessionCookie } from '@/__tests__/helpers/session';
 
 /**
- * Change 20 Task 4: GET /api/review/accuracy 整合測試（真 DB）。
+ * Change 20 Task 4 / 29: GET /api/review/accuracy 整合測試（真 DB，強制認證）。
  */
 describe('GET /api/review/accuracy', () => {
   const prisma = new PrismaClient();
@@ -16,7 +17,9 @@ describe('GET /api/review/accuracy', () => {
   afterAll(async () => { await cleanup(); await prisma.$disconnect(); });
   beforeEach(cleanup);
 
-  const req = (qs = '') => new Request('http://localhost/api/review/accuracy' + qs);
+  const req = (qs = '') =>
+    new Request('http://localhost/api/review/accuracy' + qs, { headers: { cookie: sessionCookie(DEFAULT_DRIVER_ID) } });
+  const reqNoAuth = () => new Request('http://localhost/api/review/accuracy');
 
   const seedAttempt = (sessionId: string, promptIndex: number, outcome: 'PASS' | 'FAIL') =>
     prisma.recallAttempt.create({
@@ -52,5 +55,11 @@ describe('GET /api/review/accuracy', () => {
 
     const filtered = await (await GET(req('?variantKey=VA'))).json();
     expect(filtered.data).toEqual({ totalAttempts: 2, passedAttempts: 1, accuracy: 0.5 });
+  });
+
+  it('returns 401 when unauthenticated (Change 29)', async () => {
+    const res = await GET(reqNoAuth());
+    expect(res.status).toBe(401);
+    expect((await res.json()).error.code).toBe('UNAUTHENTICATED');
   });
 });

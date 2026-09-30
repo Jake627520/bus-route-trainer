@@ -2,20 +2,15 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { GET } from '@/app/api/review/streak/route';
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
-import { signSession } from '@/infrastructure/auth/session-token';
-import { SESSION_COOKIE, getAuthSecret } from '@/app/_lib/session';
+import { sessionCookie } from '@/__tests__/helpers/session';
 
 /**
  * Change 22 Task 4: GET /api/review/streak 整合測試（真 DB）。
- * Change 26: 改用 resolveDriverId(request)；無 session 回 DEFAULT、帶 session 回登入司機。
+ * Change 29: API 強制認證——帶 session 取自己資料、無 session→401。
  */
 const reqNoCookie = () => new Request('http://localhost/api/review/streak');
-const reqWithSession = (driverId: string) => {
-  const token = signSession({ driverId }, getAuthSecret(), 3600_000);
-  return new Request('http://localhost/api/review/streak', {
-    headers: { cookie: `${SESSION_COOKIE}=${encodeURIComponent(token)}` },
-  });
-};
+const reqWithSession = (driverId: string) =>
+  new Request('http://localhost/api/review/streak', { headers: { cookie: sessionCookie(driverId) } });
 
 describe('GET /api/review/streak', () => {
   const prisma = new PrismaClient();
@@ -38,14 +33,20 @@ describe('GET /api/review/streak', () => {
       },
     });
 
-    const body = await (await GET(reqNoCookie())).json();
+    const body = await (await GET(reqWithSession(DEFAULT_DRIVER_ID))).json();
     const today = now.toISOString().slice(0, 10);
     expect(body.data).toEqual({ currentStreak: 1, longestStreak: 1, lastPracticedOn: today });
   });
 
   it('returns zeros when there is no practice', async () => {
-    const body = await (await GET(reqNoCookie())).json();
+    const body = await (await GET(reqWithSession(DEFAULT_DRIVER_ID))).json();
     expect(body.data).toEqual({ currentStreak: 0, longestStreak: 0, lastPracticedOn: null });
+  });
+
+  it('returns 401 when unauthenticated (Change 29)', async () => {
+    const res = await GET(reqNoCookie());
+    expect(res.status).toBe(401);
+    expect((await res.json()).error.code).toBe('UNAUTHENTICATED');
   });
 
   it('isolates by logged-in driver from the session cookie (Change 26)', async () => {
@@ -63,7 +64,7 @@ describe('GET /api/review/streak', () => {
     const other = await (await GET(reqWithSession('drv-alice'))).json();
     expect(other.data).toEqual({ currentStreak: 0, longestStreak: 0, lastPracticedOn: null });
 
-    const def = await (await GET(reqNoCookie())).json();
+    const def = await (await GET(reqWithSession(DEFAULT_DRIVER_ID))).json();
     expect(def.data.currentStreak).toBe(1);
   });
 });

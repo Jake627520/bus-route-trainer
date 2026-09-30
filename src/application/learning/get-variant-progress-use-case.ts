@@ -6,7 +6,6 @@ import {
 } from './learning-progress-repository.port';
 import { GetRouteVariantsUseCase } from '@/application/gtfs/get-route-variants-use-case';
 import { RouteVariantDto } from '@/application/gtfs/gtfs-read-repository.port';
-import { DEFAULT_DRIVER_ID } from './auth-constants';
 
 export class ProgressNotFoundError extends Error {
   constructor(message: string) {
@@ -16,7 +15,7 @@ export class ProgressNotFoundError extends Error {
 }
 
 export interface GetVariantProgressQuery {
-  driverId?: string;
+  driverId: string;
   variantKey: string;
 }
 
@@ -27,7 +26,7 @@ export class GetVariantProgressUseCase {
   ) {}
 
   async execute(query: GetVariantProgressQuery): Promise<DriverVariantProgressWithCardsDto> {
-    const driverId = query.driverId || DEFAULT_DRIVER_ID;
+    const driverId = query.driverId;
 
     // 1. Query progress from learning repository
     const progress = await this.learningRepo.findByDriverAndVariant(

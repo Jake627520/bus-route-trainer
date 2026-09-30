@@ -2,9 +2,10 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { GET } from '@/app/api/review/mastery-trend/route';
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
+import { sessionCookie } from '@/__tests__/helpers/session';
 
 /**
- * Change 17 Task 5: GET /api/review/mastery-trend 整合測試（真 DB）。
+ * Change 17 Task 5 / 29: GET /api/review/mastery-trend 整合測試（真 DB，強制認證）。
  */
 describe('GET /api/review/mastery-trend', () => {
   const prisma = new PrismaClient();
@@ -16,7 +17,9 @@ describe('GET /api/review/mastery-trend', () => {
   afterAll(async () => { await cleanup(); await prisma.$disconnect(); });
   beforeEach(cleanup);
 
-  const req = (qs = '') => new Request('http://localhost/api/review/mastery-trend' + qs);
+  const req = (qs = '') =>
+    new Request('http://localhost/api/review/mastery-trend' + qs, { headers: { cookie: sessionCookie(DEFAULT_DRIVER_ID) } });
+  const reqNoAuth = () => new Request('http://localhost/api/review/mastery-trend');
 
   const seedAttempt = async (sessionId: string, promptIndex: number, cardKey: string, iso: string) =>
     prisma.recallAttempt.create({
@@ -65,5 +68,11 @@ describe('GET /api/review/mastery-trend', () => {
       { date: '2026-01-01', masteredCount: 1 },
       { date: '2026-01-02', masteredCount: 2 },
     ]);
+  });
+
+  it('returns 401 when unauthenticated (Change 29)', async () => {
+    const res = await GET(reqNoAuth());
+    expect(res.status).toBe(401);
+    expect((await res.json()).error.code).toBe('UNAUTHENTICATED');
   });
 });

@@ -9,7 +9,6 @@ import {
   DriverVariantProgressDto,
 } from './learning-progress-repository.port';
 import { GetRouteVariantsUseCase } from '@/application/gtfs/get-route-variants-use-case';
-import { DEFAULT_DRIVER_ID } from './auth-constants';
 
 export class VariantNotFoundError extends Error {
   constructor(message: string) {
@@ -19,7 +18,7 @@ export class VariantNotFoundError extends Error {
 }
 
 export interface EnrollVariantCommand {
-  driverId?: string;
+  driverId: string;
   routeId: string;
   variantKey: string;
 }
@@ -36,7 +35,7 @@ export class EnrollVariantUseCase {
   ) {}
 
   async execute(command: EnrollVariantCommand): Promise<EnrollVariantResult> {
-    const driverId = command.driverId || DEFAULT_DRIVER_ID;
+    const driverId = command.driverId;
 
     // 1. Sequential idempotency check
     const existing = await this.learningRepo.findByDriverAndVariant(

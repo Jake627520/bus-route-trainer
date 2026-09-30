@@ -1,30 +1,29 @@
 import { describe, it, expect } from 'vitest';
-import { resolveDriverId, readSessionDriverId, sessionSetCookie, sessionClearCookie, SESSION_COOKIE, getAuthSecret } from '@/app/_lib/session';
+import { requireDriverId, UnauthenticatedError, readSessionDriverId, sessionSetCookie, sessionClearCookie, SESSION_COOKIE, getAuthSecret } from '@/app/_lib/session';
 import { signSession } from '@/infrastructure/auth/session-token';
-import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
 
 /**
- * Change 25 Task 8: resolveDriverId + cookie helpers。
+ * Change 25/29: session helper（requireDriverId 強制認證 + cookie helpers）。
  */
 const reqWithCookie = (cookie?: string) =>
   new Request('http://localhost/api/x', cookie ? { headers: { cookie } } : undefined);
 
-describe('Change 25: session helper', () => {
-  it('resolves driverId from a valid session cookie', () => {
+describe('Change 25/29: session helper', () => {
+  it('requireDriverId returns driverId from a valid session cookie', () => {
     const token = signSession({ driverId: 'drv-9' }, getAuthSecret(), 3600_000);
     const req = reqWithCookie(`${SESSION_COOKIE}=${encodeURIComponent(token)}`);
-    expect(resolveDriverId(req)).toBe('drv-9');
+    expect(requireDriverId(req)).toBe('drv-9');
   });
 
-  it('falls back to DEFAULT_DRIVER_ID when no cookie / invalid token', () => {
-    expect(resolveDriverId(reqWithCookie())).toBe(DEFAULT_DRIVER_ID);
-    expect(resolveDriverId(reqWithCookie(`${SESSION_COOKIE}=garbage`))).toBe(DEFAULT_DRIVER_ID);
+  it('requireDriverId throws UnauthenticatedError when no/invalid cookie (Change 29: no DEFAULT fallback)', () => {
+    expect(() => requireDriverId(reqWithCookie())).toThrow(UnauthenticatedError);
+    expect(() => requireDriverId(reqWithCookie(`${SESSION_COOKIE}=garbage`))).toThrow(UnauthenticatedError);
   });
 
-  it('coexists with other cookies', () => {
+  it('requireDriverId coexists with other cookies', () => {
     const token = signSession({ driverId: 'drv-2' }, getAuthSecret(), 3600_000);
     const req = reqWithCookie(`theme=dark; ${SESSION_COOKIE}=${encodeURIComponent(token)}; x=1`);
-    expect(resolveDriverId(req)).toBe('drv-2');
+    expect(requireDriverId(req)).toBe('drv-2');
   });
 
   it('readSessionDriverId returns driverId for valid session, null otherwise (Change 26)', () => {

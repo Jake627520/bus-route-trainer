@@ -7,7 +7,7 @@ import {
   EnrollVariantUseCase,
   VariantNotFoundError,
 } from '@/application/learning/enroll-variant-use-case';
-import { resolveDriverId } from '@/app/_lib/session';
+import { readSessionDriverId, unauthorizedResponse } from '@/app/_lib/session';
 
 const prisma = new PrismaClient();
 const learningRepo = new PrismaLearningProgressRepository(prisma);
@@ -17,6 +17,9 @@ const enrollVariantUseCase = new EnrollVariantUseCase(learningRepo, getRouteVari
 
 export async function POST(request: Request) {
   try {
+    const driverId = readSessionDriverId(request);
+    if (!driverId) return unauthorizedResponse();
+
     let body: unknown;
     try {
       body = await request.json();
@@ -48,7 +51,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await enrollVariantUseCase.execute({ driverId: resolveDriverId(request), routeId, variantKey });
+    const result = await enrollVariantUseCase.execute({ driverId, routeId, variantKey });
 
     const status = result.isNew ? 201 : 200;
     return NextResponse.json({ data: result.progress }, { status });

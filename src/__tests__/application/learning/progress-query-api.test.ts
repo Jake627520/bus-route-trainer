@@ -2,6 +2,8 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { GET } from '@/app/api/progress/[variantKey]/route';
 import { POST } from '@/app/api/progress/enroll/route';
+import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
+import { sessionCookie } from '@/__tests__/helpers/session';
 
 describe('GET /api/progress/[variantKey] Route Handler Integration Tests', () => {
   const prisma = new PrismaClient();
@@ -69,13 +71,13 @@ describe('GET /api/progress/[variantKey] Route Handler Integration Tests', () =>
     // First enroll
     const enrollReq = new Request('http://localhost/api/progress/enroll', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', cookie: sessionCookie(DEFAULT_DRIVER_ID) },
       body: JSON.stringify({ routeId: 'R66', variantKey: sampleVariantKey }),
     });
     await POST(enrollReq);
 
     // Now query via GET
-    const getReq = new Request(`http://localhost/api/progress/${encodeURIComponent(sampleVariantKey)}`);
+    const getReq = new Request(`http://localhost/api/progress/${encodeURIComponent(sampleVariantKey)}`, { headers: { cookie: sessionCookie(DEFAULT_DRIVER_ID) } });
     const response = await GET(getReq, {
       params: Promise.resolve({ variantKey: sampleVariantKey }),
     });
@@ -99,13 +101,13 @@ describe('GET /api/progress/[variantKey] Route Handler Integration Tests', () =>
     // Enroll
     const enrollReq = new Request('http://localhost/api/progress/enroll', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', cookie: sessionCookie(DEFAULT_DRIVER_ID) },
       body: JSON.stringify({ routeId: 'R66', variantKey: sampleVariantKey }),
     });
     await POST(enrollReq);
 
     // Next.js App Router decodes encoded path parameter (%3E -> >) into params
-    const getReq = new Request(`http://localhost/api/progress/${encodeURIComponent(sampleVariantKey)}`);
+    const getReq = new Request(`http://localhost/api/progress/${encodeURIComponent(sampleVariantKey)}`, { headers: { cookie: sessionCookie(DEFAULT_DRIVER_ID) } });
     const response = await GET(getReq, {
       params: Promise.resolve({ variantKey: sampleVariantKey }), // Framework provides decoded parameter
     });
@@ -117,7 +119,7 @@ describe('GET /api/progress/[variantKey] Route Handler Integration Tests', () =>
 
   it('returns 404 Not Found (PROGRESS_NOT_FOUND) when driver has not enrolled in the variant', async () => {
     const unenrolledKey = 'R66_DIR0_stop_rbwh>stop_kg';
-    const getReq = new Request(`http://localhost/api/progress/${encodeURIComponent(unenrolledKey)}`);
+    const getReq = new Request(`http://localhost/api/progress/${encodeURIComponent(unenrolledKey)}`, { headers: { cookie: sessionCookie(DEFAULT_DRIVER_ID) } });
     const response = await GET(getReq, {
       params: Promise.resolve({ variantKey: unenrolledKey }),
     });

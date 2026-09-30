@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { POST } from '@/app/api/progress/enroll/route';
-import { signSession } from '@/infrastructure/auth/session-token';
-import { SESSION_COOKIE, getAuthSecret } from '@/app/_lib/session';
+import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
+import { sessionCookie } from '@/__tests__/helpers/session';
 
 describe('POST /api/progress/enroll Route Handler Integration Tests', () => {
   const prisma = new PrismaClient();
@@ -70,7 +70,7 @@ describe('POST /api/progress/enroll Route Handler Integration Tests', () => {
     const variantKey = 'R66_DIR0_stop_rbwh>stop_kg>stop_uq';
     const request = new Request('http://localhost/api/progress/enroll', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', cookie: sessionCookie(DEFAULT_DRIVER_ID) },
       body: JSON.stringify({ routeId: 'R66', variantKey }),
     });
 
@@ -89,7 +89,7 @@ describe('POST /api/progress/enroll Route Handler Integration Tests', () => {
 
     const req1 = new Request('http://localhost/api/progress/enroll', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', cookie: sessionCookie(DEFAULT_DRIVER_ID) },
       body: JSON.stringify({ routeId: 'R66', variantKey }),
     });
     const res1 = await POST(req1);
@@ -97,7 +97,7 @@ describe('POST /api/progress/enroll Route Handler Integration Tests', () => {
 
     const req2 = new Request('http://localhost/api/progress/enroll', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', cookie: sessionCookie(DEFAULT_DRIVER_ID) },
       body: JSON.stringify({ routeId: 'R66', variantKey }),
     });
     const res2 = await POST(req2);
@@ -110,7 +110,7 @@ describe('POST /api/progress/enroll Route Handler Integration Tests', () => {
   it('returns 400 Bad Request when routeId or variantKey is missing', async () => {
     const request = new Request('http://localhost/api/progress/enroll', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', cookie: sessionCookie(DEFAULT_DRIVER_ID) },
       body: JSON.stringify({ routeId: 'R66' }), // missing variantKey
     });
 
@@ -124,10 +124,9 @@ describe('POST /api/progress/enroll Route Handler Integration Tests', () => {
 
   it('enrolls under the logged-in driver from the session cookie (Change 26)', async () => {
     const variantKey = 'R66_DIR0_stop_rbwh>stop_kg>stop_uq';
-    const token = signSession({ driverId: 'drv-carol' }, getAuthSecret(), 3600_000);
     const request = new Request('http://localhost/api/progress/enroll', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', cookie: `${SESSION_COOKIE}=${encodeURIComponent(token)}` },
+      headers: { 'Content-Type': 'application/json', cookie: sessionCookie('drv-carol') },
       body: JSON.stringify({ routeId: 'R66', variantKey }),
     });
 
@@ -139,10 +138,21 @@ describe('POST /api/progress/enroll Route Handler Integration Tests', () => {
     expect(rows[0].driverId).toBe('drv-carol');
   });
 
-  it('returns 404 Not Found (VARIANT_NOT_FOUND) when variant does not exist in GTFS', async () => {
+  it('returns 401 when unauthenticated (Change 29)', async () => {
     const request = new Request('http://localhost/api/progress/enroll', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ routeId: 'R66', variantKey: 'R66_DIR0_stop_rbwh>stop_kg>stop_uq' }),
+    });
+    const res = await POST(request);
+    expect(res.status).toBe(401);
+    expect((await res.json()).error.code).toBe('UNAUTHENTICATED');
+  });
+
+  it('returns 404 Not Found (VARIANT_NOT_FOUND) when variant does not exist in GTFS', async () => {
+    const request = new Request('http://localhost/api/progress/enroll', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', cookie: sessionCookie(DEFAULT_DRIVER_ID) },
       body: JSON.stringify({ routeId: 'R66', variantKey: 'R66_DIR0_nonexistent' }),
     });
 
