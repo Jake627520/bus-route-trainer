@@ -7,6 +7,7 @@ import { AccuracyStat } from '@/app/_components/accuracy-stat';
 import { StreakStat } from '@/app/_components/streak-stat';
 import { RouteList } from '@/app/_components/route-list';
 import { AuthStatus } from '@/app/_components/auth-status';
+import { Text } from '@/i18n/text';
 
 export default function Home() {
   return (
@@ -16,10 +17,10 @@ export default function Home() {
           <AuthStatus />
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-          路線記憶訓練器
+          <Text k="home.title" />
         </h1>
         <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-          先看看今天要複習什麼，再選路線練習。
+          <Text k="home.subtitle" />
         </p>
       </header>
 
@@ -38,7 +39,7 @@ export default function Home() {
           id="review-heading"
           className="mb-3 text-lg font-semibold text-zinc-900 dark:text-zinc-100"
         >
-          待複習
+          <Text k="home.reviewHeading" />
         </h2>
         <ReviewDashboard />
       </section>
@@ -53,7 +54,7 @@ export default function Home() {
           id="trend-heading"
           className="mb-3 text-lg font-semibold text-zinc-900 dark:text-zinc-100"
         >
-          精熟度趨勢
+          <Text k="home.trendHeading" />
         </h2>
         <MasteryTrend />
       </section>
@@ -63,7 +64,7 @@ export default function Home() {
           id="routes-heading"
           className="mb-3 text-lg font-semibold text-zinc-900 dark:text-zinc-100"
         >
-          所有路線
+          <Text k="home.routesHeading" />
         </h2>
         <RouteList />
       </section>
