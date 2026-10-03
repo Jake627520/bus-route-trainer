@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { apiClient } from '@/app/_lib/api-client';
+import { useT } from '@/app/_components/locale-provider';
 
 type PermState = NotificationPermission | 'unsupported';
 
@@ -20,6 +21,7 @@ const serverSnapshot = (): PermState => 'unsupported';
  * 請求權限後以 override 反映新狀態。
  */
 export function ReviewNotifier() {
+  const t = useT();
   const externalPerm = useSyncExternalStore(noopSubscribe, clientSnapshot, serverSnapshot);
   const [override, setOverride] = useState<PermState | null>(null);
   const perm = override ?? externalPerm;
@@ -35,7 +37,7 @@ export function ReviewNotifier() {
         const totalDue = items.reduce((sum, i) => sum + i.dueCount, 0);
         if (totalDue > 0) {
           notified.current = true;
-          new Notification('待複習提醒', { body: `你有 ${totalDue} 張卡片待複習` });
+          new Notification(t('reviewNotifier.notifTitle'), { body: t('reviewNotifier.notifBody', { count: totalDue }) });
         }
       })
       .catch(() => {
@@ -44,7 +46,7 @@ export function ReviewNotifier() {
     return () => {
       active = false;
     };
-  }, [perm]);
+  }, [perm, t]);
 
   const enable = async () => {
     if (!isSupported()) return;
@@ -60,7 +62,7 @@ export function ReviewNotifier() {
       onClick={enable}
       className="inline-flex min-h-[40px] items-center rounded-lg border border-zinc-300 px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
     >
-      開啟複習提醒
+      {t('reviewNotifier.enableButton')}
     </button>
   );
 }

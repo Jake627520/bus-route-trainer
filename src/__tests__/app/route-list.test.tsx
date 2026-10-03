@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
+import { renderZh } from '@/__tests__/helpers/render';
 import '@testing-library/jest-dom/vitest';
 import { RouteList } from '@/app/_components/route-list';
 
@@ -26,7 +27,7 @@ describe('Change 07: RouteList', () => {
     let resolve!: (r: Response) => void;
     mockFetch.mockReturnValueOnce(new Promise<Response>((r) => (resolve = r)));
 
-    render(<RouteList />);
+    renderZh(<RouteList />);
     expect(screen.getByRole('status')).toBeInTheDocument();
     resolve(jsonRes(200, { data: [] })); // flush
   });
@@ -41,7 +42,7 @@ describe('Change 07: RouteList', () => {
       })
     );
 
-    render(<RouteList />);
+    renderZh(<RouteList />);
 
     expect(await screen.findByText('100')).toBeInTheDocument();
     expect(screen.getByText('City → University')).toBeInTheDocument();
@@ -56,7 +57,7 @@ describe('Change 07: RouteList', () => {
   it('shows an empty state when there are no routes', async () => {
     mockFetch.mockResolvedValueOnce(jsonRes(200, { data: [] }));
 
-    render(<RouteList />);
+    renderZh(<RouteList />);
 
     expect(await screen.findByText(/沒有.*路線|no routes/i)).toBeInTheDocument();
   });
@@ -66,7 +67,7 @@ describe('Change 07: RouteList', () => {
       jsonRes(500, { error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' } })
     );
 
-    render(<RouteList />);
+    renderZh(<RouteList />);
 
     const alert = await screen.findByRole('alert');
     expect(alert).toBeInTheDocument();
@@ -85,7 +86,7 @@ describe('Change 07: RouteList', () => {
 
   it('Change 24: filters routes by shortName/longName (case-insensitive) and restores on clear', async () => {
     twoRoutes();
-    render(<RouteList />);
+    renderZh(<RouteList />);
     await screen.findByText('City → University');
 
     const box = screen.getByRole('searchbox', { name: /搜尋路線/ });
@@ -105,7 +106,7 @@ describe('Change 07: RouteList', () => {
 
   it('Change 24: shows a no-match hint while keeping the search box', async () => {
     twoRoutes();
-    render(<RouteList />);
+    renderZh(<RouteList />);
     const box = await screen.findByRole('searchbox', { name: /搜尋路線/ });
     fireEvent.change(box, { target: { value: 'zzz' } });
     expect(screen.getByText(/找不到符合的路線/)).toBeInTheDocument();

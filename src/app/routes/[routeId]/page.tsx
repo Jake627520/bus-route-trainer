@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { VariantList } from '@/app/_components/variant-list';
+import { T } from '@/app/_components/locale-provider';
 
 export default async function RouteVariantsPage({
   params,
@@ -14,14 +15,14 @@ export default async function RouteVariantsPage({
         href="/"
         className="text-sm text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
       >
-        ← 回路線列表
+        <T k="routeDetail.back" />
       </Link>
       <header className="mb-8 mt-2">
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-          路線 {routeId}
+          <T k="routeDetail.title" vars={{ routeId }} />
         </h1>
         <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-          選一個方向／終點報名，開始練習。
+          <T k="routeDetail.subtitle" />
         </p>
       </header>
       <VariantList routeId={routeId} />

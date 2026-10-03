@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
+import { renderZh } from '@/__tests__/helpers/render';
 import '@testing-library/jest-dom/vitest';
 import { VariantList } from '@/app/_components/variant-list';
 
@@ -34,7 +35,7 @@ describe('Change 07: VariantList', () => {
 
   it('shows a loading indicator before variants resolve', () => {
     mockFetch.mockReturnValueOnce(new Promise<Response>(() => {}));
-    render(<VariantList routeId="R100" />);
+    renderZh(<VariantList routeId="R100" />);
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
@@ -48,7 +49,7 @@ describe('Change 07: VariantList', () => {
       })
     );
 
-    render(<VariantList routeId="R100" />);
+    renderZh(<VariantList routeId="R100" />);
 
     expect(await screen.findByText('City → University')).toBeInTheDocument();
     expect(screen.getByText('University → City')).toBeInTheDocument();
@@ -61,7 +62,7 @@ describe('Change 07: VariantList', () => {
 
   it('shows an empty state when the route has no variants', async () => {
     mockFetch.mockResolvedValueOnce(jsonRes(200, { data: [] }));
-    render(<VariantList routeId="R100" />);
+    renderZh(<VariantList routeId="R100" />);
     expect(await screen.findByText(/沒有.*variant|沒有.*路線變化|no variants/i)).toBeInTheDocument();
   });
 
@@ -69,7 +70,7 @@ describe('Change 07: VariantList', () => {
     mockFetch.mockResolvedValueOnce(
       jsonRes(404, { error: { code: 'ROUTE_NOT_FOUND', message: "Route 'R100' not found" } })
     );
-    render(<VariantList routeId="R100" />);
+    renderZh(<VariantList routeId="R100" />);
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent(/無法載入|not found|失敗/i);
   });
@@ -78,7 +79,7 @@ describe('Change 07: VariantList', () => {
     mockFetch.mockResolvedValueOnce(
       jsonRes(200, { data: [variant({ headsign: null })] })
     );
-    render(<VariantList routeId="R100" />);
+    renderZh(<VariantList routeId="R100" />);
     const item = await screen.findByRole('listitem');
     expect(within(item).getByText(/未標示|無標示/)).toBeInTheDocument();
   });

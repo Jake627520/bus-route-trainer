@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderZh } from '@/__tests__/helpers/render';
 import '@testing-library/jest-dom/vitest';
 import { MasteryTrend } from '@/app/_components/mastery-trend';
 
@@ -27,7 +28,7 @@ describe('Change 17: MasteryTrend', () => {
       ],
     }));
 
-    render(<MasteryTrend />);
+    renderZh(<MasteryTrend />);
 
     const chart = await screen.findByRole('img', { name: /精熟度趨勢/ });
     expect(chart).toBeInTheDocument();
@@ -37,7 +38,7 @@ describe('Change 17: MasteryTrend', () => {
 
   it('fetches the per-variant trend when a variantKey prop is given', async () => {
     mockFetch.mockResolvedValueOnce(jsonRes({ data: [{ date: '2026-01-01', masteredCount: 1 }] }));
-    render(<MasteryTrend variantKey="V1:d0" />);
+    renderZh(<MasteryTrend variantKey="V1:d0" />);
     await screen.findByRole('img', { name: /精熟度趨勢/ });
     const urls = mockFetch.mock.calls.map((c) => String(c[0]));
     expect(urls.some((u) => u.includes('/api/review/mastery-trend?variantKey=V1%3Ad0'))).toBe(true);
@@ -45,20 +46,20 @@ describe('Change 17: MasteryTrend', () => {
 
   it('shows a friendly empty state when there is no trend data', async () => {
     mockFetch.mockResolvedValueOnce(jsonRes({ data: [] }));
-    render(<MasteryTrend />);
+    renderZh(<MasteryTrend />);
     expect(await screen.findByText(/開始練習|進步曲線|尚無/)).toBeInTheDocument();
     expect(screen.queryByRole('img', { name: /精熟度趨勢/ })).not.toBeInTheDocument();
   });
 
   it('stays silent while loading', () => {
     mockFetch.mockReturnValueOnce(new Promise<Response>(() => {}));
-    const { container } = render(<MasteryTrend />);
+    const { container } = renderZh(<MasteryTrend />);
     expect(container).toBeEmptyDOMElement();
   });
 
   it('stays silent on error', async () => {
     mockFetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
-    const { container } = render(<MasteryTrend />);
+    const { container } = renderZh(<MasteryTrend />);
     await Promise.resolve();
     await Promise.resolve();
     expect(container).toBeEmptyDOMElement();

@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react';
 import { apiClient, type VariantReviewSummary } from '@/app/_lib/api-client';
 import { encodeQueue } from '@/app/_lib/practice-queue';
+import { useT } from '@/app/_components/locale-provider';
 
 /**
- * Change 18: 「練習全部到期」入口。
- * 由 review summary 取 dueCount>0 的 variant（已依 dueCount 排序）組成佇列，
- * 導向 /practice/recall?queue=..。無到期不顯示；載入中/錯誤靜默。
+ * Change 18 / 31: 「練習全部到期」入口（i18n）。
  */
 export function BatchPracticeButton() {
+  const t = useT();
   const [items, setItems] = useState<VariantReviewSummary[] | null>(null);
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export function BatchPracticeButton() {
       href={href}
       className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-sky-600 px-5 text-sm font-semibold text-white hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-400"
     >
-      練習全部到期（{due.length} 條路線）
+      {t('batchPractice.button', { count: due.length })}
     </a>
   );
 }

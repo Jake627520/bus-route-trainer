@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { apiClient, type MasteryTrendPoint } from '@/app/_lib/api-client';
+import { useT } from '@/app/_components/locale-provider';
 
 /**
- * Change 17: 精熟度趨勢圖（client component）。
- * 由 GET /api/review/mastery-trend 取每日精熟卡數，手刻 inline SVG 折線圖（不加 charting 依賴）。
- * 空資料→友善提示；載入中/錯誤→靜默（增益，不阻塞首頁）。
+ * Change 17 / 31: 精熟度趨勢圖（client component，i18n）。手刻 inline SVG 折線圖。
  */
 export function MasteryTrend({ variantKey }: { variantKey?: string } = {}) {
+  const t = useT();
   const [points, setPoints] = useState<MasteryTrendPoint[] | null>(null);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export function MasteryTrend({ variantKey }: { variantKey?: string } = {}) {
   if (points.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
-        開始練習後，這裡會出現你的精熟度進步曲線。
+        {t('masteryTrend.empty')}
       </p>
     );
   }
@@ -49,7 +49,7 @@ export function MasteryTrend({ variantKey }: { variantKey?: string } = {}) {
   return (
     <svg
       role="img"
-      aria-label={`精熟度趨勢：最高 ${maxCount} 張精熟，共 ${n} 天紀錄`}
+      aria-label={t('masteryTrend.aria', { max: maxCount, days: n })}
       viewBox={`0 0 ${W} ${H}`}
       className="h-24 w-full text-sky-600 dark:text-sky-400"
       preserveAspectRatio="none"
@@ -58,7 +58,7 @@ export function MasteryTrend({ variantKey }: { variantKey?: string } = {}) {
       <polyline points={line} fill="none" stroke="currentColor" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
       {points.map((p, i) => (
         <circle key={p.date} data-testid="trend-point" cx={x(i)} cy={y(p.masteredCount)} r={3} fill="currentColor">
-          <title>{`${p.date}：${p.masteredCount} 張精熟`}</title>
+          <title>{t('masteryTrend.pointTitle', { date: p.date, count: p.masteredCount })}</title>
         </circle>
       ))}
     </svg>

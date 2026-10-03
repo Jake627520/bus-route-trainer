@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderZh } from '@/__tests__/helpers/render';
 import '@testing-library/jest-dom/vitest';
 import { BatchPracticeButton } from '@/app/_components/batch-practice-button';
 import { parseQueue } from '@/app/_lib/practice-queue';
@@ -32,7 +33,7 @@ describe('Change 18: BatchPracticeButton', () => {
       item('R3', 'V3', 0), // 非到期 → 不入佇列
     ] }));
 
-    render(<BatchPracticeButton />);
+    renderZh(<BatchPracticeButton />);
 
     const link = await screen.findByRole('link', { name: /練習全部到期/ });
     expect(link).toHaveTextContent(/2\s*條路線/);
@@ -47,7 +48,7 @@ describe('Change 18: BatchPracticeButton', () => {
 
   it('renders nothing when no variant is due', async () => {
     mockFetch.mockResolvedValueOnce(jsonRes({ data: [item('R1', 'V1', 0)] }));
-    const { container } = render(<BatchPracticeButton />);
+    const { container } = renderZh(<BatchPracticeButton />);
     await Promise.resolve();
     await Promise.resolve();
     expect(container).toBeEmptyDOMElement();
@@ -55,7 +56,7 @@ describe('Change 18: BatchPracticeButton', () => {
 
   it('stays silent on error', async () => {
     mockFetch.mockRejectedValueOnce(new TypeError('fail'));
-    const { container } = render(<BatchPracticeButton />);
+    const { container } = renderZh(<BatchPracticeButton />);
     await Promise.resolve();
     await Promise.resolve();
     expect(container).toBeEmptyDOMElement();

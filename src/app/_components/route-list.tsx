@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiClient, ApiError, type RouteSummary } from '@/app/_lib/api-client';
+import { useT } from '@/app/_components/locale-provider';
 
 type State =
   | { phase: 'loading' }
@@ -15,6 +16,7 @@ type State =
  * 只透過 apiClient 串現有 GET /api/routes，不直接碰 Prisma。
  */
 export function RouteList() {
+  const t = useT();
   const [state, setState] = useState<State>({ phase: 'loading' });
   const [query, setQuery] = useState('');
 
@@ -41,7 +43,7 @@ export function RouteList() {
   if (state.phase === 'loading') {
     return (
       <p role="status" aria-live="polite" className="py-8 text-center text-zinc-500">
-        載入中…
+        {t('common.loading')}
       </p>
     );
   }
@@ -52,7 +54,7 @@ export function RouteList() {
         role="alert"
         className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
       >
-        無法載入路線：{state.message}
+        {t('routeList.loadError', { message: state.message })}
       </p>
     );
   }
@@ -60,7 +62,7 @@ export function RouteList() {
   if (state.routes.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:border-zinc-700">
-        目前沒有可用的路線。
+        {t('routeList.empty')}
       </p>
     );
   }
@@ -77,15 +79,15 @@ export function RouteList() {
     <div className="flex flex-col gap-3">
       <input
         type="search"
-        aria-label="搜尋路線"
-        placeholder="搜尋路線（號碼或名稱）"
+        aria-label={t('routeList.searchAria')}
+        placeholder={t('routeList.searchPlaceholder')}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
       />
       {filtered.length === 0 ? (
         <p className="rounded-lg border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
-          找不到符合的路線。
+          {t('routeList.noMatch')}
         </p>
       ) : (
         <ul className="flex flex-col gap-3">

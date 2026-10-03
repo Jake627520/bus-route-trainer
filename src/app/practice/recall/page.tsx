@@ -12,8 +12,10 @@ import {
   TextInput,
   Modal,
 } from '@/components/ui';
+import { useT } from '@/app/_components/locale-provider';
 
 function RecallPracticeInner() {
+  const t = useT();
   const {
     viewState,
     session,
@@ -135,7 +137,7 @@ function RecallPracticeInner() {
             </p>
             {inBatch && (
               <p className="mt-1 text-xs font-semibold text-sky-600 dark:text-sky-400">
-                批次練習 {batchIndex + 1} / {queue.length}
+                {t('recall.batchProgress', { current: batchIndex + 1, total: queue.length })}
               </p>
             )}
           </div>
@@ -346,13 +348,13 @@ function RecallPracticeInner() {
             </p>
             {inBatch && batchIndex >= queue.length - 1 && (
               <p className="text-base font-semibold text-emerald-600 dark:text-emerald-400">
-                全部完成 🎉
+                {t('recall.allDone')}
               </p>
             )}
             <div className="pt-4 flex justify-center gap-3">
               {inBatch && batchIndex < queue.length - 1 ? (
                 <Button onClick={handleNextInBatch} size="lg">
-                  下一條路線（{batchIndex + 2} / {queue.length}）
+                  {t('recall.nextRoute', { current: batchIndex + 2, total: queue.length })}
                 </Button>
               ) : (
                 <Button onClick={reset} size="lg">
@@ -422,9 +424,14 @@ function RecallPracticeInner() {
 }
 
 // useSearchParams 需包在 Suspense 內（Next 16 App Router）。
+function RecallLoadingFallback() {
+  const t = useT();
+  return <div className="p-8 text-center text-zinc-500">{t('common.loading')}</div>;
+}
+
 export default function RecallPracticePage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-zinc-500">載入中…</div>}>
+    <Suspense fallback={<RecallLoadingFallback />}>
       <RecallPracticeInner />
     </Suspense>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { screen, fireEvent, within } from '@testing-library/react';
+import { renderZh } from '@/__tests__/helpers/render';
 import '@testing-library/jest-dom/vitest';
 import { VariantList } from '@/app/_components/variant-list';
 
@@ -49,7 +50,7 @@ describe('Change 07/12: VariantList enroll interaction', () => {
     );
     vi.stubGlobal('fetch', mockFetch);
 
-    render(<VariantList routeId="R100" />);
+    renderZh(<VariantList routeId="R100" />);
     fireEvent.click(await screen.findByRole('button', { name: /報名/ }));
 
     expect(await screen.findByText(/已報名/)).toBeInTheDocument();
@@ -70,7 +71,7 @@ describe('Change 07/12: VariantList enroll interaction', () => {
     mockFetch = dispatch(jsonRes(404, { error: { code: 'VARIANT_NOT_FOUND', message: 'variant missing' } }));
     vi.stubGlobal('fetch', mockFetch);
 
-    render(<VariantList routeId="R100" />);
+    renderZh(<VariantList routeId="R100" />);
     fireEvent.click(await screen.findByRole('button', { name: /報名/ }));
 
     const item = await screen.findByRole('listitem');

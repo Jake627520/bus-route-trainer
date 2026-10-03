@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { apiClient, type VariantReviewSummary } from '@/app/_lib/api-client';
+import { useT } from '@/app/_components/locale-provider';
 
 /**
- * Change 16: 首頁待複習提醒橫幅（client component）。
- * 彙總所有 enrolled variant 的到期總數：>0 顯示提醒 + deep-link 到最該複習 variant；
- * =0（有 enrolled）顯示鼓勵訊息；無 enrolled 不顯示。
- * 提醒為增益：載入中與錯誤一律靜默（回傳 null，不阻塞首頁）。
+ * Change 16 / 31: 首頁待複習提醒橫幅（client component，i18n）。
  */
 export function ReviewReminder() {
+  const t = useT();
   const [items, setItems] = useState<VariantReviewSummary[] | null>(null);
 
   useEffect(() => {
@@ -35,7 +34,7 @@ export function ReviewReminder() {
   if (totalDue === 0) {
     return (
       <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
-        今天的複習都完成了 🎉
+        {t('reviewReminder.allDone')}
       </div>
     );
   }
@@ -47,13 +46,13 @@ export function ReviewReminder() {
   return (
     <div className="mb-6 flex flex-col items-start justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900 dark:bg-amber-950/40 sm:flex-row sm:items-center">
       <p className="font-medium text-amber-900 dark:text-amber-100">
-        你有 {totalDue} 張卡片待複習
+        {t('reviewReminder.due', { count: totalDue })}
       </p>
       <a
         href={href}
         className="inline-flex min-h-[40px] shrink-0 items-center rounded-md bg-amber-600 px-4 text-sm font-medium text-white hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-400 dark:text-amber-950"
       >
-        開始複習
+        {t('reviewReminder.start')}
       </a>
     </div>
   );
