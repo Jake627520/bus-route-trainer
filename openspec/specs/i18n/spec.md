@@ -63,3 +63,14 @@ TBD - created by archiving change 30-i18n-foundation. Update Purpose after archi
 #### Scenario: 英語模式
 - **WHEN** 語言為 en
 - **THEN** recall 頁批次字串顯示英文（該頁其餘既有英文 UI 之 zh-TW 翻譯留 recall 專屬 change）
+
+### Requirement: recall 練習頁雙語
+系統 SHALL 讓 recall 練習頁（`/practice/recall`）所有使用者可見字串依語言顯示，含各狀態（開始表單、載入、無卡片、作答、送出失敗、回饋、完成、放棄、錯誤、放棄確認 Modal）。
+
+#### Scenario: 切換語言
+- **WHEN** 在 recall 頁切換語言
+- **THEN** 標題/副標、表單 label/placeholder、作答提示與按鈕、各狀態訊息、放棄 Modal 文案即時改用該語言，無另一語言殘留
+
+#### Scenario: 作答模式文案
+- **WHEN** 題目為「下一站預測」或「站名辨識」模式
+- **THEN** 對應的模式標籤與輸入框 label 以該語言顯示
