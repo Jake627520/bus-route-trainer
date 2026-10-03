@@ -3,15 +3,23 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import Home from '@/app/page';
+import { LocaleProvider } from '@/app/_components/locale-provider';
 
 /**
  * Change 11 Task 10: 首頁整合——「待複習」區塊在路線列表之上。
  * mock fetch 依 URL 路由回應，兩個 client 區塊都掛在同一頁。
- * Change 26: 首頁多了 AuthStatus（用 useRouter）→ mock next/navigation；
- * /api/auth/me 未匹配時 fetch reject 會被 AuthStatus 內 .catch 靜默吞掉，不影響斷言。
+ * Change 26: 首頁多了 AuthStatus（用 useRouter）→ mock next/navigation。
+ * Change 30: 首頁 shell 文字走 i18n <T>，測試以 zh-TW 斷言（包 LocaleProvider）。
  */
 const push = vi.hoisted(() => vi.fn());
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
+
+const renderHome = () =>
+  render(
+    <LocaleProvider locale="zh-TW">
+      <Home />
+    </LocaleProvider>
+  );
 describe('Change 11: Home page integrates review dashboard above route list', () => {
   let mockFetch: ReturnType<typeof vi.fn>;
 
@@ -32,7 +40,7 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
   afterEach(() => vi.unstubAllGlobals());
 
   it('renders a 待複習 section and the route list section', async () => {
-    render(<Home />);
+    renderHome();
 
     expect(screen.getByRole('heading', { name: /待複習/ })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /所有路線/ })).toBeInTheDocument();
@@ -57,7 +65,7 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
       return Promise.reject(new Error(`unexpected url ${url}`));
     });
 
-    render(<Home />);
+    renderHome();
 
     const banner = await screen.findByText(/你有\s*2\s*張卡片待複習/);
     const heading = screen.getByRole('heading', { name: /待複習/ });
@@ -79,14 +87,14 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
       return Promise.reject(new Error(`unexpected url ${url}`));
     });
 
-    render(<Home />);
+    renderHome();
 
     const link = await screen.findByRole('link', { name: /練習全部到期/ });
     expect(link.getAttribute('href') ?? '').toContain('/practice/recall?queue=');
   });
 
   it('Change 17: renders a 精熟度趨勢 section below the 待複習 dashboard', async () => {
-    render(<Home />);
+    renderHome();
 
     const trendHeading = await screen.findByRole('heading', { name: /精熟度趨勢/ });
     const reviewHeading = screen.getByRole('heading', { name: /待複習/ });
@@ -109,7 +117,7 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
       return Promise.reject(new Error(`unexpected url ${url}`));
     });
 
-    render(<Home />);
+    renderHome();
     expect(await screen.findByText(/正確率\s*75\s*%/)).toBeInTheDocument();
   });
 
@@ -119,7 +127,7 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
       static requestPermission = vi.fn(async () => 'granted' as NotificationPermission);
     }
     vi.stubGlobal('Notification', MockNotification);
-    render(<Home />);
+    renderHome();
     expect(await screen.findByRole('button', { name: /開啟複習提醒/ })).toBeInTheDocument();
   });
 
@@ -133,7 +141,7 @@ describe('Change 11: Home page integrates review dashboard above route list', ()
       return Promise.reject(new Error(`unexpected url ${url}`));
     });
 
-    render(<Home />);
+    renderHome();
     expect(await screen.findByText(/連續練習\s*3\s*天/)).toBeInTheDocument();
   });
 });

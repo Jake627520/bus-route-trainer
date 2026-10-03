@@ -3,12 +3,20 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import LoginPage from '@/app/login/page';
+import { LocaleProvider } from '@/app/_components/locale-provider';
 
 /**
- * Change 25 Task 9: /login 頁（登入 + 註冊，mock fetch + router）。
+ * Change 25 Task 9 / 30: /login 頁（登入 + 註冊，mock fetch + router；i18n 以 zh-TW 斷言）。
  */
 const push = vi.hoisted(() => vi.fn());
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
+
+const renderLogin = () =>
+  render(
+    <LocaleProvider locale="zh-TW">
+      <LoginPage />
+    </LocaleProvider>
+  );
 
 describe('Change 25: LoginPage', () => {
   let mockFetch: ReturnType<typeof vi.fn>;
@@ -24,7 +32,7 @@ describe('Change 25: LoginPage', () => {
 
   it('submits login and redirects home on success', async () => {
     mockFetch.mockResolvedValueOnce(jsonRes(200, { data: { id: 'd1', username: 'alice' } }));
-    render(<LoginPage />);
+    renderLogin();
 
     fireEvent.change(screen.getByLabelText(/帳號/), { target: { value: 'alice' } });
     fireEvent.change(screen.getByLabelText(/密碼/), { target: { value: 'secret1' } });
@@ -38,7 +46,7 @@ describe('Change 25: LoginPage', () => {
 
   it('shows an error on invalid credentials', async () => {
     mockFetch.mockResolvedValueOnce(jsonRes(401, { error: { code: 'INVALID_CREDENTIALS', message: 'Incorrect username or password' } }));
-    render(<LoginPage />);
+    renderLogin();
     fireEvent.change(screen.getByLabelText(/帳號/), { target: { value: 'alice' } });
     fireEvent.change(screen.getByLabelText(/密碼/), { target: { value: 'bad' } });
     fireEvent.click(screen.getByRole('button', { name: /^登入$/ }));
@@ -48,7 +56,7 @@ describe('Change 25: LoginPage', () => {
 
   it('can switch to register mode and submit to the register endpoint', async () => {
     mockFetch.mockResolvedValueOnce(jsonRes(201, { data: { id: 'd2', username: 'bob' } }));
-    render(<LoginPage />);
+    renderLogin();
 
     fireEvent.click(screen.getByRole('button', { name: /註冊/ })); // 切換到註冊
     fireEvent.change(screen.getByLabelText(/帳號/), { target: { value: 'bob' } });
