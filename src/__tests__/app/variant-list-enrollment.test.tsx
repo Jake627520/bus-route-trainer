@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
+import { renderZh } from '@/__tests__/helpers/render';
 import '@testing-library/jest-dom/vitest';
 import { VariantList } from '@/app/_components/variant-list';
 
@@ -48,7 +49,7 @@ describe('Change 12: VariantList reflects existing enrollment on load', () => {
     });
     vi.stubGlobal('fetch', mockFetch);
 
-    render(<VariantList routeId="R100" />);
+    renderZh(<VariantList routeId="R100" />);
 
     const v1 = await screen.findByText('City → Uni');
     const v1Item = v1.closest('li')!;
@@ -80,7 +81,7 @@ describe('Change 12: VariantList reflects existing enrollment on load', () => {
     });
     vi.stubGlobal('fetch', mockFetch);
 
-    render(<VariantList routeId="R100" />);
+    renderZh(<VariantList routeId="R100" />);
 
     const item = (await screen.findByText('City → Uni')).closest('li')!;
     // 降級：視為未報名、顯示報名鈕、且不出現錯誤 alert

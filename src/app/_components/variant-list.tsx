@@ -9,14 +9,14 @@ import {
 } from '@/app/_lib/api-client';
 import { MasteryTrend } from '@/app/_components/mastery-trend';
 import { AccuracyStat } from '@/app/_components/accuracy-stat';
+import { useT } from '@/app/_components/locale-provider';
+import type { TFunction } from '@/i18n/t';
 
-const DIRECTION_LABEL: Record<number, string> = { 0: '去程', 1: '返程' };
-
-const STATUS_LABEL: Record<ProgressStatus, string> = {
-  NOT_STARTED: '已報名 · 尚未開始',
-  IN_PROGRESS: '學習中',
-  MASTERED: '已精熟',
-};
+function directionLabel(t: TFunction, id: number): string {
+  if (id === 0) return t('common.directionOutbound');
+  if (id === 1) return t('common.directionInbound');
+  return t('common.directionOther', { id });
+}
 
 type ListState =
   | { phase: 'loading' }
@@ -36,6 +36,7 @@ interface RowState {
  * → POST /api/progress/enroll → 該列更新。summary 為增益資料，失敗則安靜降級為未報名。
  */
 export function VariantList({ routeId }: { routeId: string }) {
+  const t = useT();
   const [state, setState] = useState<ListState>({ phase: 'loading' });
   const [rows, setRows] = useState<Record<string, RowState>>({});
 
@@ -101,7 +102,7 @@ export function VariantList({ routeId }: { routeId: string }) {
         [variantKey]: {
           enrolling: false,
           enrolledStatus: null,
-          error: e instanceof ApiError ? e.message : '報名失敗',
+          error: e instanceof ApiError ? e.message : t('variant.enrollFailed'),
         },
       }));
     }
@@ -110,7 +111,7 @@ export function VariantList({ routeId }: { routeId: string }) {
   if (state.phase === 'loading') {
     return (
       <p role="status" aria-live="polite" className="py-8 text-center text-zinc-500">
-        載入中…
+        {t('common.loading')}
       </p>
     );
   }
@@ -121,7 +122,7 @@ export function VariantList({ routeId }: { routeId: string }) {
         role="alert"
         className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
       >
-        無法載入路線變化：{state.message}
+        {t('variant.loadError', { message: state.message })}
       </p>
     );
   }
@@ -129,7 +130,7 @@ export function VariantList({ routeId }: { routeId: string }) {
   if (state.variants.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:border-zinc-700">
-        這條路線目前沒有可練習的 variant。
+        {t('variant.empty')}
       </p>
     );
   }
@@ -148,14 +149,14 @@ export function VariantList({ routeId }: { routeId: string }) {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                    {DIRECTION_LABEL[v.directionId] ?? `方向 ${v.directionId}`}
+                    {directionLabel(t, v.directionId)}
                   </span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {v.headsign ?? '未標示終點'}
+                    {v.headsign ?? t('common.noHeadsign')}
                   </span>
                 </div>
                 <p className="mt-1 text-sm text-zinc-500">
-                  {v.stopCount} 站 · {v.tripCount} 班次
+                  {t('variant.stopsTrips', { stops: v.stopCount, trips: v.tripCount })}
                 </p>
               </div>
               <div className="flex shrink-0 flex-col items-end gap-2">
@@ -163,14 +164,14 @@ export function VariantList({ routeId }: { routeId: string }) {
                   className="text-sm text-zinc-600 dark:text-zinc-300"
                   data-testid={`status-${v.variantKey}`}
                 >
-                  {enrolledStatus ? STATUS_LABEL[enrolledStatus] : '未報名'}
+                  {enrolledStatus ? t(`status.${enrolledStatus}`) : t('status.notEnrolled')}
                 </span>
                 {enrolledStatus ? (
                   <a
                     href={`/practice/recall?${new URLSearchParams({ routeId: v.routeId, variantKey: v.variantKey }).toString()}`}
                     className="inline-flex min-h-[36px] items-center rounded-md bg-zinc-900 px-3 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900"
                   >
-                    開始練習
+                    {t('variant.startPractice')}
                   </a>
                 ) : (
                   <button
@@ -180,14 +181,14 @@ export function VariantList({ routeId }: { routeId: string }) {
                     aria-busy={row?.enrolling ? 'true' : undefined}
                     className="inline-flex min-h-[36px] items-center rounded-md border border-zinc-300 px-3 text-sm font-medium text-zinc-800 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-600 dark:text-zinc-100 dark:hover:bg-zinc-800"
                   >
-                    {row?.enrolling ? '報名中…' : '報名'}
+                    {row?.enrolling ? t('variant.enrolling') : t('variant.enroll')}
                   </button>
                 )}
               </div>
             </div>
             {row?.error ? (
               <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">
-                報名失敗：{row.error}
+                {t('variant.enrollError', { message: row.error })}
               </p>
             ) : null}
             {enrolledStatus ? (

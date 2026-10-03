@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
+import { renderZh } from '@/__tests__/helpers/render';
 import '@testing-library/jest-dom/vitest';
 import RecallPracticePage from '@/app/practice/recall/page';
 import { encodeQueue } from '@/app/_lib/practice-queue';
@@ -55,7 +56,7 @@ describe('Change 18: /practice/recall batch queue', () => {
   it('auto-starts the first queued variant and shows batch progress 1/n', async () => {
     h.params = new URLSearchParams('queue=' + encodeQueue(QUEUE2));
 
-    render(<RecallPracticePage />);
+    renderZh(<RecallPracticePage />);
 
     await waitFor(() => expect(h.startSession).toHaveBeenCalledTimes(1));
     expect(h.startSession).toHaveBeenCalledWith(expect.objectContaining({ routeId: 'R1', variantKey: 'V1:d0:h' }));
@@ -66,7 +67,7 @@ describe('Change 18: /practice/recall batch queue', () => {
     h.params = new URLSearchParams('queue=' + encodeQueue(QUEUE2));
     h.viewState = 'COMPLETED';
 
-    render(<RecallPracticePage />);
+    renderZh(<RecallPracticePage />);
 
     const next = await screen.findByRole('button', { name: /下一條路線/ });
     fireEvent.click(next);
@@ -77,7 +78,7 @@ describe('Change 18: /practice/recall batch queue', () => {
     h.params = new URLSearchParams('queue=' + encodeQueue([{ routeId: 'R1', variantKey: 'V1' }]));
     h.viewState = 'COMPLETED';
 
-    render(<RecallPracticePage />);
+    renderZh(<RecallPracticePage />);
 
     expect(await screen.findByText(/全部完成/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /下一條路線/ })).not.toBeInTheDocument();

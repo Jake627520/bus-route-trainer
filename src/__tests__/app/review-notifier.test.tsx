@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { renderZh } from '@/__tests__/helpers/render';
 import '@testing-library/jest-dom/vitest';
 import { ReviewNotifier } from '@/app/_components/review-notifier';
 
@@ -37,7 +38,7 @@ describe('Change 23: ReviewNotifier', () => {
 
   it('offers an enable button when permission is default and requests permission on click', async () => {
     installNotification('default');
-    render(<ReviewNotifier />);
+    renderZh(<ReviewNotifier />);
     const btn = await screen.findByRole('button', { name: /開啟複習提醒/ });
     fireEvent.click(btn);
     expect((globalThis.Notification as unknown as { requestPermission: ReturnType<typeof vi.fn> }).requestPermission).toHaveBeenCalled();
@@ -46,7 +47,7 @@ describe('Change 23: ReviewNotifier', () => {
   it('fires a notification when granted and reviews are due (no button)', async () => {
     installNotification('granted');
     mockFetch.mockResolvedValue(summaryDue(3));
-    render(<ReviewNotifier />);
+    renderZh(<ReviewNotifier />);
     await waitFor(() => expect(notifCtor).toHaveBeenCalledTimes(1));
     const [title, opts] = notifCtor.mock.calls[0];
     expect(String(title)).toMatch(/複習/);
@@ -57,7 +58,7 @@ describe('Change 23: ReviewNotifier', () => {
   it('does not fire when granted but nothing is due', async () => {
     installNotification('granted');
     mockFetch.mockResolvedValue(summaryDue(0));
-    render(<ReviewNotifier />);
+    renderZh(<ReviewNotifier />);
     await new Promise((r) => setTimeout(r, 30));
     expect(notifCtor).not.toHaveBeenCalled();
   });
@@ -65,7 +66,7 @@ describe('Change 23: ReviewNotifier', () => {
   it('renders nothing and does not fire when permission is denied', async () => {
     installNotification('denied');
     mockFetch.mockResolvedValue(summaryDue(3));
-    const { container } = render(<ReviewNotifier />);
+    const { container } = renderZh(<ReviewNotifier />);
     await new Promise((r) => setTimeout(r, 30));
     expect(container).toBeEmptyDOMElement();
     expect(notifCtor).not.toHaveBeenCalled();
@@ -73,7 +74,7 @@ describe('Change 23: ReviewNotifier', () => {
 
   it('renders nothing when Notification API is unsupported', () => {
     // 不 stub Notification（jsdom 無此 API）
-    const { container } = render(<ReviewNotifier />);
+    const { container } = renderZh(<ReviewNotifier />);
     expect(container).toBeEmptyDOMElement();
   });
 });

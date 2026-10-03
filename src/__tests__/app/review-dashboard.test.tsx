@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
+import { renderZh } from '@/__tests__/helpers/render';
 import '@testing-library/jest-dom/vitest';
 import { ReviewDashboard } from '@/app/_components/review-dashboard';
 
@@ -23,7 +24,7 @@ describe('Change 11: ReviewDashboard', () => {
 
   it('shows a loading indicator before summary resolves', () => {
     mockFetch.mockReturnValueOnce(new Promise<Response>(() => {}));
-    render(<ReviewDashboard />);
+    renderZh(<ReviewDashboard />);
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
@@ -37,7 +38,7 @@ describe('Change 11: ReviewDashboard', () => {
       })
     );
 
-    render(<ReviewDashboard />);
+    renderZh(<ReviewDashboard />);
 
     const items = await screen.findAllByRole('listitem');
     expect(items).toHaveLength(2);
@@ -66,13 +67,13 @@ describe('Change 11: ReviewDashboard', () => {
 
   it('shows an empty state when no enrolled variants', async () => {
     mockFetch.mockResolvedValueOnce(jsonRes(200, { data: [] }));
-    render(<ReviewDashboard />);
+    renderZh(<ReviewDashboard />);
     expect(await screen.findByText(/尚未報名|沒有.*複習|no reviews/i)).toBeInTheDocument();
   });
 
   it('shows an error message when the summary API fails', async () => {
     mockFetch.mockResolvedValueOnce(jsonRes(500, { error: { code: 'INTERNAL_ERROR', message: 'boom' } }));
-    render(<ReviewDashboard />);
+    renderZh(<ReviewDashboard />);
     expect(await screen.findByRole('alert')).toHaveTextContent(/無法載入|error|失敗/i);
   });
 });

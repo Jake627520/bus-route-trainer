@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderZh } from '@/__tests__/helpers/render';
 import '@testing-library/jest-dom/vitest';
 import { ReviewReminder } from '@/app/_components/review-reminder';
 
@@ -29,7 +30,7 @@ describe('Change 16: ReviewReminder', () => {
     // summary 已依 dueCount 由多到少排序：items[0] 為最該複習
     mockFetch.mockResolvedValueOnce(jsonRes({ data: [item('V1', 'R1', 3), item('V2', 'R2', 1)] }));
 
-    render(<ReviewReminder />);
+    renderZh(<ReviewReminder />);
 
     expect(await screen.findByText(/你有\s*4\s*張卡片待複習/)).toBeInTheDocument();
     const cta = screen.getByRole('link', { name: /開始複習/ });
@@ -38,14 +39,14 @@ describe('Change 16: ReviewReminder', () => {
 
   it('shows an encouraging message when enrolled but nothing is due', async () => {
     mockFetch.mockResolvedValueOnce(jsonRes({ data: [item('V1', 'R1', 0)] }));
-    render(<ReviewReminder />);
+    renderZh(<ReviewReminder />);
     expect(await screen.findByText(/都完成了|complete/i)).toBeInTheDocument();
     expect(screen.queryByText(/待複習/)).not.toBeInTheDocument();
   });
 
   it('renders nothing when there are no enrolled variants', async () => {
     mockFetch.mockResolvedValueOnce(jsonRes({ data: [] }));
-    const { container } = render(<ReviewReminder />);
+    const { container } = renderZh(<ReviewReminder />);
     // 等 microtask 讓 effect 解析
     await Promise.resolve();
     await Promise.resolve();
@@ -54,7 +55,7 @@ describe('Change 16: ReviewReminder', () => {
 
   it('stays silent while loading (no spinner/alert/banner)', () => {
     mockFetch.mockReturnValueOnce(new Promise<Response>(() => {}));
-    const { container } = render(<ReviewReminder />);
+    const { container } = renderZh(<ReviewReminder />);
     expect(container).toBeEmptyDOMElement();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
@@ -62,7 +63,7 @@ describe('Change 16: ReviewReminder', () => {
 
   it('stays silent on error', async () => {
     mockFetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
-    const { container } = render(<ReviewReminder />);
+    const { container } = renderZh(<ReviewReminder />);
     await Promise.resolve();
     await Promise.resolve();
     expect(container).toBeEmptyDOMElement();
