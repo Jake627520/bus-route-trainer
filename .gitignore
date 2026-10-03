@@ -57,3 +57,7 @@ playwright/.cache/
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Vercel
+.vercel
+.env*
