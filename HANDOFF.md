@@ -2,7 +2,7 @@
 
 > 給接手的 agent（例如 **Antigravity**）：若 Claude 額度用完、工作未完成，照這份接手。
 > 這份講「現況、下一步、怎麼動手」；長期慣例在 [AGENTS.md](./AGENTS.md)。
-> 最後更新：2026-09-23（by Claude Opus 4.8）。
+> 最後更新：2026-10-03。
 
 ## 一句話
 昆士蘭巴士司機「路線記憶訓練器」。後端引擎、recall session（API + 練習 UI）、以及**第一個路線瀏覽前端**都已完成；目前**沒有進行中的 change**。
@@ -21,6 +21,12 @@ docker compose run --rm app npx prisma generate && docker compose run --rm app n
 docker compose run --rm app npm test          # 應該 493 綠
 docker compose run --rm --service-ports app npm run dev   # → http://localhost:3000
 ```
+
+## 最新進度（2026-10-03）
+- Change 25–29 已合入 main：認證（帳號密碼 + session cookie）、強制 401、GTFS 公車過濾、Vercel 部署（生產網址已上線）。
+- **Change 30 i18n 進行中**（分支 `claude/hopeful-davinci-ttecc8`，見 `openspec/changes/30-i18n/tasks.md`）：基建 + 登入頁 + 首頁已完成；只剩 Task 8（全套守門含 DB 整合測試、archive、開 PR）。
+- i18n 用法：`useT()`（client）或 `<Text k="..." />`（server component）；字串加在 `src/i18n/messages.ts`（zh-TW 與 en 必須同 key）。其餘頁面/元件字串尚未搬。
+- 下方「目前狀態」為 Change 24 以前的歷史快照。
 
 ## 目前狀態（截至 2026-09-23）
 **已完成（archived changes，見 `openspec/changes/archive/`）**
