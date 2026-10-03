@@ -130,10 +130,10 @@ function RecallPracticeInner() {
         <header className="mb-6 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-              Bus Route Recall Trainer
+              {t('recall.title')}
             </h1>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Queensland Transit Depot Practice Mode
+              {t('recall.subtitle')}
             </p>
             {inBatch && (
               <p className="mt-1 text-xs font-semibold text-sky-600 dark:text-sky-400">
@@ -147,9 +147,9 @@ function RecallPracticeInner() {
               variant="outline"
               size="sm"
               onClick={requestAbandon}
-              aria-label="Abandon Practice Session"
+              aria-label={t('recall.abandonAria')}
             >
-              Abandon
+              {t('recall.abandon')}
             </Button>
           )}
         </header>
@@ -158,25 +158,25 @@ function RecallPracticeInner() {
         {viewState === 'IDLE' && (
           <Card>
             <h2 className="text-lg font-semibold mb-4 text-zinc-800 dark:text-zinc-200">
-              Start Route Practice Session
+              {t('recall.startTitle')}
             </h2>
             <form onSubmit={handleStart} className="space-y-4">
               <TextInput
-                label="Route Number / ID"
+                label={t('recall.labelRouteId')}
                 value={routeId}
                 onChange={(e) => setRouteId(e.target.value)}
-                placeholder="e.g. 66"
+                placeholder={t('recall.placeholderRouteId')}
                 required
               />
               <TextInput
-                label="Route Variant Key"
+                label={t('recall.labelVariantKey')}
                 value={variantKey}
                 onChange={(e) => setVariantKey(e.target.value)}
-                placeholder="e.g. 66-1-INBOUND"
+                placeholder={t('recall.placeholderVariantKey')}
                 required
               />
               <TextInput
-                label="Session Size (Cards to Practice)"
+                label={t('recall.labelSessionSize')}
                 type="number"
                 min="1"
                 max="50"
@@ -184,7 +184,7 @@ function RecallPracticeInner() {
                 onChange={(e) => setSessionSize(e.target.value)}
               />
               <Button type="submit" size="lg" className="w-full mt-2">
-                Start Practice Session
+                {t('recall.startButton')}
               </Button>
             </form>
           </Card>
@@ -204,7 +204,7 @@ function RecallPracticeInner() {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
               <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                Loading practice prompt from server...
+                {t('recall.loadingPrompt')}
               </p>
             </div>
           </Card>
@@ -214,13 +214,13 @@ function RecallPracticeInner() {
         {viewState === 'NO_CARDS_AVAILABLE' && (
           <Card className="text-center py-8">
             <div className="max-w-md mx-auto space-y-3">
-              <span className="text-4xl" role="img" aria-label="Celebration">🎉</span>
-              <h2 className="text-xl font-bold">All Caught Up!</h2>
+              <span className="text-4xl" role="img" aria-label={t('recall.ariaCelebration')}>🎉</span>
+              <h2 className="text-xl font-bold">{t('recall.caughtUpTitle')}</h2>
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                There are currently no cards due for review on this route variant. Great work!
+                {t('recall.caughtUpBody')}
               </p>
               <Button onClick={reset} size="md" className="mt-4">
-                Choose Another Route
+                {t('recall.chooseAnother')}
               </Button>
             </div>
           </Card>
@@ -232,12 +232,12 @@ function RecallPracticeInner() {
             <ProgressBar
               current={currentPrompt.promptIndex + 1}
               total={currentPrompt.totalCards}
-              label={`Question ${currentPrompt.promptIndex + 1} of ${currentPrompt.totalCards}`}
+              label={t('recall.questionProgress', { current: currentPrompt.promptIndex + 1, total: currentPrompt.totalCards })}
             />
 
             <div className="flex items-center justify-between">
               <Badge variant={currentPrompt.recallMode === 'NEXT_STOP_FORWARD' ? 'blue' : 'purple'}>
-                {currentPrompt.recallMode === 'NEXT_STOP_FORWARD' ? 'Next Stop Prediction' : 'Station Identification'}
+                {currentPrompt.recallMode === 'NEXT_STOP_FORWARD' ? t('recall.modeNextStop') : t('recall.modeStation')}
               </Badge>
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
                 {session?.routeId} • {session?.targetVariantKey}
@@ -246,7 +246,7 @@ function RecallPracticeInner() {
 
             <div className="bg-zinc-100 dark:bg-zinc-800/60 p-5 rounded-xl border border-zinc-200 dark:border-zinc-700/60">
               <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">
-                {currentPrompt.recallMode === 'NEXT_STOP_FORWARD' ? 'Current Station Stop' : 'Reference Hint'}
+                {currentPrompt.recallMode === 'NEXT_STOP_FORWARD' ? t('recall.hintCurrentStop') : t('recall.hintReference')}
               </p>
               <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
                 {currentPrompt.givenReference}
@@ -256,8 +256,8 @@ function RecallPracticeInner() {
             <form onSubmit={handleSubmitAnswer} className="space-y-4">
               <TextInput
                 ref={inputRef}
-                label={currentPrompt.recallMode === 'NEXT_STOP_FORWARD' ? 'Enter Next Stop Name' : 'Enter Stop Name'}
-                placeholder="Type your answer here..."
+                label={currentPrompt.recallMode === 'NEXT_STOP_FORWARD' ? t('recall.labelEnterNextStop') : t('recall.labelEnterStop')}
+                placeholder={t('recall.placeholderAnswer')}
                 value={rawInput}
                 onChange={(e) => setRawInput(e.target.value)}
                 disabled={viewState === 'SUBMITTING'}
@@ -272,7 +272,7 @@ function RecallPracticeInner() {
                 disabled={!rawInput.trim() || viewState === 'SUBMITTING'}
                 className="w-full"
               >
-                Submit Answer (Enter)
+                {t('recall.submitAnswer')}
               </Button>
             </form>
           </Card>
@@ -285,21 +285,20 @@ function RecallPracticeInner() {
               <span className="text-2xl text-amber-600 dark:text-amber-400">⚠️</span>
               <div>
                 <h3 className="text-base font-bold text-amber-900 dark:text-amber-200">
-                  Submission Interrupted
+                  {t('recall.submitInterrupted')}
                 </h3>
                 <p className="text-sm text-amber-800 dark:text-amber-300 mt-1">
-                  Network connection dropped while submitting your answer for &quot;{pendingSubmission.rawInput}&quot;.
-                  Your submission identity is preserved to prevent duplicate evaluation conflicts.
+                  {t('recall.submitInterruptedBody', { input: pendingSubmission.rawInput })}
                 </p>
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Button onClick={retrySubmission} size="md" className="flex-1">
-                Retry Submission
+                {t('recall.retrySubmission')}
               </Button>
               <Button onClick={syncSessionState} variant="outline" size="md" className="flex-1">
-                Verify Server State
+                {t('recall.verifyServerState')}
               </Button>
             </div>
           </Card>
@@ -321,17 +320,17 @@ function RecallPracticeInner() {
               </span>
               <div>
                 <h3 className="text-lg font-bold">
-                  {lastOutcome.outcome === 'PASS' ? 'Correct Recall!' : 'Incorrect Recall'}
+                  {lastOutcome.outcome === 'PASS' ? t('recall.correctTitle') : t('recall.incorrectTitle')}
                 </h3>
                 <p className="text-sm opacity-90">
-                  Card State: <strong className="font-semibold">{lastOutcome.resultingState}</strong> • SRS Level: <strong className="font-semibold">{lastOutcome.resultingSrsLevel}</strong>
-                  {lastOutcome.isDuplicate && ' (Duplicate replay)'}
+                  {t('recall.cardStateLabel')} <strong className="font-semibold">{lastOutcome.resultingState}</strong> • {t('recall.srsLevelLabel')} <strong className="font-semibold">{lastOutcome.resultingSrsLevel}</strong>
+                  {lastOutcome.isDuplicate && t('recall.duplicateReplay')}
                 </p>
               </div>
             </div>
 
             <Button onClick={nextPrompt} size="lg" className="w-full">
-              Next Question (Enter / Space)
+              {t('recall.nextQuestion')}
             </Button>
           </Card>
         )}
@@ -339,12 +338,12 @@ function RecallPracticeInner() {
         {/* 8. COMPLETED State */}
         {viewState === 'COMPLETED' && (
           <Card className="text-center py-10 space-y-4">
-            <span className="text-5xl" role="img" aria-label="Trophy">🏆</span>
+            <span className="text-5xl" role="img" aria-label={t('recall.ariaTrophy')}>🏆</span>
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-              Practice Session Completed!
+              {t('recall.completedTitle')}
             </h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto">
-              You have completed all planned cards for this recall session. Your SRS memory intervals have been authoritatively updated on the server.
+              {t('recall.completedBody')}
             </p>
             {inBatch && batchIndex >= queue.length - 1 && (
               <p className="text-base font-semibold text-emerald-600 dark:text-emerald-400">
@@ -358,7 +357,7 @@ function RecallPracticeInner() {
                 </Button>
               ) : (
                 <Button onClick={reset} size="lg">
-                  Practice Again
+                  {t('recall.practiceAgain')}
                 </Button>
               )}
             </div>
@@ -369,13 +368,13 @@ function RecallPracticeInner() {
         {viewState === 'ABANDONED' && (
           <Card className="text-center py-8 space-y-4">
             <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-              Session Abandoned
+              {t('recall.abandonedTitle')}
             </h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Session was abandoned at card {abandonInfo ? abandonInfo.currentPromptIndex + 1 : 0}. Remaining cards remain in your regular review queue.
+              {t('recall.abandonedBody', { card: abandonInfo ? abandonInfo.currentPromptIndex + 1 : 0 })}
             </p>
             <Button onClick={reset} size="md">
-              Return to Start
+              {t('recall.returnToStart')}
             </Button>
           </Card>
         )}
@@ -395,7 +394,7 @@ function RecallPracticeInner() {
               </div>
             </div>
             <Button onClick={reset} size="md" variant="outline">
-              Back to Start
+              {t('recall.backToStart')}
             </Button>
           </Card>
         )}
@@ -404,17 +403,17 @@ function RecallPracticeInner() {
         <Modal
           isOpen={viewState === 'ABANDONING'}
           onClose={cancelAbandon}
-          title="Abandon Recall Session?"
+          title={t('recall.modalTitle')}
         >
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-            Are you sure you want to abandon this session? Unanswered cards will remain scheduled for future review and will not count as evaluated attempts.
+            {t('recall.modalBody')}
           </p>
           <div className="flex justify-end gap-3">
             <Button variant="outline" size="md" onClick={cancelAbandon}>
-              Continue Practice
+              {t('recall.continuePractice')}
             </Button>
             <Button variant="destructive" size="md" onClick={confirmAbandon}>
-              Confirm Abandon
+              {t('recall.confirmAbandon')}
             </Button>
           </div>
         </Modal>
