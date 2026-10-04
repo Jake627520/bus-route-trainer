@@ -83,7 +83,7 @@ export function ReviewDashboard() {
       {state.items.map((item) => (
         <li
           key={item.variantKey}
-          className="flex items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
+          className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
         >
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -120,7 +120,7 @@ export function ReviewDashboard() {
           </div>
           <a
             href={`/practice/recall?${new URLSearchParams({ routeId: item.routeId, variantKey: item.variantKey }).toString()}`}
-            className="inline-flex min-h-[40px] shrink-0 items-center rounded-md bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+            className="inline-flex min-h-[40px] shrink-0 items-center rounded-lg bg-brand-600 px-4 text-sm font-medium text-white shadow-sm transition-all hover:bg-brand-700 hover:shadow dark:bg-brand-500 dark:hover:bg-brand-600"
           >
             {t('dashboard.start')}
           </a>

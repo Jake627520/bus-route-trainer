@@ -42,7 +42,7 @@ describe('Change 10 Phase 10.3: UI Primitives & Accessibility Tests', () => {
     it('renders semantic badge with variant styling', () => {
       render(<Badge variant="blue">Next Stop</Badge>);
       const badge = screen.getByText('Next Stop');
-      expect(badge.className).toContain('text-sky-800');
+      expect(badge.className).toContain('text-brand-700');
     });
   });
 

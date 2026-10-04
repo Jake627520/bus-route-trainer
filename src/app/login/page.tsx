@@ -88,7 +88,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="min-h-[44px] rounded-lg bg-zinc-900 px-4 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+          className="min-h-[44px] rounded-xl bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-700 hover:shadow disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
         >
           {mode === 'login' ? t('login.buttonLogin') : t('login.buttonRegister')}
         </button>
@@ -101,7 +101,7 @@ export default function LoginPage() {
           setError(null);
           setInfo(null);
         }}
-        className="mt-4 text-sm text-zinc-500 underline hover:text-zinc-800 dark:hover:text-zinc-200"
+        className="mt-4 text-sm text-brand-600 underline-offset-2 hover:text-brand-700 hover:underline dark:text-brand-400 dark:hover:text-brand-300"
       >
         {mode === 'login' ? t('login.switchToRegister') : t('login.switchToLogin')}
       </button>
