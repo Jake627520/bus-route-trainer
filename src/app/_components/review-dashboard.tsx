@@ -8,7 +8,8 @@ import {
   ApiError,
   type VariantReviewSummary,
 } from '@/app/_lib/api-client';
-import { useT } from '@/app/_components/locale-provider';
+import { useT, useLocale } from '@/app/_components/locale-provider';
+import { dateFnsLocale } from '@/app/_lib/date-locale';
 import type { TFunction } from '@/i18n/t';
 
 /** 方向標籤：0=去程、1=返程、其餘=方向 N。 */
@@ -30,6 +31,7 @@ type State =
  */
 export function ReviewDashboard() {
   const t = useT();
+  const locale = useLocale();
   const [state, setState] = useState<State>({ phase: 'loading' });
 
   useEffect(() => {
@@ -108,7 +110,7 @@ export function ReviewDashboard() {
               ) : null}
               {item.nextReviewAt ? (
                 <span className="text-zinc-400">
-                  {t('dashboard.nextReview', { time: formatDistanceToNow(new Date(item.nextReviewAt), { addSuffix: true }) })}
+                  {t('dashboard.nextReview', { time: formatDistanceToNow(new Date(item.nextReviewAt), { addSuffix: true, locale: dateFnsLocale(locale) }) })}
                 </span>
               ) : null}
             </div>

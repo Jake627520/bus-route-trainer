@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { GET } from '@/app/api/review/streak/route';
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
 import { sessionCookie } from '@/__tests__/helpers/session';
+import { toAppDateString } from '@/application/common/app-timezone';
 
 /**
  * Change 22 Task 4: GET /api/review/streak 整合測試（真 DB）。
@@ -34,7 +35,7 @@ describe('GET /api/review/streak', () => {
     });
 
     const body = await (await GET(reqWithSession(DEFAULT_DRIVER_ID))).json();
-    const today = now.toISOString().slice(0, 10);
+    const today = toAppDateString(now);
     expect(body.data).toEqual({ currentStreak: 1, longestStreak: 1, lastPracticedOn: today });
   });
 

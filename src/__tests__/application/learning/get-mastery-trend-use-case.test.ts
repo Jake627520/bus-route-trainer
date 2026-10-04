@@ -41,9 +41,10 @@ describe('Change 17: GetMasteryTrendUseCase', () => {
   it('collapses same-day events into one point using the final state', async () => {
     const useCase = new GetMasteryTrendUseCase(
       port([
-        ev('A', CardState.LEARNING, '2026-02-01T08:00:00.000Z'),
-        ev('A', CardState.MASTERED, '2026-02-01T20:00:00.000Z'), // 同日稍後精熟
-        ev('B', CardState.MASTERED, '2026-02-01T21:00:00.000Z'),
+        // 皆為同一 Brisbane 日（UTC+10）：00:00Z=10:00、02:00Z=12:00、03:00Z=13:00 於 2026-02-01
+        ev('A', CardState.LEARNING, '2026-02-01T00:00:00.000Z'),
+        ev('A', CardState.MASTERED, '2026-02-01T02:00:00.000Z'), // 同日稍後精熟
+        ev('B', CardState.MASTERED, '2026-02-01T03:00:00.000Z'),
       ])
     );
 

@@ -1,5 +1,6 @@
 import { Clock } from '@/application/common/clock';
 import { PracticeStatsQueryPort } from '@/application/learning/practice-stats-query-port';
+import { toAppDateString } from '@/application/common/app-timezone';
 
 export interface PracticeStreak {
   currentStreak: number;
@@ -42,7 +43,7 @@ export class GetPracticeStreakUseCase {
     }
 
     // currentStreak：最近練習日為今天或昨天才 active
-    const today = dayIndex(this.clock.now().toISOString().slice(0, 10));
+    const today = dayIndex(toAppDateString(this.clock.now()));
     const last = idx[idx.length - 1];
     let current = 0;
     if (last === today || last === today - 1) {

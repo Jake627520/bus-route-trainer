@@ -3,6 +3,7 @@ import {
   PracticeStatsQueryPort,
   OutcomeCounts,
 } from '@/application/learning/practice-stats-query-port';
+import { toAppDateString } from '@/application/common/app-timezone';
 
 /**
  * Change 20: 以 RecallAttempt 統計練習結果（經 session.driverId）。
@@ -26,7 +27,7 @@ export class PrismaPracticeStatsAdapter implements PracticeStatsQueryPort {
       orderBy: { answeredAt: 'asc' },
     });
     const dates = new Set<string>();
-    for (const r of rows) dates.add(r.answeredAt.toISOString().slice(0, 10));
+    for (const r of rows) dates.add(toAppDateString(r.answeredAt));
     return [...dates].sort();
   }
 }
