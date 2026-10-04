@@ -54,13 +54,14 @@ describe('PrismaPracticeStatsAdapter', () => {
       },
     });
 
-  it('findAttemptDates returns distinct UTC dates ascending, excluding other drivers', async () => {
+  it('findAttemptDates returns distinct app-timezone (Brisbane) dates ascending, excluding other drivers', async () => {
     await seedSession('s1', 'driver_default_local');
     await seedSession('s2', 'other');
-    await seedAttemptAt('s1', 0, '2026-03-02T09:00:00.000Z');
-    await seedAttemptAt('s1', 1, '2026-03-01T20:00:00.000Z');
-    await seedAttemptAt('s1', 2, '2026-03-02T21:00:00.000Z'); // 同日重複
-    await seedAttemptAt('s2', 0, '2026-03-05T00:00:00.000Z'); // 他 driver
+    // 時間以 Brisbane（UTC+10）日界計：02:00Z=12:00、05:00Z=15:00 皆為當日
+    await seedAttemptAt('s1', 0, '2026-03-02T02:00:00.000Z'); // 03-02 Brisbane
+    await seedAttemptAt('s1', 1, '2026-03-01T02:00:00.000Z'); // 03-01 Brisbane
+    await seedAttemptAt('s1', 2, '2026-03-02T05:00:00.000Z'); // 03-02 Brisbane（同日重複）
+    await seedAttemptAt('s2', 0, '2026-03-05T02:00:00.000Z'); // 他 driver
 
     expect(await adapter.findAttemptDates('driver_default_local')).toEqual(['2026-03-01', '2026-03-02']);
   });
