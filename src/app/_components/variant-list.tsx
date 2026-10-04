@@ -143,7 +143,7 @@ export function VariantList({ routeId }: { routeId: string }) {
         return (
           <li
             key={v.variantKey}
-            className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
+            className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -169,7 +169,7 @@ export function VariantList({ routeId }: { routeId: string }) {
                 {enrolledStatus ? (
                   <a
                     href={`/practice/recall?${new URLSearchParams({ routeId: v.routeId, variantKey: v.variantKey }).toString()}`}
-                    className="inline-flex min-h-[36px] items-center rounded-md bg-zinc-900 px-3 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900"
+                    className="inline-flex min-h-[36px] items-center rounded-lg bg-brand-600 px-3 text-sm font-medium text-white shadow-sm transition-all hover:bg-brand-700 hover:shadow dark:bg-brand-500 dark:hover:bg-brand-600"
                   >
                     {t('variant.startPractice')}
                   </a>

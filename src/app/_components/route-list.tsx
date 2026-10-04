@@ -95,9 +95,9 @@ export function RouteList() {
             <li key={route.id}>
               <Link
                 href={`/routes/${route.id}`}
-                className="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-4 transition-colors hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600"
+                className="flex items-center gap-4 rounded-xl border border-zinc-200/80 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-brand-700"
               >
-                <span className="inline-flex min-w-[3rem] justify-center rounded-md bg-zinc-900 px-2 py-1 text-sm font-bold text-white dark:bg-zinc-100 dark:text-zinc-900">
+                <span className="inline-flex min-w-[3rem] justify-center rounded-md bg-brand-600 px-2 py-1 text-sm font-bold text-white dark:bg-brand-500">
                   {route.shortName}
                 </span>
                 <span className="text-zinc-800 dark:text-zinc-200">{route.longName}</span>

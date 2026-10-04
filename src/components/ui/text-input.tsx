@@ -40,7 +40,7 @@ export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(
             ${
               error
                 ? 'border-red-500 focus:ring-red-400'
-                : 'border-zinc-300 dark:border-zinc-700 focus:ring-sky-500 focus:border-sky-500'
+                : 'border-zinc-300 dark:border-zinc-700 focus:ring-brand-500 focus:border-brand-500'
             } ${className}`}
           {...props}
         />
