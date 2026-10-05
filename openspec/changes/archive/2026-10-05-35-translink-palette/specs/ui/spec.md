@@ -1,9 +1,6 @@
-# ui Specification
+# Spec: ui（Change 35 Translink 配色）
 
-## Purpose
-TBD - created by archiving change 34-visual-polish. Update Purpose after archive.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: 一致的品牌視覺
 系統 SHALL 以 **Translink 官方配色**呈現：深藍 #242B4C 為主色（按鈕/文字/徽章/進度條），洋紅 #EF60A3 為點綴（少量 pop）。
