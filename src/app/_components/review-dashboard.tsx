@@ -1,16 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { ProgressBar } from '@/components/ui';
-import {
-  apiClient,
-  ApiError,
-  type VariantReviewSummary,
-} from '@/app/_lib/api-client';
+import { ProgressBar, SkeletonList } from '@/components/ui';
 import { useT, useLocale } from '@/app/_components/locale-provider';
+import { useReviewSummary } from '@/app/_components/review-summary-provider';
 import { dateFnsLocale } from '@/app/_lib/date-locale';
-import { SkeletonList } from '@/components/ui';
 import type { TFunction } from '@/i18n/t';
 
 /** 方向標籤：0=去程、1=返程、其餘=方向 N。 */
@@ -20,54 +14,31 @@ function directionLabel(t: TFunction, id: number): string {
   return t('common.directionOther', { id });
 }
 
-type State =
-  | { phase: 'loading' }
-  | { phase: 'error'; message: string }
-  | { phase: 'ready'; items: VariantReviewSummary[] };
-
 /**
- * Change 11: 複習到期儀表板（client component）。
- * 呼叫 GET /api/review/summary，依後端排序（到期多者在前）渲染各 variant 的
- * 到期數 / 新卡 / 下次複習時間，並提供「開始複習」入口。四態：載入中/成功/空/錯誤。
+ * Change 11 / 37: 複習到期儀表板（client component，共用 summary）。
+ * 四態：載入中(骨架)/錯誤/空/成功，依到期數排序，提供「開始複習」入口。
  */
 export function ReviewDashboard() {
   const t = useT();
   const locale = useLocale();
-  const [state, setState] = useState<State>({ phase: 'loading' });
+  const { summary, error } = useReviewSummary();
 
-  useEffect(() => {
-    let active = true;
-    apiClient
-      .getReviewSummary()
-      .then((items) => {
-        if (active) setState({ phase: 'ready', items });
-      })
-      .catch((e) => {
-        if (active) {
-          setState({ phase: 'error', message: e instanceof ApiError ? e.message : 'Unknown error' });
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  if (state.phase === 'loading') {
-    return <SkeletonList rows={2} />;
-  }
-
-  if (state.phase === 'error') {
+  if (error) {
     return (
       <p
         role="alert"
         className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
       >
-        {t('dashboard.loadError', { message: state.message })}
+        {t('dashboard.loadError', { message: error })}
       </p>
     );
   }
 
-  if (state.items.length === 0) {
+  if (summary === null) {
+    return <SkeletonList rows={2} />;
+  }
+
+  if (summary.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-zinc-300 p-6 text-center text-zinc-500 dark:border-zinc-700">
         {t('dashboard.empty')}
@@ -77,7 +48,7 @@ export function ReviewDashboard() {
 
   return (
     <ul className="flex flex-col gap-3">
-      {state.items.map((item) => (
+      {summary.map((item) => (
         <li
           key={item.variantKey}
           className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"

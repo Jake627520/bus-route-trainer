@@ -1,31 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { apiClient, type VariantReviewSummary } from '@/app/_lib/api-client';
 import { encodeQueue } from '@/app/_lib/practice-queue';
 import { useT } from '@/app/_components/locale-provider';
+import { useReviewSummary } from '@/app/_components/review-summary-provider';
 
 /**
- * Change 18 / 31: 「練習全部到期」入口（i18n）。
+ * Change 18 / 31 / 37: 「練習全部到期」入口（i18n，共用 summary）。
  */
 export function BatchPracticeButton() {
   const t = useT();
-  const [items, setItems] = useState<VariantReviewSummary[] | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    apiClient
-      .getReviewSummary()
-      .then((s) => {
-        if (active) setItems(s);
-      })
-      .catch(() => {
-        /* 靜默 */
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { summary: items } = useReviewSummary();
 
   if (items === null) return null;
 

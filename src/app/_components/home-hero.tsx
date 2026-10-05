@@ -1,47 +1,43 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { apiClient, type VariantReviewSummary, type PracticeStreak } from '@/app/_lib/api-client';
+import { apiClient } from '@/app/_lib/api-client';
 import { useT } from '@/app/_components/locale-provider';
-
-interface HeroData {
-  totalDue: number;
-  topVariant: { routeId: string; variantKey: string } | null;
-  streak: number;
-}
+import { useReviewSummary } from '@/app/_components/review-summary-provider';
 
 /**
- * Change 36: 首頁深色漸層 feature 錨點。
- * Translink 深藍漸層卡（web-layout「深色區塊當強調」），彙總今日待複習數與連續天數，
- * 粉紅點綴。增益元件：載入中顯示骨架、錯誤時仍顯示問候。
+ * Change 36 / 37: 首頁深色漸層 feature 錨點（共用 summary + 自取 streak）。
+ * Translink 深藍漸層卡（web-layout「深色區塊當強調」），彙總今日待複習數與連續天數，粉紅點綴。
  */
 export function HomeHero() {
   const t = useT();
-  const [data, setData] = useState<HeroData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { summary } = useReviewSummary();
+  const [streak, setStreak] = useState<number>(0);
 
   useEffect(() => {
     let active = true;
-    Promise.allSettled([apiClient.getReviewSummary(), apiClient.getPracticeStreak()])
-      .then(([summaryRes, streakRes]) => {
-        if (!active) return;
-        const summary: VariantReviewSummary[] = summaryRes.status === 'fulfilled' ? summaryRes.value : [];
-        const streak: PracticeStreak | null = streakRes.status === 'fulfilled' ? streakRes.value : null;
-        const totalDue = summary.reduce((sum, i) => sum + i.dueCount, 0);
-        const top = summary.find((i) => i.dueCount > 0) ?? null;
-        setData({
-          totalDue,
-          topVariant: top ? { routeId: top.routeId, variantKey: top.variantKey } : null,
-          streak: streak?.currentStreak ?? 0,
-        });
+    apiClient
+      .getPracticeStreak()
+      .then((s) => {
+        if (active) setStreak(s.currentStreak);
       })
-      .finally(() => {
-        if (active) setLoading(false);
+      .catch(() => {
+        /* 靜默 */
       });
     return () => {
       active = false;
     };
   }, []);
+
+  const loading = summary === null;
+  const items = summary ?? [];
+  const totalDue = items.reduce((sum, i) => sum + i.dueCount, 0);
+  const top = items.find((i) => i.dueCount > 0) ?? null;
+  const data = {
+    totalDue,
+    topVariant: top ? { routeId: top.routeId, variantKey: top.variantKey } : null,
+    streak,
+  };
 
   const base =
     'relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-700 via-brand-800 to-brand-900 p-6 text-white shadow-[0_8px_30px_-12px_rgba(17,20,36,0.5)]';
@@ -66,7 +62,7 @@ export function HomeHero() {
     );
   }
 
-  const d = data ?? { totalDue: 0, topVariant: null, streak: 0 };
+  const d = data;
 
   return (
     <div className={base}>
