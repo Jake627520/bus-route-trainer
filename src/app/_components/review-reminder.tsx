@@ -1,30 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { apiClient, type VariantReviewSummary } from '@/app/_lib/api-client';
 import { useT } from '@/app/_components/locale-provider';
+import { useReviewSummary } from '@/app/_components/review-summary-provider';
 
 /**
- * Change 16 / 31: 首頁待複習提醒橫幅（client component，i18n）。
+ * Change 16 / 31 / 37: 首頁待複習提醒橫幅（client，i18n，共用 summary）。
  */
 export function ReviewReminder() {
   const t = useT();
-  const [items, setItems] = useState<VariantReviewSummary[] | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    apiClient
-      .getReviewSummary()
-      .then((s) => {
-        if (active) setItems(s);
-      })
-      .catch(() => {
-        /* 靜默：載入失敗不顯示提醒 */
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { summary: items } = useReviewSummary();
 
   // 載入中 / 錯誤 / 無 enrolled → 不顯示
   if (items === null || items.length === 0) return null;
