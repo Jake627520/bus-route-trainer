@@ -10,6 +10,7 @@ import {
 import { MasteryTrend } from '@/app/_components/mastery-trend';
 import { AccuracyStat } from '@/app/_components/accuracy-stat';
 import { useT } from '@/app/_components/locale-provider';
+import { SkeletonList } from '@/components/ui';
 import type { TFunction } from '@/i18n/t';
 
 function directionLabel(t: TFunction, id: number): string {
@@ -109,11 +110,7 @@ export function VariantList({ routeId }: { routeId: string }) {
   };
 
   if (state.phase === 'loading') {
-    return (
-      <p role="status" aria-live="polite" className="py-8 text-center text-zinc-500">
-        {t('common.loading')}
-      </p>
-    );
+    return <SkeletonList rows={3} />;
   }
 
   if (state.phase === 'error') {

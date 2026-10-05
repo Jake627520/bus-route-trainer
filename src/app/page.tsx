@@ -7,6 +7,7 @@ import { AccuracyStat } from '@/app/_components/accuracy-stat';
 import { StreakStat } from '@/app/_components/streak-stat';
 import { RouteList } from '@/app/_components/route-list';
 import { AuthStatus } from '@/app/_components/auth-status';
+import { HomeHero } from '@/app/_components/home-hero';
 import { T } from '@/app/_components/locale-provider';
 
 export default function Home() {
@@ -23,6 +24,10 @@ export default function Home() {
           <T k="home.subtitle" />
         </p>
       </header>
+
+      <div className="mb-6">
+        <HomeHero />
+      </div>
 
       <div className="mb-4">
         <ReviewNotifier />
