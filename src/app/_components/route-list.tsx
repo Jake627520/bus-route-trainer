@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiClient, ApiError, type RouteSummary } from '@/app/_lib/api-client';
 import { useT } from '@/app/_components/locale-provider';
+import { SkeletonList } from '@/components/ui';
 
 type State =
   | { phase: 'loading' }
@@ -41,11 +42,7 @@ export function RouteList() {
   }, []);
 
   if (state.phase === 'loading') {
-    return (
-      <p role="status" aria-live="polite" className="py-8 text-center text-zinc-500">
-        {t('common.loading')}
-      </p>
-    );
+    return <SkeletonList rows={4} />;
   }
 
   if (state.phase === 'error') {

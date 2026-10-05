@@ -38,6 +38,13 @@ const en = {
     sectionTrend: 'Mastery trend',
     sectionRoutes: 'All routes',
   },
+  hero: {
+    greeting: 'Welcome back',
+    dueLabel: 'Cards due today',
+    allCaughtUp: 'All caught up for today',
+    streakLabel: 'Day streak',
+    reviewNow: 'Review now',
+  },
   auth: {
     signedInAs: 'Driver {name}',
     logout: 'Log out',
@@ -200,6 +207,13 @@ const zhTW: Messages = {
     sectionReview: '待複習',
     sectionTrend: '精熟度趨勢',
     sectionRoutes: '所有路線',
+  },
+  hero: {
+    greeting: '歡迎回來',
+    dueLabel: '今日待複習卡片',
+    allCaughtUp: '今天的複習都完成了',
+    streakLabel: '連續天數',
+    reviewNow: '立即複習',
   },
   auth: {
     signedInAs: '司機 {name}',

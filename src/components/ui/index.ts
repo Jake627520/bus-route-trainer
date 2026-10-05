@@ -4,3 +4,4 @@ export * from './badge';
 export * from './progress-bar';
 export * from './text-input';
 export * from './modal';
+export * from './skeleton';
