@@ -39,7 +39,7 @@ export function BatchPracticeButton() {
   return (
     <a
       href={href}
-      className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-brand-600 px-5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-700 hover:shadow active:translate-y-px dark:bg-brand-500 dark:hover:bg-brand-600"
+      className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-pink-700 px-5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-pink-800 hover:shadow active:translate-y-px dark:bg-pink-600 dark:hover:bg-pink-700"
     >
       {t('batchPractice.button', { count: due.length })}
     </a>

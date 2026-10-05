@@ -1,13 +1,15 @@
 @import "tailwindcss";
 
 /*
- * Change 34: 視覺/質感打磨。
- * 配色＝AI 配色急救圖鑑 01 愛琴海白屋（Aegean White）：鈷藍 #2E5FA8 為品牌主色，
- * 海玻璃藍 #63B7D6、石灰砂 #E8D8BF 為輔。底近無彩紙感、主色只在少數地方出現。
+ * Change 34/35: 視覺/質感打磨。
+ * 配色＝Translink 官方品牌（translink.com.au）：
+ *   深藍 NAVY #242B4C（主色/按鈕/文字，白字 13.8:1 AAA）
+ *   洋紅 PINK #EF60A3（點綴/亮點；小字白字改用深粉 #C42D7B 5.2:1 AA）
+ * Translink 本身＝navy 按鈕 + pink 點綴，比例照此（主色多、粉紅少量 pop）。
  */
 :root {
-  --background: #f5f7fb;
-  --foreground: #1b2b45;
+  --background: #f7f7f8;
+  --foreground: #242b4c;
 }
 
 @theme inline {
@@ -16,27 +18,34 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* 品牌鈷藍色階（600 = #2E5FA8） */
-  --color-brand-50: #eff5fc;
-  --color-brand-100: #dbe8f7;
-  --color-brand-200: #bcd3ef;
-  --color-brand-300: #8fb4e2;
-  --color-brand-400: #5b8fd0;
-  --color-brand-500: #3a72bd;
-  --color-brand-600: #2e5fa8;
-  --color-brand-700: #264d88;
-  --color-brand-800: #21416e;
-  --color-brand-900: #1d3759;
+  /* 品牌深藍色階（600 = Translink #242B4C） */
+  --color-brand-50: #eef0f4;
+  --color-brand-100: #d4d8e3;
+  --color-brand-200: #aab2c6;
+  --color-brand-300: #7a85a3;
+  --color-brand-400: #4e5a80;
+  --color-brand-500: #343f66;
+  --color-brand-600: #242b4c;
+  --color-brand-700: #1d2340;
+  --color-brand-800: #171c33;
+  --color-brand-900: #111424;
 
-  /* 輔助 */
-  --color-seaglass: #63b7d6;
-  --color-sand: #e8d8bf;
+  /* 點綴洋紅色階（500 = Translink #EF60A3；700 可承白字 AA） */
+  --color-pink-50: #fdeef6;
+  --color-pink-100: #fbd7e9;
+  --color-pink-200: #f7b0d2;
+  --color-pink-300: #f386ba;
+  --color-pink-400: #f173ad;
+  --color-pink-500: #ef60a3;
+  --color-pink-600: #d93d89;
+  --color-pink-700: #c42d7b;
+  --color-pink-800: #a02463;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0b1220;
-    --foreground: #e6ecf5;
+    --background: #0e1326;
+    --foreground: #e6e9f2;
   }
 }
 
@@ -47,9 +56,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* 選取色帶品牌感 */
+/* 選取色帶 Translink 粉紅感 */
 ::selection {
-  background: color-mix(in srgb, var(--color-brand-500) 28%, transparent);
+  background: color-mix(in srgb, var(--color-pink-500) 30%, transparent);
 }
 
 /* 動效一律尊重 reduced-motion */

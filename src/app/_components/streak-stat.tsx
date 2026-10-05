@@ -38,7 +38,7 @@ export function StreakStat() {
 
   return (
     <div className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+      <p className="text-2xl font-bold text-pink-600 dark:text-pink-400">
         {t('streakStat.current', { days: data.currentStreak })}
       </p>
       <p className="mt-1 text-sm text-zinc-500">{t('streakStat.best', { days: data.longestStreak })}</p>

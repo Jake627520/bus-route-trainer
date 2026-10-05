@@ -31,8 +31,8 @@ export function LanguageSwitcher() {
           aria-pressed={l === current}
           className={
             l === current
-              ? 'rounded px-2 py-1 font-semibold text-zinc-900 dark:text-zinc-100'
-              : 'rounded px-2 py-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
+              ? 'rounded px-2 py-1 font-semibold text-pink-600 underline decoration-2 underline-offset-4 dark:text-pink-400'
+              : 'rounded px-2 py-1 text-zinc-400 transition-colors hover:text-zinc-700 dark:hover:text-zinc-200'
           }
         >
           {t(`lang.${l}`)}
