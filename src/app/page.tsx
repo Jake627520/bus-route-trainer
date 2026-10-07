@@ -10,10 +10,12 @@ import { AuthStatus } from '@/app/_components/auth-status';
 import { HomeHero } from '@/app/_components/home-hero';
 import { T } from '@/app/_components/locale-provider';
 import { ReviewSummaryProvider } from '@/app/_components/review-summary-provider';
+import { PracticeStreakProvider } from '@/app/_components/practice-streak-provider';
 
 export default function Home() {
   return (
     <ReviewSummaryProvider>
+    <PracticeStreakProvider>
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:py-16">
       <header className="mb-8">
         <div className="mb-4 flex justify-end">
@@ -76,6 +78,7 @@ export default function Home() {
         <RouteList />
       </section>
     </main>
+    </PracticeStreakProvider>
     </ReviewSummaryProvider>
   );
 }

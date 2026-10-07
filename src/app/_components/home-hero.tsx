@@ -1,33 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { apiClient } from '@/app/_lib/api-client';
 import { useT } from '@/app/_components/locale-provider';
 import { useReviewSummary } from '@/app/_components/review-summary-provider';
+import { useStreak } from '@/app/_components/practice-streak-provider';
 
 /**
- * Change 36 / 37: 首頁深色漸層 feature 錨點（共用 summary + 自取 streak）。
+ * Change 36 / 37 / 38: 首頁深色漸層 feature 錨點（共用 summary + streak）。
  * Translink 深藍漸層卡（web-layout「深色區塊當強調」），彙總今日待複習數與連續天數，粉紅點綴。
  */
 export function HomeHero() {
   const t = useT();
   const { summary } = useReviewSummary();
-  const [streak, setStreak] = useState<number>(0);
-
-  useEffect(() => {
-    let active = true;
-    apiClient
-      .getPracticeStreak()
-      .then((s) => {
-        if (active) setStreak(s.currentStreak);
-      })
-      .catch(() => {
-        /* 靜默 */
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { streak: streakData } = useStreak();
 
   const loading = summary === null;
   const items = summary ?? [];
@@ -36,7 +20,7 @@ export function HomeHero() {
   const data = {
     totalDue,
     topVariant: top ? { routeId: top.routeId, variantKey: top.variantKey } : null,
-    streak,
+    streak: streakData?.currentStreak ?? 0,
   };
 
   const base =
