@@ -1,30 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { apiClient, type PracticeStreak } from '@/app/_lib/api-client';
 import { useT } from '@/app/_components/locale-provider';
+import { useStreak } from '@/app/_components/practice-streak-provider';
 
 /**
- * Change 22 / 31: 練習連續天數 stat（client component，i18n）。
+ * Change 22 / 31 / 38: 練習連續天數 stat（client，i18n，共用 streak）。
  */
 export function StreakStat() {
   const t = useT();
-  const [data, setData] = useState<PracticeStreak | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    apiClient
-      .getPracticeStreak()
-      .then((d) => {
-        if (active) setData(d);
-      })
-      .catch(() => {
-        /* 靜默 */
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { streak: data } = useStreak();
 
   if (data === null) return null;
 
