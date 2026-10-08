@@ -33,6 +33,16 @@ const en = {
     labelEmail: 'Email (optional, for reset)',
     forgotLink: 'Forgot password?',
   },
+  password: {
+    rulesTitle: 'Password must include:',
+    ruleMinLength: 'At least 8 characters (12 or more recommended)',
+    ruleLowercase: 'A lowercase letter (a–z)',
+    ruleUppercase: 'An uppercase letter (A–Z)',
+    ruleSpecial: 'A special character (! @ # $ % ^ & * …)',
+    ruleDigitOptional: 'Digits are optional',
+    ruleCommon: 'Must not be a commonly used password',
+    tooWeak: 'That password does not meet the requirements below.',
+  },
   forgot: {
     title: 'Reset your password',
     instruction: 'Enter your account email and we’ll send a reset link.',
@@ -229,6 +239,16 @@ const zhTW: Messages = {
     errorNetwork: '網路錯誤，請再試一次',
     labelEmail: 'Email（選填，供日後重設）',
     forgotLink: '忘記密碼？',
+  },
+  password: {
+    rulesTitle: '密碼必須包含：',
+    ruleMinLength: '至少 8 個字元（建議 12 個以上）',
+    ruleLowercase: '至少 1 個小寫字母（a–z）',
+    ruleUppercase: '至少 1 個大寫字母（A–Z）',
+    ruleSpecial: '至少 1 個特殊符號（! @ # $ % ^ & * …）',
+    ruleDigitOptional: '數字為選填',
+    ruleCommon: '不可為常見弱密碼',
+    tooWeak: '這組密碼不符合下列要求。',
   },
   forgot: {
     title: '重設密碼',

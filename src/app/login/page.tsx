@@ -4,9 +4,12 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useT } from '@/app/_components/locale-provider';
+import { PasswordRules } from '@/app/_components/password-rules';
+import type { PasswordRuleCode } from '@/domain/auth/password-policy';
 
 /**
- * Change 25 / 30 / 41: 登入 / 註冊頁（i18n，註冊可填 email、附忘記密碼連結）。
+ * Change 25 / 30 / 41 / 42: 登入 / 註冊頁
+ * （i18n、註冊可填 email、忘記密碼連結、註冊時顯示密碼規則）。
  */
 export default function LoginPage() {
   const router = useRouter();
@@ -17,12 +20,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [failedRules, setFailedRules] = useState<readonly PasswordRuleCode[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setInfo(null);
+    setFailedRules([]);
     setSubmitting(true);
     try {
       const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
@@ -37,7 +42,13 @@ export default function LoginPage() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError((body as { error?: { message?: string } })?.error?.message ?? t('login.errorGeneric'));
+        const err = (body as { error?: { message?: string; code?: string; failedRules?: PasswordRuleCode[] } })?.error;
+        if (err?.code === 'WEAK_PASSWORD') {
+          setFailedRules(err.failedRules ?? []);
+          setError(t('password.tooWeak'));
+          return;
+        }
+        setError(err?.message ?? t('login.errorGeneric'));
         return;
       }
       if (mode === 'login') {
@@ -95,6 +106,8 @@ export default function LoginPage() {
             className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
           />
         </label>
+
+        {mode === 'register' ? <PasswordRules failed={failedRules} /> : null}
 
         {error ? (
           <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>

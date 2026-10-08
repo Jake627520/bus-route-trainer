@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaDriverAccountRepository } from '@/infrastructure/auth/prisma-driver-account-repository';
 import { RegisterDriverUseCase, UsernameTakenError, EmailTakenError } from '@/application/auth/register-driver-use-case';
 import { hashPassword } from '@/infrastructure/auth/password-hasher';
+import { validatePassword, describePasswordPolicy } from '@/domain/auth/password-policy';
 
 const prisma = new PrismaClient();
 const registerUseCase = new RegisterDriverUseCase(new PrismaDriverAccountRepository(prisma), hashPassword);
@@ -23,8 +24,25 @@ export async function POST(request: Request): Promise<NextResponse> {
     password?: unknown;
     email?: unknown;
   };
-  if (typeof username !== 'string' || !username.trim() || typeof password !== 'string' || password.length < 4) {
-    return badRequest('username required and password must be at least 4 characters');
+  if (typeof username !== 'string' || !username.trim()) {
+    return badRequest('username is required');
+  }
+  if (typeof password !== 'string') {
+    return badRequest('password is required');
+  }
+  // Change 42: 密碼強度政策（與 /api/auth/reset 共用同一條規則）
+  const passwordCheck = validatePassword(password);
+  if (!passwordCheck.valid) {
+    return NextResponse.json(
+      {
+        error: {
+          code: 'WEAK_PASSWORD',
+          message: describePasswordPolicy(),
+          failedRules: passwordCheck.failed,
+        },
+      },
+      { status: 400 },
+    );
   }
   // email 選填；若提供須為基本有效格式。
   const emailStr = typeof email === 'string' && email.trim() ? email.trim() : null;
