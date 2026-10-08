@@ -29,11 +29,15 @@ export interface RecallApiClientOptions {
 
 export class RecallApiClient {
   private readonly baseUrl: string;
-  private readonly fetch: typeof fetch;
+  private readonly fetchFn?: typeof fetch;
 
   constructor(options: RecallApiClientOptions = {}) {
     this.baseUrl = options.baseUrl ?? '';
-    this.fetch = options.fetchFn ?? globalThis.fetch;
+    // 只保存注入的 fetchFn（測試用）；預設不在此綁死 globalThis.fetch，
+    // 而是在呼叫時以 globalThis 為 receiver 呼叫，避免瀏覽器丟
+    // "Failed to execute 'fetch' on 'Window': Illegal invocation"
+    // （把原生 fetch 當成本物件的 method 呼叫會改變 receiver）。
+    this.fetchFn = options.fetchFn;
   }
 
   /**
@@ -53,16 +57,21 @@ export class RecallApiClient {
     options: RequestInit,
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
+    const init: RequestInit = {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    };
     let response: Response;
 
     try {
-      response = await this.fetch(url, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
-      });
+      // 注入的 fetchFn 直接呼叫（測試 mock）；否則以 globalThis 為 receiver
+      // 呼叫原生 fetch，確保 receiver 為 Window，避免 Illegal invocation。
+      response = this.fetchFn
+        ? await this.fetchFn(url, init)
+        : await globalThis.fetch(url, init);
     } catch (err: unknown) {
       if (err instanceof SecurityProtocolError) {
         throw err;

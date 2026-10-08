@@ -410,4 +410,27 @@ describe('Change 10 Phase 10.2: RecallApiClient Contract & Error Mapping Tests',
       }
     });
   });
+
+  // 迴歸：未注入 fetchFn 時走原生 fetch，receiver 必須是 globalThis 而非
+  // client 實例，否則瀏覽器會丟 "Illegal invocation"（NETWORK_ERROR）。
+  describe('native fetch invocation (default path)', () => {
+    it('invokes global fetch with globalThis as receiver, never the client instance', async () => {
+      const receivers: unknown[] = [];
+      const spyFetch = vi.fn(function (this: unknown) {
+        receivers.push(this);
+        return Promise.resolve(createMockResponse(200, { data: { session: { id: 's1' } } }));
+      });
+      vi.stubGlobal('fetch', spyFetch);
+      try {
+        // 不提供 fetchFn → 走 globalThis.fetch 分支
+        const defaultClient = new RecallApiClient({ baseUrl: 'https://test.local' });
+        await defaultClient.getSessionState('s1');
+        expect(spyFetch).toHaveBeenCalledTimes(1);
+        expect(receivers[0]).toBe(globalThis);
+        expect(receivers[0]).not.toBe(defaultClient);
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    });
+  });
 });
