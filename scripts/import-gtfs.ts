@@ -10,7 +10,7 @@ async function main(): Promise<void> {
   const feedDirArg = positional[0];
   if (!feedDirArg) {
     console.error('Error: Please provide the GTFS feed directory path as an argument.');
-    console.error('Usage: npx tsx scripts/import-gtfs.ts <path-to-gtfs-feed-dir> [--bus-only] [--route-types=3,4]');
+    console.error('Usage: npx tsx scripts/import-gtfs.ts <feed-dir> [--bus-only] [--route-types=3,4] [--max-routes=N] [--clear] [--tx-timeout-ms=N]');
     process.exit(1);
   }
 
@@ -50,6 +50,18 @@ async function main(): Promise<void> {
   const prisma = new PrismaClient();
   const repository = new PrismaGtfsRepository(prisma);
   const useCase = new ImportGtfsUseCase(repository);
+
+  // --clear：匯入前清空 gtfs 資料表（用於整份 feed 重新整理；driver 進度為 soft ref，不受影響）。
+  if (flags.includes('--clear')) {
+    console.log('[GTFS Importer] clearing existing GTFS tables…');
+    await prisma.gtfsStopTime.deleteMany();
+    await prisma.gtfsTrip.deleteMany();
+    await prisma.gtfsStop.deleteMany();
+    await prisma.gtfsRoute.deleteMany();
+    await prisma.gtfsCalendarDate.deleteMany();
+    await prisma.gtfsCalendar.deleteMany();
+    await prisma.gtfsAgency.deleteMany();
+  }
 
   const filter =
     routeTypes || maxRoutes
