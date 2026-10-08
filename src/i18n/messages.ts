@@ -61,6 +61,14 @@ const en = {
     searchPlaceholder: 'Search routes (number or name)',
     noMatch: 'No matching routes.',
   },
+  mode: {
+    all: 'All',
+    bus: 'Bus',
+    train: 'Train',
+    ferry: 'Ferry',
+    other: 'Other',
+    filterLabel: 'Filter by mode',
+  },
   reviewNotifier: {
     notifTitle: 'Review reminder',
     notifBody: 'You have {count} cards to review',
@@ -230,6 +238,14 @@ const zhTW: Messages = {
     searchAria: '搜尋路線',
     searchPlaceholder: '搜尋路線（號碼或名稱）',
     noMatch: '找不到符合的路線。',
+  },
+  mode: {
+    all: '全部',
+    bus: '公車',
+    train: '火車',
+    ferry: '渡輪',
+    other: '其他',
+    filterLabel: '依模式篩選',
   },
   reviewNotifier: {
     notifTitle: '待複習提醒',

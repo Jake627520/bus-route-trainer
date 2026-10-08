@@ -112,4 +112,28 @@ describe('Change 07: RouteList', () => {
     expect(screen.getByText(/找不到符合的路線/)).toBeInTheDocument();
     expect(screen.getByRole('searchbox', { name: /搜尋路線/ })).toBeInTheDocument();
   });
+
+  it('Change 39: shows mode filter and filters by mode when multiple modes present', async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonRes(200, {
+        data: [
+          { id: 'B1', shortName: '100', longName: 'City Bus', routeType: 3 },
+          { id: 'T1', shortName: 'SHORN', longName: 'Shorncliffe Line', routeType: 2 },
+          { id: 'F1', shortName: 'F1', longName: 'CityCat', routeType: 4 },
+        ],
+      })
+    );
+    renderZh(<RouteList />);
+    await screen.findByText('City Bus');
+
+    // 三種模式都在 → 顯示模式篩選（全部/公車/火車/渡輪）
+    const trainChip = screen.getByRole('button', { name: /^火車$/ });
+    expect(screen.getByRole('button', { name: /^全部$/ })).toBeInTheDocument();
+
+    // 點「火車」只剩 train
+    fireEvent.click(trainChip);
+    expect(screen.getByText('Shorncliffe Line')).toBeInTheDocument();
+    expect(screen.queryByText('City Bus')).not.toBeInTheDocument();
+    expect(screen.queryByText('CityCat')).not.toBeInTheDocument();
+  });
 });

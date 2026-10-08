@@ -11,6 +11,20 @@ type State =
   | { phase: 'error'; message: string }
   | { phase: 'ready'; routes: RouteSummary[] };
 
+/** route_type → 模式 key（3=公車、2=火車、4=渡輪，其餘=其他）。 */
+type ModeKey = 'bus' | 'train' | 'ferry' | 'other';
+const MODE_BY_TYPE: Record<number, ModeKey> = { 3: 'bus', 2: 'train', 4: 'ferry' };
+function modeKeyOf(routeType: number): ModeKey {
+  return MODE_BY_TYPE[routeType] ?? 'other';
+}
+const MODE_TAG: Record<ModeKey, string> = {
+  bus: 'bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-200',
+  train: 'bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-200',
+  ferry: 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-200',
+  other: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300',
+};
+const MODE_ORDER: ModeKey[] = ['bus', 'train', 'ferry', 'other'];
+
 /**
  * Change 07: 路線列表（client component）。
  * 載入中 / 成功（渲染 shortName + longName，可點進 variants）/ 空清單 / 錯誤 四態。
@@ -20,6 +34,7 @@ export function RouteList() {
   const t = useT();
   const [state, setState] = useState<State>({ phase: 'loading' });
   const [query, setQuery] = useState('');
+  const [mode, setMode] = useState<ModeKey | 'all'>('all');
 
   useEffect(() => {
     let active = true;
@@ -65,15 +80,37 @@ export function RouteList() {
   }
 
   const q = query.trim().toLowerCase();
-  const filtered = q
-    ? state.routes.filter(
-        (r) =>
-          r.shortName.toLowerCase().includes(q) || r.longName.toLowerCase().includes(q)
-      )
-    : state.routes;
+  const filtered = state.routes.filter((r) => {
+    const matchQ = !q || r.shortName.toLowerCase().includes(q) || r.longName.toLowerCase().includes(q);
+    const matchMode = mode === 'all' || modeKeyOf(r.routeType) === mode;
+    return matchQ && matchMode;
+  });
+
+  // 只顯示資料中實際存在的模式（避免出現空的 train/ferry 分頁）。
+  const presentModes = MODE_ORDER.filter((m) => state.routes.some((r) => modeKeyOf(r.routeType) === m));
+  const showModeFilter = presentModes.length > 1;
 
   return (
     <div className="flex flex-col gap-3">
+      {showModeFilter ? (
+        <div role="group" aria-label={t('mode.filterLabel')} className="flex flex-wrap gap-2">
+          {(['all', ...presentModes] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMode(m)}
+              aria-pressed={mode === m}
+              className={
+                mode === m
+                  ? 'rounded-full bg-brand-600 px-3 py-1 text-xs font-semibold text-white dark:bg-brand-500'
+                  : 'rounded-full border border-zinc-300 px-3 py-1 text-xs font-medium text-zinc-600 transition-colors hover:border-brand-300 hover:text-brand-700 dark:border-zinc-700 dark:text-zinc-300'
+              }
+            >
+              {t(`mode.${m}`)}
+            </button>
+          ))}
+        </div>
+      ) : null}
       <input
         type="search"
         aria-label={t('routeList.searchAria')}
@@ -97,7 +134,14 @@ export function RouteList() {
                 <span className="inline-flex min-w-[3rem] justify-center rounded-md bg-brand-600 px-2 py-1 text-sm font-bold text-white dark:bg-brand-500">
                   {route.shortName}
                 </span>
-                <span className="text-zinc-800 dark:text-zinc-200">{route.longName}</span>
+                <span className="min-w-0 flex-1 truncate text-zinc-800 dark:text-zinc-200">
+                  {route.longName}
+                </span>
+                <span
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${MODE_TAG[modeKeyOf(route.routeType)]}`}
+                >
+                  {t(`mode.${modeKeyOf(route.routeType)}`)}
+                </span>
               </Link>
             </li>
           ))}

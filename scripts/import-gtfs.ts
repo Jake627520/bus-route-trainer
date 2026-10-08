@@ -33,10 +33,17 @@ async function main(): Promise<void> {
     ? Number(txTimeoutFlag.slice('--tx-timeout-ms='.length))
     : 1_800_000; // 30 分鐘
 
+  // 最多保留幾條路線（train 子集用，避免爆容量）。
+  const maxRoutesFlag = flags.find((f) => f.startsWith('--max-routes='));
+  const maxRoutes = maxRoutesFlag ? Number(maxRoutesFlag.slice('--max-routes='.length)) : undefined;
+
   const feedDirPath = path.resolve(process.cwd(), feedDirArg);
   console.log(`[GTFS Importer] Initialising import from: ${feedDirPath}`);
   if (routeTypes) {
     console.log(`[GTFS Importer] route_type filter: [${routeTypes.join(', ')}]`);
+  }
+  if (maxRoutes) {
+    console.log(`[GTFS Importer] max routes: ${maxRoutes}`);
   }
   console.log(`[GTFS Importer] transaction timeout: ${timeoutMs} ms`);
 
@@ -44,11 +51,16 @@ async function main(): Promise<void> {
   const repository = new PrismaGtfsRepository(prisma);
   const useCase = new ImportGtfsUseCase(repository);
 
+  const filter =
+    routeTypes || maxRoutes
+      ? { ...(routeTypes ? { routeTypes } : {}), ...(maxRoutes ? { maxRoutes } : {}) }
+      : undefined;
+
   try {
     const report = await useCase.execute(
       feedDirPath,
       { timeoutMs, maxWaitMs: 30_000 },
-      routeTypes ? { routeTypes } : undefined
+      filter
     );
     console.log('\n[GTFS Importer] Import completed successfully.');
     console.log('--------------------------------------------------');
