@@ -127,7 +127,16 @@ export class PrismaSubmitSessionAnswerAdapter implements SubmitSessionAnswerPort
           if (card.cardKey.startsWith('NEXT_STOP::')) {
             defaultRecallMode = RecallMode.NEXT_STOP_FORWARD;
             const parts = card.cardKey.replace('NEXT_STOP::', '').split('->');
-            expectedAnswer = parts[1] ?? '';
+            // Change 43: 答案改為「下一站的站名」。原本直接用 parts[1]（原始 stop ID），
+            // 但畫面提示的是站名、欄位也寫 Enter Next Stop，等於要人輸入看不到的代碼。
+            const nextStopId = parts[1] ?? '';
+            const nextStop = nextStopId
+              ? await tx.gtfsStop.findUnique({
+                  where: { id: nextStopId },
+                  select: { name: true },
+                })
+              : null;
+            expectedAnswer = nextStop?.name ?? nextStopId;
           } else if (card.cardKey.startsWith('STOP::')) {
             defaultRecallMode = RecallMode.STOP_NAME_RECOGNITION;
             const stopId = card.cardKey.replace('STOP::', '');
