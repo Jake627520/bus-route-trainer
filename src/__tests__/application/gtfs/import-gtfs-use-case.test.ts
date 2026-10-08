@@ -150,5 +150,33 @@ describe('ImportGtfsUseCase (Pass 1 Streaming Validation + Pass 2 Atomic Persist
       expect(report.tripsCount).toBe(3);
       expect(report.stopTimesCount).toBe(6);
     });
+
+    // Change 39: ferry（route_type=4）與 maxRoutes 子集。
+    it('imports only ferry routes when routeTypes=[4]', async () => {
+      const report = await useCase.execute(mixedModesFeedDir, undefined, { routeTypes: [4] });
+      expect(report.routesCount).toBe(1);
+      const routes = await prisma.gtfsRoute.findMany();
+      expect(routes.map((r) => r.id)).toEqual(['FERRY1']);
+      expect(routes[0].routeType).toBe(4);
+    });
+
+    it('caps routes with maxRoutes (train subset use-case)', async () => {
+      // fixture routes.txt 順序：BUS1, FERRY1, TRAIN1 → maxRoutes=2 取前兩條
+      const report = await useCase.execute(mixedModesFeedDir, undefined, { maxRoutes: 2 });
+      expect(report.routesCount).toBe(2);
+      const routes = await prisma.gtfsRoute.findMany({ orderBy: { id: 'asc' } });
+      expect(routes.map((r) => r.id)).toEqual(['BUS1', 'FERRY1']);
+      // 只保留這兩條的 trips/stop_times（TRAIN1 的不進）
+      const trips = await prisma.gtfsTrip.findMany();
+      expect(trips.map((t) => t.id).sort()).toEqual(['TBUS', 'TFERRY']);
+    });
+
+    it('combines routeTypes and maxRoutes', async () => {
+      // route_type=2(train) 只有 TRAIN1，maxRoutes=5 不影響
+      const report = await useCase.execute(mixedModesFeedDir, undefined, { routeTypes: [2], maxRoutes: 5 });
+      expect(report.routesCount).toBe(1);
+      const routes = await prisma.gtfsRoute.findMany();
+      expect(routes.map((r) => r.id)).toEqual(['TRAIN1']);
+    });
   });
 });
