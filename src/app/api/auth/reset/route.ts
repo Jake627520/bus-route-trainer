@@ -5,6 +5,7 @@ import { ResetPasswordUseCase, InvalidResetTokenError } from '@/application/auth
 import { hashResetToken } from '@/infrastructure/auth/reset-token';
 import { hashPassword } from '@/infrastructure/auth/password-hasher';
 import { SystemClock } from '@/application/common/clock';
+import { validatePassword, describePasswordPolicy } from '@/domain/auth/password-policy';
 
 const prisma = new PrismaClient();
 const useCase = new ResetPasswordUseCase(new PrismaDriverAccountRepository(prisma), new SystemClock());
@@ -21,8 +22,25 @@ export async function POST(request: Request): Promise<NextResponse> {
     return badRequest('Request body must be valid JSON');
   }
   const { token, password } = (body ?? {}) as { token?: unknown; password?: unknown };
-  if (typeof token !== 'string' || !token.trim() || typeof password !== 'string' || password.length < 4) {
-    return badRequest('token required and password must be at least 4 characters');
+  if (typeof token !== 'string' || !token.trim()) {
+    return badRequest('token is required');
+  }
+  if (typeof password !== 'string') {
+    return badRequest('password is required');
+  }
+  // Change 42: 重設密碼同樣套用密碼強度政策，避免繞過註冊時的檢查
+  const passwordCheck = validatePassword(password);
+  if (!passwordCheck.valid) {
+    return NextResponse.json(
+      {
+        error: {
+          code: 'WEAK_PASSWORD',
+          message: describePasswordPolicy(),
+          failedRules: passwordCheck.failed,
+        },
+      },
+      { status: 400 },
+    );
   }
   const { hash, salt } = await hashPassword(password);
   try {

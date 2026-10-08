@@ -4,9 +4,12 @@ import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useT } from '@/app/_components/locale-provider';
+import { PasswordRules } from '@/app/_components/password-rules';
+import type { PasswordRuleCode } from '@/domain/auth/password-policy';
 
 /**
- * Change 41: 密碼重設頁。讀 ?token=，填新密碼 → POST /api/auth/reset。
+ * Change 41 / 42: 密碼重設頁。讀 ?token=，填新密碼 → POST /api/auth/reset。
+ * 顯示密碼規則，並在伺服器回報 WEAK_PASSWORD 時標出未通過項目。
  * useSearchParams 需包在 Suspense 內（Next 16 App Router）。
  */
 function ResetPasswordInner() {
@@ -15,12 +18,14 @@ function ResetPasswordInner() {
   const token = searchParams.get('token') ?? '';
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [failedRules, setFailedRules] = useState<readonly PasswordRuleCode[]>([]);
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFailedRules([]);
     if (!token) {
       setError(t('reset.missingToken'));
       return;
@@ -33,6 +38,13 @@ function ResetPasswordInner() {
         body: JSON.stringify({ token, password }),
       });
       if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        const err = (body as { error?: { code?: string; failedRules?: PasswordRuleCode[] } })?.error;
+        if (err?.code === 'WEAK_PASSWORD') {
+          setFailedRules(err.failedRules ?? []);
+          setError(t('password.tooWeak'));
+          return;
+        }
         setError(t('reset.invalidToken'));
         return;
       }
@@ -64,10 +76,12 @@ function ResetPasswordInner() {
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
               required
-              minLength={4}
+              minLength={8}
               className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
             />
           </label>
+
+          <PasswordRules failed={failedRules} />
 
           {error ? (
             <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>

@@ -23,21 +23,30 @@ describe('auth API', () => {
     });
 
   it('registers a new driver (201) and rejects duplicate (409) / bad input (400)', async () => {
-    const ok = await register(jreq({ username: 'alice', password: 'secret1' }));
+    const ok = await register(jreq({ username: 'alice', password: 'Secret#1a' }));
     expect(ok.status).toBe(201);
     expect((await ok.json()).data).toMatchObject({ username: 'alice' });
 
-    const dup = await register(jreq({ username: 'alice', password: 'secret2' }));
+    const dup = await register(jreq({ username: 'alice', password: 'Secret#2b' }));
     expect(dup.status).toBe(409);
 
     const bad = await register(jreq({ username: 'x', password: '1' }));
     expect(bad.status).toBe(400);
   });
 
-  it('logs in with correct credentials (200 + session cookie), rejects wrong (401)', async () => {
-    await register(jreq({ username: 'bob', password: 'goodpass' }));
+  // Change 42: 密碼強度政策
+  it('rejects a weak password with WEAK_PASSWORD and the failed rule list', async () => {
+    const res = await register(jreq({ username: 'weakuser', password: 'password123' }));
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error.code).toBe('WEAK_PASSWORD');
+    expect(body.error.failedRules).toEqual(expect.arrayContaining(['UPPERCASE', 'SPECIAL']));
+  });
 
-    const good = await login(jreq({ username: 'bob', password: 'goodpass' }));
+  it('logs in with correct credentials (200 + session cookie), rejects wrong (401)', async () => {
+    await register(jreq({ username: 'bob', password: 'GoodPass#9' }));
+
+    const good = await login(jreq({ username: 'bob', password: 'GoodPass#9' }));
     expect(good.status).toBe(200);
     expect(good.headers.get('set-cookie') ?? '').toContain(`${SESSION_COOKIE}=`);
 
