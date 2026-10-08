@@ -1,17 +1,19 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useT } from '@/app/_components/locale-provider';
 
 /**
- * Change 25 / 30: 登入 / 註冊頁（i18n）。成功登入 → 導向首頁；註冊成功 → 切換登入模式提示。
+ * Change 25 / 30 / 41: 登入 / 註冊頁（i18n，註冊可填 email、附忘記密碼連結）。
  */
 export default function LoginPage() {
   const router = useRouter();
   const t = useT();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -24,10 +26,14 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
+      const payload =
+        mode === 'register' && email.trim()
+          ? { username, password, email: email.trim() }
+          : { username, password };
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify(payload),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -66,6 +72,18 @@ export default function LoginPage() {
             className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
           />
         </label>
+        {mode === 'register' ? (
+          <label className="flex flex-col gap-1 text-sm text-zinc-700 dark:text-zinc-300">
+            {t('login.labelEmail')}
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+            />
+          </label>
+        ) : null}
         <label className="flex flex-col gap-1 text-sm text-zinc-700 dark:text-zinc-300">
           {t('login.labelPassword')}
           <input
@@ -105,6 +123,15 @@ export default function LoginPage() {
       >
         {mode === 'login' ? t('login.switchToRegister') : t('login.switchToLogin')}
       </button>
+
+      {mode === 'login' ? (
+        <Link
+          href="/forgot"
+          className="mt-2 text-sm text-zinc-500 underline-offset-2 hover:text-brand-600 hover:underline dark:text-zinc-400 dark:hover:text-brand-400"
+        >
+          {t('login.forgotLink')}
+        </Link>
+      ) : null}
     </main>
   );
 }
