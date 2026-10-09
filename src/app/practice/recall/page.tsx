@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { parseQueue } from '@/app/_lib/practice-queue';
+import { parseVariantKey } from '@/domain/route/route-variant';
 import { useRecallSession } from '@/application/recall/client/use-recall-session';
 import {
   Button,
@@ -76,6 +77,22 @@ function RecallPracticeInner() {
     setBatchIndex(next);
     startSession({ routeId: queue[next].routeId, variantKey: queue[next].variantKey });
   };
+
+  // Change 43: 標題列只顯示「路線 · 方向 · 站數」，
+  // 不再把整串 variantKey（真實路線有 60+ 個站牌代碼）攤在畫面上。
+  const variantSummary = useMemo(() => {
+    const key = session?.targetVariantKey;
+    if (!key) return session?.routeId ?? '';
+    const parsed = parseVariantKey(key);
+    if (!parsed) return `${session?.routeId ?? ''} • ${key}`;
+    const direction =
+      parsed.directionId === 0
+        ? t('common.directionOutbound')
+        : parsed.directionId === 1
+          ? t('common.directionInbound')
+          : t('common.directionOther', { id: parsed.directionId });
+    return `${parsed.routeId} • ${direction} • ${t('recall.stopCount', { count: parsed.stopIds.length })}`;
+  }, [session?.targetVariantKey, session?.routeId, t]);
 
   // Input state for active question
   const [rawInput, setRawInput] = useState('');
@@ -240,7 +257,7 @@ function RecallPracticeInner() {
                 {currentPrompt.recallMode === 'NEXT_STOP_FORWARD' ? t('recall.modeNextStop') : t('recall.modeStation')}
               </Badge>
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                {session?.routeId} • {session?.targetVariantKey}
+                {variantSummary}
               </span>
             </div>
 

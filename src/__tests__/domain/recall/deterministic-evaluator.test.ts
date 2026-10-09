@@ -64,10 +64,12 @@ describe('DeterministicRecallEvaluator & normalizeStopName', () => {
       ).toBe(RecallOutcome.FAIL);
     });
 
-    it('strictly avoids case-folding stopId if case matters, or enforces exact match', () => {
+    // Change 43: next-stop 改為比對「站名」並套用寬鬆正規化，
+    // 因此大小寫不再有意義（原本比對原始 stop ID 時才需要區分）。
+    it('is case-insensitive now that it compares stop names', () => {
       expect(
         evaluator.evaluate(RecallMode.NEXT_STOP_FORWARD, 'STOP_123', 'stop_123'),
-      ).toBe(RecallOutcome.FAIL);
+      ).toBe(RecallOutcome.PASS);
     });
   });
 
