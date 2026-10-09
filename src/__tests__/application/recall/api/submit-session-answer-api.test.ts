@@ -113,6 +113,8 @@ describe('Phase 4: POST /api/recall/sessions/[id]/answer Integration Tests', () 
 
     const json = await res.json();
     expect(json.data).toBeDefined();
+    // Change 44: 答對時不需要（也不回傳）正確答案
+    expect(json.data.correctAnswer).toBeUndefined();
     expect(json.data.outcome).toBe(RecallOutcome.PASS);
     expect(json.data.promptIndex).toBe(0);
     expect(json.data.isSessionCompleted).toBe(false);
@@ -148,6 +150,10 @@ describe('Phase 4: POST /api/recall/sessions/[id]/answer Integration Tests', () 
     expect(json.data.outcome).toBe(RecallOutcome.FAIL);
     expect(json.data.promptIndex).toBe(0);
     expect(json.data.resultingSrsLevel).toBe(0);
+
+    // Change 44: 答錯時回傳正確答案供畫面顯示
+    expect(json.data.correctAnswer).toBeDefined();
+    expect(['Stop 100', 'Stop 200']).toContain(json.data.correctAnswer);
   });
 
   it('3. returns 200 OK and completes session on final card submission', async () => {

@@ -61,6 +61,11 @@ export interface SubmitSessionAnswerResult {
   readonly resultingState: CardState;
   readonly resultingSrsLevel: number;
   readonly isDuplicate: boolean;
+  /**
+   * Change 44: 答錯時回傳正確答案供畫面顯示。
+   * 僅在 outcome 為 FAIL 時提供——作答前的 prompt API 仍絕不外傳答案。
+   */
+  readonly correctAnswer?: string;
 }
 
 export class SubmitSessionAnswerUseCase {
@@ -100,6 +105,9 @@ export class SubmitSessionAnswerUseCase {
             resultingState: existingAttempt.resultingState,
             resultingSrsLevel: existingAttempt.resultingSrsLevel,
             isDuplicate: true,
+            ...(existingAttempt.outcome === RecallOutcome.FAIL
+              ? { correctAnswer: existingAttempt.expectedAnswer }
+              : {}),
           };
         } else {
           // Divergent submission identity -> ROLLBACK and throw IdempotencyConflictError
@@ -208,6 +216,7 @@ export class SubmitSessionAnswerUseCase {
         resultingState: decision.nextState,
         resultingSrsLevel: decision.nextSrsLevel,
         isDuplicate: false,
+        ...(outcome === RecallOutcome.FAIL ? { correctAnswer: expectedAnswer } : {}),
       };
     });
   }
