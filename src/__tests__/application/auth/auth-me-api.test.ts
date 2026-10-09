@@ -21,8 +21,8 @@ describe('GET /api/auth/me', () => {
     });
 
   it('returns the logged-in driver for a valid session cookie', async () => {
-    await register(jreq({ username: 'alice', password: 'secret1' }));
-    const loginRes = await login(jreq({ username: 'alice', password: 'secret1' }));
+    await register(jreq({ username: 'alice', password: 'Secret#1a' }));
+    const loginRes = await login(jreq({ username: 'alice', password: 'Secret#1a' }));
     const setCookie = loginRes.headers.get('set-cookie') ?? '';
     const cookie = setCookie.split(';')[0]; // brt_session=...
 

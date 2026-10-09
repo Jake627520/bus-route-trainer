@@ -66,4 +66,29 @@ describe('Change 25: LoginPage', () => {
     await waitFor(() => expect(mockFetch).toHaveBeenCalled());
     expect(String(mockFetch.mock.calls[0][0])).toContain('/api/auth/register');
   });
+
+  // Change 41: 註冊可帶 email、登入頁有忘記密碼連結
+  it('includes the optional email in the register payload when provided', async () => {
+    mockFetch.mockResolvedValueOnce(jsonRes(201, { data: { id: 'd3', username: 'cara' } }));
+    renderLogin();
+
+    fireEvent.click(screen.getByRole('button', { name: /註冊/ }));
+    fireEvent.change(screen.getByLabelText(/帳號/), { target: { value: 'cara' } });
+    fireEvent.change(screen.getByLabelText(/Email/), { target: { value: 'cara@x.com' } });
+    fireEvent.change(screen.getByLabelText(/密碼/), { target: { value: 'secret1' } });
+    fireEvent.click(screen.getByRole('button', { name: /建立帳號/ }));
+
+    await waitFor(() => expect(mockFetch).toHaveBeenCalled());
+    expect(JSON.parse((mockFetch.mock.calls[0][1] as RequestInit).body as string)).toEqual({
+      username: 'cara',
+      password: 'secret1',
+      email: 'cara@x.com',
+    });
+  });
+
+  it('shows a forgot-password link in login mode', () => {
+    renderLogin();
+    const link = screen.getByRole('link', { name: /忘記密碼/ });
+    expect(link).toHaveAttribute('href', '/forgot');
+  });
 });

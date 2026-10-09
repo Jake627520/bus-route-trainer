@@ -51,3 +51,28 @@ export function groupTripsIntoRouteVariants(
 
   return Array.from(variantMap.values());
 }
+
+/**
+ * Change 43: 解析 variantKey（`<routeId>_DIR<n>_<stopId>>...`）。
+ * routeId 本身可能含底線以外的符號（例如 `123-4948`），
+ * 因此以最後一個 `_DIR<n>_` 作為切點，而非從左切。
+ * 格式不符時回傳 null，呼叫端自行退回顯示原字串。
+ */
+export interface ParsedVariantKey {
+  routeId: string;
+  directionId: number;
+  stopIds: string[];
+}
+
+export function parseVariantKey(variantKey: string): ParsedVariantKey | null {
+  if (typeof variantKey !== 'string' || variantKey.length === 0) return null;
+  const match = /^(.*)_DIR(\d+)_(.*)$/.exec(variantKey);
+  if (!match) return null;
+  const [, routeId, dir, stops] = match;
+  if (!routeId || !stops) return null;
+  return {
+    routeId,
+    directionId: Number(dir),
+    stopIds: stops.split('>').filter(Boolean),
+  };
+}
