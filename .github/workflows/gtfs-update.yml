@@ -1,0 +1,83 @@
+name: GTFS Weekly Update
+
+# Change 40: 每週自動更新 SEQ GTFS 資料到 Neon。
+# Translink 每週（約週五）發佈新 feed。此排程在週日（Brisbane）下載、比對版本，有更新才重灌。
+# 需要 repo secret：GTFS_DATABASE_URL = Neon 的 direct 連線字串（非 pooled）。
+
+on:
+  schedule:
+    - cron: '0 20 * * 6' # 週六 20:00 UTC ≈ 週日 06:00 Brisbane
+  workflow_dispatch: {} # 可手動觸發（第一次測試用）
+
+permissions:
+  contents: write # 更新版本標記檔並 commit
+
+concurrency:
+  group: gtfs-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npx prisma generate
+
+      - name: Download SEQ GTFS feed
+        run: |
+          curl -sSL "https://gtfsrt.api.translink.com.au/GTFS/SEQ_GTFS.zip" -o seq_gtfs.zip
+          mkdir -p seq_gtfs
+          unzip -o -q seq_gtfs.zip -d seq_gtfs
+          ls -la seq_gtfs | head
+
+      - name: Determine feed version & whether changed
+        id: ver
+        run: |
+          # feed_info.txt: feed_publisher_name,feed_publisher_url,feed_lang,feed_start_date,feed_end_date
+          NEW=$(awk -F',' 'NR==2 {print $4"-"$5}' seq_gtfs/feed_info.txt)
+          OLD=$(cat .github/gtfs-feed-version 2>/dev/null || echo none)
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          echo "old=$OLD" >> "$GITHUB_OUTPUT"
+          if [ "$NEW" = "$OLD" ]; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT"; fi
+          echo "feed version: new=$NEW old=$OLD"
+
+      - name: Import to Neon (bus + ferry + train subset)
+        if: steps.ver.outputs.changed == 'true'
+        env:
+          GTFS_DATABASE_URL: ${{ secrets.GTFS_DATABASE_URL }}
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: |
+          if [ -z "$GTFS_DATABASE_URL" ]; then
+            echo "::error::GTFS_DATABASE_URL secret is not set (Neon direct URL). Add it in repo Settings → Secrets."
+            exit 1
+          fi
+          export DATABASE_URL="$GTFS_DATABASE_URL"
+          export DIRECT_URL="$GTFS_DATABASE_URL"
+          # bus（全）：--clear 先清空整份 gtfs 再灌
+          npx tsx scripts/import-gtfs.ts ./seq_gtfs --clear --route-types=3 --tx-timeout-ms=1800000
+          # ferry（全）
+          npx tsx scripts/import-gtfs.ts ./seq_gtfs --route-types=4 --tx-timeout-ms=600000
+          # train 子集（50 條，控制在 Neon 1GB 內）
+          npx tsx scripts/import-gtfs.ts ./seq_gtfs --route-types=2 --max-routes=50 --tx-timeout-ms=600000
+
+      - name: Commit new feed-version marker
+        if: steps.ver.outputs.changed == 'true'
+        run: |
+          echo "${{ steps.ver.outputs.new }}" > .github/gtfs-feed-version
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/gtfs-feed-version
+          git commit -m "chore(gtfs): update feed version to ${{ steps.ver.outputs.new }}" || echo "no change to commit"
+          git push
+
+      - name: No update needed
+        if: steps.ver.outputs.changed == 'false'
+        run: echo "Feed version unchanged (${{ steps.ver.outputs.old }}); skipping import."
