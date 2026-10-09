@@ -165,6 +165,8 @@ describe('Phase 3: GET /api/recall/sessions/[id]/prompt Integration Tests', () =
     const prompt = json.data.prompt;
 
     expect(prompt).not.toHaveProperty('expectedAnswer');
+    // Change 44: 新增的揭露欄位同樣不得出現在作答前的 prompt 回應
+    expect(prompt).not.toHaveProperty('correctAnswer');
     expect(prompt).not.toHaveProperty('answer');
     expect(prompt).not.toHaveProperty('target');
 

@@ -95,6 +95,8 @@ export interface SubmitSessionAnswerResponseData {
   readonly resultingState: CardState;
   readonly resultingSrsLevel: number;
   readonly isDuplicate: boolean;
+  /** Change 44: 僅在答錯（FAIL）時由伺服器提供。 */
+  readonly correctAnswer?: string;
 }
 
 /**

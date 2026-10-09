@@ -96,6 +96,8 @@ function RecallPracticeInner() {
 
   // Input state for active question
   const [rawInput, setRawInput] = useState('');
+  // Change 44: 答錯時要和正確答案並列顯示，所以留住這次送出的內容。
+  const [lastAnswer, setLastAnswer] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Autofocus input when a new prompt arrives in ACTIVE state
@@ -137,6 +139,7 @@ function RecallPracticeInner() {
     if (!rawInput.trim() || viewState !== 'ACTIVE') return;
     const answer = rawInput.trim();
     setRawInput('');
+    setLastAnswer(answer);
     submitAnswer(answer);
   };
 
@@ -345,6 +348,22 @@ function RecallPracticeInner() {
                 </p>
               </div>
             </div>
+
+            {lastOutcome.outcome === 'FAIL' && lastOutcome.correctAnswer ? (
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/60">
+                {lastAnswer ? (
+                  <p className="text-sm text-zinc-500 line-through dark:text-zinc-400">
+                    {t('recall.yourAnswerLabel')}: {lastAnswer}
+                  </p>
+                ) : null}
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                  {t('recall.correctAnswerLabel')}
+                </p>
+                <p className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+                  {lastOutcome.correctAnswer}
+                </p>
+              </div>
+            ) : null}
 
             <Button onClick={nextPrompt} size="lg" className="w-full">
               {t('recall.nextQuestion')}
