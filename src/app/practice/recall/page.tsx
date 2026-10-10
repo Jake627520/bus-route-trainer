@@ -94,6 +94,33 @@ function RecallPracticeInner() {
     return `${parsed.routeId} • ${direction} • ${t('recall.stopCount', { count: parsed.stopIds.length })}`;
   }, [session?.targetVariantKey, session?.routeId, t]);
 
+  // Change 45: 依題型決定標籤（路口填空 / 站號 / 預測下一站 / 辨識站名）
+  const mode = currentPrompt?.recallMode;
+  const modeLabel =
+    mode === 'NEXT_STOP_FORWARD'
+      ? t('recall.modeNextStop')
+      : mode === 'CROSS_STREET_RECALL'
+        ? t('recall.modeCrossStreet')
+        : mode === 'STOP_NUMBER_RECALL'
+          ? t('recall.modeStopNumber')
+          : t('recall.modeStation');
+  const hintLabel =
+    mode === 'NEXT_STOP_FORWARD'
+      ? t('recall.hintCurrentStop')
+      : mode === 'CROSS_STREET_RECALL'
+        ? t('recall.hintCrossStreet')
+        : mode === 'STOP_NUMBER_RECALL'
+          ? t('recall.hintStopNumber')
+          : t('recall.hintReference');
+  const answerLabel =
+    mode === 'NEXT_STOP_FORWARD'
+      ? t('recall.labelEnterNextStop')
+      : mode === 'CROSS_STREET_RECALL'
+        ? t('recall.labelEnterCrossStreet')
+        : mode === 'STOP_NUMBER_RECALL'
+          ? t('recall.labelEnterStopNumber')
+          : t('recall.labelEnterStop');
+
   // Input state for active question
   const [rawInput, setRawInput] = useState('');
   // Change 44: 答錯時要和正確答案並列顯示，所以留住這次送出的內容。
@@ -257,7 +284,7 @@ function RecallPracticeInner() {
 
             <div className="flex items-center justify-between">
               <Badge variant={currentPrompt.recallMode === 'NEXT_STOP_FORWARD' ? 'blue' : 'purple'}>
-                {currentPrompt.recallMode === 'NEXT_STOP_FORWARD' ? t('recall.modeNextStop') : t('recall.modeStation')}
+                {modeLabel}
               </Badge>
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
                 {variantSummary}
@@ -266,7 +293,7 @@ function RecallPracticeInner() {
 
             <div className="bg-zinc-100 dark:bg-zinc-800/60 p-5 rounded-xl border border-zinc-200 dark:border-zinc-700/60">
               <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">
-                {currentPrompt.recallMode === 'NEXT_STOP_FORWARD' ? t('recall.hintCurrentStop') : t('recall.hintReference')}
+                {hintLabel}
               </p>
               <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
                 {currentPrompt.givenReference}
@@ -276,7 +303,7 @@ function RecallPracticeInner() {
             <form onSubmit={handleSubmitAnswer} className="space-y-4">
               <TextInput
                 ref={inputRef}
-                label={currentPrompt.recallMode === 'NEXT_STOP_FORWARD' ? t('recall.labelEnterNextStop') : t('recall.labelEnterStop')}
+                label={answerLabel}
                 placeholder={t('recall.placeholderAnswer')}
                 value={rawInput}
                 onChange={(e) => setRawInput(e.target.value)}

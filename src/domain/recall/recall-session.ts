@@ -7,6 +7,10 @@ export enum SessionStatus {
 export enum RecallMode {
   NEXT_STOP_FORWARD = 'NEXT_STOP_FORWARD',
   STOP_NAME_RECOGNITION = 'STOP_NAME_RECOGNITION',
+  /** Change 45: 路口填空 —— 給「<街道> at ___」，答橫向街道／地標。 */
+  CROSS_STREET_RECALL = 'CROSS_STREET_RECALL',
+  /** Change 45: 站號題 —— 給站名，答 stop 編號。 */
+  STOP_NUMBER_RECALL = 'STOP_NUMBER_RECALL',
 }
 
 export enum RecallOutcome {

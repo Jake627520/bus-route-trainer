@@ -6,6 +6,7 @@ import {
   CardEvaluationData,
 } from '@/application/recall/submit-session-answer-port';
 import { SessionStatus, RecallOutcome, RecallMode } from '@/domain/recall/recall-session';
+import { buildStopQuestion } from '@/domain/recall/stop-question';
 import { CardState, CardType, LearningCard } from '@/domain/learning/learning-card';
 import { SrsLevel } from '@/domain/srs/srs-interval-policy';
 import { RecallAttempt } from '@/domain/recall/recall-attempt';
@@ -137,14 +138,16 @@ export class PrismaSubmitSessionAnswerAdapter implements SubmitSessionAnswerPort
                 })
               : null;
             expectedAnswer = nextStop?.name ?? nextStopId;
-          } else if (card.cardKey.startsWith('STOP::')) {
-            defaultRecallMode = RecallMode.STOP_NAME_RECOGNITION;
-            const stopId = card.cardKey.replace('STOP::', '');
+          } else if (card.cardKey.startsWith('STOP_NUM::') || card.cardKey.startsWith('STOP::')) {
+            // Change 45: 與出題端共用 buildStopQuestion，確保批改用的是同一題
+            const stopId = card.cardKey.replace(/^STOP_NUM::|^STOP::/, '');
             const gtfsStop = await tx.gtfsStop.findUnique({
               where: { id: stopId },
               select: { name: true },
             });
-            expectedAnswer = gtfsStop?.name ?? stopId;
+            const question = buildStopQuestion(card.cardKey, gtfsStop?.name ?? null, stopId);
+            defaultRecallMode = question.mode;
+            expectedAnswer = question.expectedAnswer;
           } else {
             defaultRecallMode = RecallMode.STOP_NAME_RECOGNITION;
             expectedAnswer = card.cardKey;

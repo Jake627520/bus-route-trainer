@@ -1,3 +1,4 @@
+import { buildStopQuestion } from '@/domain/recall/stop-question';
 import { RecallMode, SessionStatus } from '@/domain/recall/recall-session';
 import { Clock, SystemClock } from '@/application/common/clock';
 import { GetCurrentSessionPromptPort } from './get-current-session-prompt-port';
@@ -102,10 +103,12 @@ export class GetCurrentSessionPromptUseCase {
         const parts = card.cardKey.replace('NEXT_STOP::', '').split('->');
         const fromStopId = parts[0] ?? card.cardKey;
         givenReference = stopName ?? fromStopId;
-      } else if (card.cardKey.startsWith('STOP::')) {
-        recallMode = RecallMode.STOP_NAME_RECOGNITION;
-        const stopId = card.cardKey.replace('STOP::', '');
-        givenReference = stopName ?? stopId;
+      } else if (card.cardKey.startsWith('STOP_NUM::') || card.cardKey.startsWith('STOP::')) {
+        // Change 45: 與批改端共用 buildStopQuestion，確保題型與答案一致
+        const stopId = card.cardKey.replace(/^STOP_NUM::|^STOP::/, '');
+        const question = buildStopQuestion(card.cardKey, stopName ?? null, stopId);
+        recallMode = question.mode;
+        givenReference = question.givenReference;
       } else {
         recallMode = RecallMode.STOP_NAME_RECOGNITION;
       }

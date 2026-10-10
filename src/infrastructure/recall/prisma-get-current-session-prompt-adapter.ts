@@ -69,6 +69,9 @@ export class PrismaGetCurrentSessionPromptAdapter implements GetCurrentSessionPr
           if (card.cardKey.startsWith('NEXT_STOP::')) {
             const parts = card.cardKey.replace('NEXT_STOP::', '').split('->');
             stopId = parts[0] ?? null;
+          } else if (card.cardKey.startsWith('STOP_NUM::')) {
+            // Change 45: 站號卡
+            stopId = card.cardKey.replace('STOP_NUM::', '');
           } else if (card.cardKey.startsWith('STOP::')) {
             stopId = card.cardKey.replace('STOP::', '');
           }

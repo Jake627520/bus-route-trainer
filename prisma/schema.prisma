@@ -176,6 +176,8 @@ enum SessionStatus {
 enum RecallMode {
   NEXT_STOP_FORWARD
   STOP_NAME_RECOGNITION
+  CROSS_STREET_RECALL
+  STOP_NUMBER_RECALL
 }
 
 enum RecallOutcome {

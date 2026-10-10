@@ -62,7 +62,9 @@ export class EnrollVariantUseCase {
     // 3. Generate cards from variant's ordered stops
     const progressId = randomUUID();
     const orderedStopIds = targetVariant.orderedStops.map((s) => s.stopId);
-    const cards = generateCardsForOrderedStops(progressId, orderedStopIds);
+    // Change 45: 一併帶入站名，讓有 stop 編號的站多產一張站號卡
+    const orderedStopNames = targetVariant.orderedStops.map((s) => s.stopName);
+    const cards = generateCardsForOrderedStops(progressId, orderedStopIds, orderedStopNames);
 
     const newProgress = new DriverVariantProgress({
       id: progressId,
