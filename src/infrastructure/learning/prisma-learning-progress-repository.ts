@@ -4,6 +4,7 @@ import {
   CardType as PrismaCardType,
   CardState as PrismaCardState,
 } from '@prisma/client';
+import { CURRENT_CARDS_VERSION } from '@/application/learning/backfill-variant-cards-use-case';
 import {
   DriverVariantProgress,
   ProgressStatus,
@@ -75,6 +76,8 @@ export class PrismaLearningProgressRepository
           status: progress.status as PrismaProgressStatus,
           enrolledAt: progress.enrolledAt,
           lastStudiedAt: progress.lastStudiedAt,
+          // Change 46: 新報名已含所有題型，直接標為最新版本，免去一次補卡檢查
+          cardsVersion: CURRENT_CARDS_VERSION,
         },
       });
 

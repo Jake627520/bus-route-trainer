@@ -6,9 +6,19 @@ import {
   resolveAuthenticatedDriver,
 } from '@/application/recall/api/driver-context';
 import { handleApiError } from '@/application/recall/api/error-mapper';
+import { BackfillVariantCardsUseCase } from '@/application/learning/backfill-variant-cards-use-case';
+import { PrismaBackfillCardsRepository } from '@/infrastructure/learning/prisma-backfill-cards-repository';
+import { GetRouteVariantsUseCase } from '@/application/gtfs/get-route-variants-use-case';
+import { PrismaGtfsReadRepository } from '@/infrastructure/gtfs/query/prisma-gtfs-read-repository';
 
 const prisma = new PrismaClient();
 const useCases = createRecallUseCases(prisma);
+
+// Change 46: 既有報名補發新題型卡片（版本落後時才動作，O(1) 檢查）
+const backfillCards = new BackfillVariantCardsUseCase(
+  new PrismaBackfillCardsRepository(prisma),
+  new GetRouteVariantsUseCase(new PrismaGtfsReadRepository(prisma)),
+);
 
 export async function POST(request: Request) {
   try {
@@ -88,6 +98,13 @@ export async function POST(request: Request) {
     }
 
     const driverId = resolveAuthenticatedDriver(request);
+
+    // Change 46: 開練習前先補齊卡片；失敗不得影響開始練習
+    try {
+      await backfillCards.execute({ driverId, variantKey: variantKey.trim() });
+    } catch (backfillError) {
+      console.error('[Recall API] card backfill failed (continuing):', backfillError);
+    }
 
     const result = await useCases.startPlannedSession.execute({
       driverId,

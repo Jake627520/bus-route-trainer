@@ -138,6 +138,8 @@ model DriverVariantProgress {
   status           ProgressStatus @default(NOT_STARTED)
   enrolledAt       DateTime       @default(now())
   lastStudiedAt    DateTime?
+  /// Change 46: 卡片組版本。低於 CURRENT_CARDS_VERSION 時補發新題型卡片。
+  cardsVersion     Int            @default(0)
   cards            LearningCard[]
 
   @@unique([driverId, targetVariantKey])
