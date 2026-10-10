@@ -79,11 +79,29 @@ export class DeterministicRecallEvaluator {
       return RecallOutcome.FAIL;
     }
 
-    // Change 43: 兩種題型都比對「站名」，並套用寬鬆正規化
-    // （原本 NEXT_STOP_FORWARD 比對原始 stop ID 且區分大小寫，實際上無法作答）。
+    // Change 45: 站號題 —— 比對 stop 編號，容許加打 "stop " 前綴與大小寫；
+    // 雙號站牌（如 59/56）任一邊皆算對。
+    if (mode === RecallMode.STOP_NUMBER_RECALL) {
+      const norm = (v: string) =>
+        (typeof v === 'string' ? v : '')
+          .normalize('NFKC')
+          .toLowerCase()
+          .replace(/^\s*stop\s+/, '')
+          .replace(/[^a-z0-9/]/g, '')
+          .trim();
+      const input = norm(rawInput);
+      const expected = norm(expectedAnswer);
+      if (input === '' || expected === '') return RecallOutcome.FAIL;
+      if (input === expected) return RecallOutcome.PASS;
+      const alts = expected.split('/').filter(Boolean);
+      return alts.includes(input) ? RecallOutcome.PASS : RecallOutcome.FAIL;
+    }
+
+    // Change 43/45: 其餘題型都比對「站名／街道名」，套用寬鬆正規化。
     if (
       mode === RecallMode.NEXT_STOP_FORWARD ||
-      mode === RecallMode.STOP_NAME_RECOGNITION
+      mode === RecallMode.STOP_NAME_RECOGNITION ||
+      mode === RecallMode.CROSS_STREET_RECALL
     ) {
       const normalizedInput = normalizeStopNameLenient(rawInput);
       const normalizedExpected = normalizeStopNameLenient(expectedAnswer);
