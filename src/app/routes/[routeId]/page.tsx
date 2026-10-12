@@ -10,7 +10,7 @@ export default async function RouteVariantsPage({
   const { routeId } = await params;
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:py-16">
+    <main id="main-content" className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:py-16">
       <Link
         href="/"
         className="text-sm text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"

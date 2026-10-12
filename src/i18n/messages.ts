@@ -78,6 +78,9 @@ const en = {
     signedInAs: 'Driver {name}',
     logout: 'Log out',
   },
+  a11y: {
+    skipToContent: 'Skip to main content',
+  },
   lang: {
     label: 'Language',
     en: 'English',
@@ -296,6 +299,9 @@ const zhTW: Messages = {
   auth: {
     signedInAs: '司機 {name}',
     logout: '登出',
+  },
+  a11y: {
+    skipToContent: '跳到主要內容',
   },
   lang: {
     label: '語言',

@@ -3,10 +3,10 @@
 > TDD。守門三綠：`eslint` / `vitest run --fileParallelism=false` / `next build`。
 
 ## Phase 48.1: 共用元件
-- [ ] Task 1: `Modal` 焦點管理（進入 / Tab 圈限 / 還原） <!-- id: 48-01 -->
-- [ ] Task 2: `TextInput` 用 `useId` 備援 id（同 label 不重複） <!-- id: 48-02 -->
-- [ ] Task 3: `SkipLink` + i18n + 各頁 `<main id="main-content">` + layout 掛載 <!-- id: 48-03 -->
-- [ ] Task 4: 語言切換按鈕 `lang`；`globals.css` `:focus-visible` 備援 <!-- id: 48-04 -->
+- [x] Task 1: `Modal` 焦點管理（進入 / Tab 圈限 / 還原） <!-- id: 48-01 -->
+- [x] Task 2: `TextInput` 用 `useId` 備援 id（同 label 不重複） <!-- id: 48-02 -->
+- [x] Task 3: `SkipLink` + i18n + 各頁 `<main id="main-content">` + layout 掛載 <!-- id: 48-03 -->
+- [x] Task 4: 語言切換按鈕 `lang`；`globals.css` `:focus-visible` 備援 <!-- id: 48-04 -->
 
 ## Phase 48.2: 練習頁
 - [ ] Task 5: `useAdvanceShortcut` hook（只在焦點在本體時 Enter/Space 下一題） <!-- id: 48-05 -->

@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <ReviewSummaryProvider>
     <PracticeStreakProvider>
-    <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:py-16">
+    <main id="main-content" className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:py-16">
       <header className="mb-8">
         <div className="mb-4 flex justify-end">
           <AuthStatus />
