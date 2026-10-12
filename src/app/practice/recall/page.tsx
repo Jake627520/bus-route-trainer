@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
+import React, { useId, useState, useEffect, useRef, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { parseQueue } from '@/app/_lib/practice-queue';
+import { useAdvanceShortcut } from '@/app/_lib/use-advance-shortcut';
 import { parseVariantKey } from '@/domain/route/route-variant';
 import { useRecallSession } from '@/application/recall/client/use-recall-session';
 import {
@@ -12,6 +13,7 @@ import {
   ProgressBar,
   TextInput,
   Modal,
+  LiveAnnouncer,
 } from '@/components/ui';
 import { useT } from '@/app/_components/locale-provider';
 
@@ -140,20 +142,27 @@ function RecallPracticeInner() {
     }
   }, [viewState, currentPrompt?.promptIndex]);
 
-  // Keyboard shortcut listener: Enter/Space in FEEDBACK advances to next prompt
-  useEffect(() => {
-    if (viewState !== 'FEEDBACK') return;
+  // Change 48: Enter/Space 進下一題——只在焦點位於頁面本體時生效，不搶按鈕自己的操作。
+  useAdvanceShortcut(viewState === 'FEEDBACK', nextPrompt);
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        nextPrompt();
-      }
-    };
+  // Change 48: 提示文字與輸入框關聯；底線改成「空格」的讀法，螢幕閱讀器才不會念一串底線。
+  const promptId = useId();
+  const spokenReference = (currentPrompt?.givenReference ?? '').replace(
+    /_{2,}/g,
+    t('recall.blankSpoken'),
+  );
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [viewState, nextPrompt]);
+  // Change 48: 常駐播報區（答對/答錯＋正確答案；完成）。
+  const announcement =
+    viewState === 'FEEDBACK' && lastOutcome
+      ? lastOutcome.outcome === 'PASS'
+        ? t('recall.correctTitle')
+        : lastOutcome.correctAnswer
+          ? `${t('recall.incorrectTitle')}. ${t('recall.correctAnswerLabel')}: ${lastOutcome.correctAnswer}`
+          : t('recall.incorrectTitle')
+      : viewState === 'COMPLETED'
+        ? t('recall.completedTitle')
+        : '';
 
   const handleStart = (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,6 +187,7 @@ function RecallPracticeInner() {
 
   return (
     <main id="main-content" className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col items-center justify-center p-4 sm:p-6">
+      <LiveAnnouncer message={announcement} />
       <div className="w-full max-w-2xl">
         {/* Top Header */}
         <header className="mb-6 flex justify-between items-center">
@@ -298,11 +308,14 @@ function RecallPracticeInner() {
             </div>
 
             <div className="bg-zinc-100 dark:bg-zinc-800/60 p-5 rounded-xl border border-zinc-200 dark:border-zinc-700/60">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">
+              <p aria-hidden="true" className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">
                 {hintLabel}
               </p>
-              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
+              <p aria-hidden="true" className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
                 {currentPrompt.givenReference}
+              </p>
+              <p id={promptId} className="sr-only">
+                {hintLabel}: {spokenReference}
               </p>
             </div>
 
@@ -315,6 +328,7 @@ function RecallPracticeInner() {
                 onChange={(e) => setRawInput(e.target.value)}
                 disabled={viewState === 'SUBMITTING'}
                 autoComplete="off"
+                aria-describedby={promptId}
                 required
               />
 
@@ -333,9 +347,9 @@ function RecallPracticeInner() {
 
         {/* 6. SUBMIT_FAILED State: Manual Retry UX */}
         {viewState === 'SUBMIT_FAILED' && pendingSubmission && (
-          <Card className="space-y-4 border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20">
+          <Card role="alert" className="space-y-4 border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20">
             <div className="flex items-start space-x-3">
-              <span className="text-2xl text-amber-600 dark:text-amber-400">⚠️</span>
+              <span aria-hidden="true" className="text-2xl text-amber-600 dark:text-amber-400">⚠️</span>
               <div>
                 <h3 className="text-base font-bold text-amber-900 dark:text-amber-200">
                   {t('recall.submitInterrupted')}
@@ -361,14 +375,13 @@ function RecallPracticeInner() {
         {viewState === 'FEEDBACK' && lastOutcome && (
           <Card className="space-y-6">
             <div
-              aria-live="polite"
               className={`p-5 rounded-xl border flex items-center space-x-4 ${
                 lastOutcome.outcome === 'PASS'
                   ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-100'
                   : 'bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800 text-red-900 dark:text-red-100'
               }`}
             >
-              <span className="text-3xl">
+              <span aria-hidden="true" className="text-3xl">
                 {lastOutcome.outcome === 'PASS' ? '✅' : '❌'}
               </span>
               <div>
@@ -398,7 +411,7 @@ function RecallPracticeInner() {
               </div>
             ) : null}
 
-            <Button onClick={nextPrompt} size="lg" className="w-full">
+            <Button onClick={nextPrompt} size="lg" className="w-full" autoFocus>
               {t('recall.nextQuestion')}
             </Button>
           </Card>
@@ -450,9 +463,9 @@ function RecallPracticeInner() {
 
         {/* 11. ERROR State */}
         {viewState === 'ERROR' && error && (
-          <Card className="border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/20 space-y-4">
+          <Card role="alert" className="border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/20 space-y-4">
             <div className="flex items-start space-x-3">
-              <span className="text-2xl text-red-600">🚫</span>
+              <span aria-hidden="true" className="text-2xl text-red-600">🚫</span>
               <div>
                 <h3 className="text-base font-bold text-red-900 dark:text-red-200">
                   {error.code}

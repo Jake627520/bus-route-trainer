@@ -9,9 +9,9 @@
 - [x] Task 4: 語言切換按鈕 `lang`；`globals.css` `:focus-visible` 備援 <!-- id: 48-04 -->
 
 ## Phase 48.2: 練習頁
-- [ ] Task 5: `useAdvanceShortcut` hook（只在焦點在本體時 Enter/Space 下一題） <!-- id: 48-05 -->
-- [ ] Task 6: `LiveAnnouncer`（常駐 role=status）+ 練習頁播報答對/答錯/正確答案 <!-- id: 48-06 -->
-- [ ] Task 7: 提示 `aria-describedby` + 空格讀法；回饋畫面焦點移到「下一題」；error/failed `role="alert"`；裝飾 emoji `aria-hidden` <!-- id: 48-07 -->
+- [x] Task 5: `useAdvanceShortcut` hook（只在焦點在本體時 Enter/Space 下一題） <!-- id: 48-05 -->
+- [x] Task 6: `LiveAnnouncer`（常駐 role=status）+ 練習頁播報答對/答錯/正確答案 <!-- id: 48-06 -->
+- [x] Task 7: 提示 `aria-describedby` + 空格讀法；回饋畫面焦點移到「下一題」；error/failed `role="alert"`；裝飾 emoji `aria-hidden` <!-- id: 48-07 -->
 
 ## Phase 48.3: 收尾
 - [ ] Task 8: 守門；archive；PR（說明需真瀏覽器/讀屏實測的項目） <!-- id: 48-08 -->
