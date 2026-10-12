@@ -1,54 +1,60 @@
 # 交接手冊（Handoff）
 
-> 給接手的 agent（例如 **Antigravity**）：若 Claude 額度用完、工作未完成，照這份接手。
-> 這份講「現況、下一步、怎麼動手」；長期慣例在 [AGENTS.md](./AGENTS.md)。
-> 最後更新：2026-09-23（by Claude Opus 4.8）。
+> 給接手的 agent（Claude Code / Antigravity）：先讀這份，再讀 [AGENTS.md](./AGENTS.md)（長期慣例）。
+> 最後更新：2026-10-12，對應 `main` 的 Change 46（commit `891abf7`）。
 
 ## 一句話
-昆士蘭巴士司機「路線記憶訓練器」。後端引擎、recall session（API + 練習 UI）、以及**第一個路線瀏覽前端**都已完成；目前**沒有進行中的 change**。
+昆士蘭（SEQ）巴士司機「路線記憶訓練器」。已上線（Vercel + 獨立 Postgres），有帳號登入、雙語（en / zh-TW）、SRS 複習、四種題型。**目前沒有進行中的 change**（`openspec/changes/` 只有 `archive/`）。
 
-## 技術棧
-Next.js 16（App Router）+ React 19 + TypeScript / Prisma 6 + PostgreSQL / Vitest + Testing Library + jsdom / Playwright。流程：OpenSpec + TDD，全程 Docker 容器內。
+## 技術棧與開發方式
+Next.js 16（App Router）+ React 19 + TypeScript / Prisma 6 + PostgreSQL / Vitest + Testing Library / Playwright。流程：OpenSpec（規格先行）+ TDD。
+- 指令：`npm test`（= `vitest run --fileParallelism=false`，整合測試要真的 DB）、`npm run lint`、`npm run build`。
+- 標準環境是 Docker / Dev Container：
+  ```bash
+  export PATH="$HOME/.docker/bin:$PATH"
+  docker compose up -d db
+  docker compose run --rm app npm ci
+  docker compose run --rm app npx prisma generate && docker compose run --rm app npx prisma migrate deploy
+  docker compose run --rm app npm test
+  docker compose run --rm --service-ports app npm run dev   # → http://localhost:3000
+  ```
+- 雲端 session 沒有 Docker 與 DB：只能跑前端測試（`src/__tests__/app/`、`components/`、`i18n/`）與 `next build`，整合測試交給 CI。
+- Next 16 有破壞性變更：寫程式前先讀 `node_modules/next/dist/docs/`。`cookies()` / `headers()` 是 async。
+- 部署與環境變數見 [DEPLOY.md](./DEPLOY.md)。
 
-## 怎麼啟動環境（先做這個）
-用 Antigravity 開專案 → `Dev Containers: Reopen in Container`（會自動 `npm ci` + `prisma generate` + `migrate deploy`）。
-或用指令：
-```bash
-export PATH="$HOME/.docker/bin:$PATH"
-docker compose up -d db
-docker compose run --rm app npm ci
-docker compose run --rm app npx prisma generate && docker compose run --rm app npx prisma migrate deploy
-docker compose run --rm app npm test          # 應該 493 綠
-docker compose run --rm --service-ports app npm run dev   # → http://localhost:3000
-```
+## 已完成的 Change（詳見 `openspec/changes/archive/`）
+| # | 內容 |
+|---|---|
+| 01–29 | 專案基礎、GTFS 匯入/查詢、學習狀態、recall session（領域/流程/API/UI）、SRS、路線瀏覽、儀表板、精熟度/準確率/連續天數、批次練習、搜尋、認證（帳號密碼 + session cookie）、部署設定、GTFS 公車過濾、強制 401 |
+| 30 | i18n 基建（自建，cookie `brt_locale` → `Accept-Language` → 後備 `en`）+ 登入頁與首頁 |
+| 31 | 儀表板元件與路線頁雙語化 |
+| 32 | recall 練習頁雙語化（全站 100% 雙語） |
+| 33 | Brisbane 時區日界（streak/趨勢不再用 UTC）+ 相對時間在地化 |
+| 34 | 視覺打磨（愛琴海鈷藍） |
+| 35 | 改用 Translink 官方配色（深藍 + 洋紅粉） |
+| 36 | 載入骨架（Skeleton）+ 首頁深色漸層 feature 錨點 |
+| 37 | 共用 review summary 快取（首頁 4 次 fetch → 1 次） |
+| 38 | 共用 practice streak（2 次 → 1 次） |
+| 39 | train / ferry 模式（匯入器加 `maxRoutes`，train 只取子集以控制 DB 大小） |
+| 40 | GTFS 自動更新（GitHub Actions 週更，`.github/workflows/gtfs-update.yml`） |
+| 41 | 密碼重設（Resend email 重設連結） |
+| 42 | 密碼強度政策（註冊與重設共用） |
+| 43 | 練習頁顯示精簡 + 寬鬆答案比對 + next-stop 改比對站名 |
+| 44 | 答錯時顯示正確答案（`correctAnswer` 只在 FAIL 回傳；prompt API 仍絕不外洩答案） |
+| 45 | 新題型：路口填空（`CROSS_STREET_RECALL`）、站號題（`STOP_NUMBER_RECALL`）；取代會洩題的「辨識站名」；解析不出結構的站退回舊題型 |
+| 46 | 既有報名自動補發新題型卡片（`cardsVersion` + `BackfillVariantCardsUseCase`，只新增、不動既有 SRS 進度） |
 
-## 目前狀態（截至 2026-09-23）
-**已完成（archived changes，見 `openspec/changes/archive/`）**
-- 01 專案/領域基礎、02 GTFS 匯入、03 GTFS 讀取查詢、04 司機學習狀態、05 recall session 領域、06 複習結算。
-- 07（srs-scheduling）SRS 排程、08 recall session flow、**09 recall session HTTP API**、**10 recall 練習 UI（/practice/recall）**。
-- **07（route-browsing-ui）第一個路線瀏覽前端**：`/` 路線列表、`/routes/[routeId]` variant 列表 + 報名、`src/app/_lib/api-client.ts` 薄封裝。
-- 已有完整 HTTP API（見下）。測試 493 個全綠。已容器化（Dev Container + Postgres）＋ CI 容器版。
-- ⚠️ **編號撞號**：歷史上有兩個「07」——`archive/2026-09-22-07-srs-scheduling` 與 `archive/2026-09-23-07-route-browsing-ui`。歸檔後已用日期前綴區分、不再衝突；下一個 change 請直接跳號到 **11** 以上，別再用 07。
+> 41–43 只有 commit 標題可查，沒有 archive 資料夾；細節請看對應 PR（#38、#39、#41）。
 
-**還沒做（下一步候選，尚無提案）**
-- SRS 排程 / 複習到期的前端視覺化（後端 07-srs-scheduling 已完成，缺畫面）。
-- 樣式打磨、a11y 深化、i18n、認證（目前 zero-auth）。
+## 注意事項
+- **編號撞號歷史**：archive 內有兩個 01、兩個 07，以日期前綴區分。下一個 change 請從 **47** 起。
+- **Zero-Auth 已結束**：資料 API 一律需 session，未登入回 401。`DEFAULT_DRIVER_ID` 只保留作測試 seed。
+- **別重複做 i18n**：`src/i18n/`（`config.ts` / `messages.ts` / `resolve.ts` / `t.ts`）已完成。新字串加進 `messages.ts`，en 與 zh-TW 必須同 key。
+- 不要把交接內容寫進 AGENTS.md 的 `<!-- BEGIN/END:nextjs-agent-rules -->` 標記內（`next dev` 會覆寫）。
+- 進度的唯一依據是 `openspec/changes/` 內未 archive 的 change 的 `tasks.md`。開工前先 `git fetch`、看 `main` 與開放中的 PR，避免像 Change 30 那樣兩邊撞工。
 
-## 進行中的工作 ← 接手從這裡繼續
-**目前沒有未 archive 的 change**（`openspec/changes/` 只剩 `archive/`）。接手方式：
-1. 與人確認下一個要做的功能 → 依 AGENTS.md 開一個新 change（編號 ≥ 11）：`openspec/changes/NN-xxx/`（proposal + tasks）→ 人審。
-2. 從第一個未勾 task 照 TDD：先寫失敗測試 → `npm test` 確認紅 → 最小實作 → 綠 → 勾選並 commit。
-3. 全部完成 → 守門三綠（lint/test/build）→ archive → 開 PR（CI 守門）。
-- 註：前端測試 mock fetch、不需 DB；本機 `npx vitest run --fileParallelism=false` 目前 493 綠。容器仍是 canonical 路徑（整合測試打真 DB）。
-
-## 現有 API 契約（前端要串這些；成功皆 `{ data: ... }`，錯誤皆 `{ error: { code, message } }`）
-- `GET /api/routes` → `{ data: Route[] }`（列出所有路線）
-- `GET /api/routes/{routeId}/variants` → `{ data: Variant[] }`；找不到路線回 404 `ROUTE_NOT_FOUND`
-- `POST /api/progress/enroll`　body `{ routeId, variantKey }` → 新報名 201 / 已存在 200，`{ data: progress }`；缺欄 400、variant 不存在 404
-- `GET /api/progress/{variantKey}` → `{ data: progress }`（查該 variant 的學習進度）
-
-## 重要注意事項
-- **Next 16 有破壞性變更**：寫程式前先讀 `node_modules/next/dist/docs/`（見 AGENTS.md）。
-- 測試序列化（`vitest run --fileParallelism=false`）因為會打真的 DB；務必先 `docker compose up -d db`。
-- Zero-Auth 階段：司機身分用常數 `DEFAULT_DRIVER_ID = 'driver_default_local'`。
-- 不要把交接內容寫進 AGENTS.md 的 `<!-- BEGIN/END:nextjs-agent-rules -->` 標記內（`next dev` 會覆寫那段）；標記外才安全。
+## 下一步候選（尚無提案，需與人確認）
+- 題目品質：約 9.2% 的站名兩種新題型皆不適用，仍用舊的辨識站名。
+- 路線範圍：train 有 707 條，目前只收子集。
+- a11y 深化、更多語言、認證強化（rate limit、角色權限）。
+- 做法：與人確認 → `openspec/changes/47-xxx/`（proposal + tasks）→ 人審 → TDD → 守門三綠（lint / test / build）→ archive → PR。
