@@ -128,8 +128,8 @@ describe('Change 09 Phase 7: Full System Acceptance & Security Boundary Suite', 
 
       // Step 3: Submit Answer 0 via HTTP POST
       const stopMap: Record<string, string> = {
-        'STOP::stop-sys-1': 'Stop Alpha',
-        'STOP::stop-sys-2': 'Stop Bravo',
+        'STOP::stop-sys-1': 'Alpha',
+        'STOP::stop-sys-2': 'Bravo',
       };
       const answer0Req = new Request(`http://localhost/api/recall/sessions/${sessionId}/answer`, {
         method: 'POST',
@@ -217,8 +217,8 @@ describe('Change 09 Phase 7: Full System Acceptance & Security Boundary Suite', 
       const prompt0Json = await (await promptHandler(prompt0Req, { params: Promise.resolve({ id: sessionId }) })).json();
 
       const stopMap: Record<string, string> = {
-        'STOP::stop-sys-1': 'Stop Alpha',
-        'STOP::stop-sys-2': 'Stop Bravo',
+        'STOP::stop-sys-1': 'Alpha',
+        'STOP::stop-sys-2': 'Bravo',
       };
       await answerHandler(
         new Request(`http://localhost/api/recall/sessions/${sessionId}/answer`, {
@@ -357,7 +357,7 @@ describe('Change 09 Phase 7: Full System Acceptance & Security Boundary Suite', 
         );
         const pJson = await pRes.json();
         const cardKey = pJson.data.prompt.cardKey;
-        const answer = cardKey === 'STOP::stop-sys-1' ? 'Stop Alpha' : 'Stop Bravo';
+        const answer = cardKey === 'STOP::stop-sys-1' ? 'Alpha' : 'Bravo';
 
         await answerHandler(
           new Request(`http://localhost/api/recall/sessions/${sessionId}/answer`, {
