@@ -13,4 +13,4 @@
 - [x] Task 6: client 型別、練習頁標籤、i18n（en / zh-TW） <!-- id: 47-06 -->
 
 ## Phase 47.3: 收尾
-- [ ] Task 7: 守門（本機可跑部分 + build 已綠；整合測試待 CI）；archive；PR <!-- id: 47-07 -->
+- [x] Task 7: 守門（本機可跑部分 + build 已綠；整合測試待 CI）；archive；PR <!-- id: 47-07 -->

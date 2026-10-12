@@ -1,7 +1,7 @@
 # 交接手冊（Handoff）
 
 > 給接手的 agent（Claude Code / Antigravity）：先讀這份，再讀 [AGENTS.md](./AGENTS.md)（長期慣例）。
-> 最後更新：2026-10-12，對應 `main` 的 Change 46（commit `891abf7`）。
+> 最後更新：2026-10-12，對應 Change 48（PR #45，合併後即為 `main`）。
 
 ## 一句話
 昆士蘭（SEQ）巴士司機「路線記憶訓練器」。已上線（Vercel + 獨立 Postgres），有帳號登入、雙語（en / zh-TW）、SRS 複習、四種題型。**目前沒有進行中的 change**（`openspec/changes/` 只有 `archive/`）。
@@ -18,7 +18,7 @@ Next.js 16（App Router）+ React 19 + TypeScript / Prisma 6 + PostgreSQL / Vite
   docker compose run --rm app npm test
   docker compose run --rm --service-ports app npm run dev   # → http://localhost:3000
   ```
-- 雲端 session 沒有 Docker 與 DB：只能跑前端測試（`src/__tests__/app/`、`components/`、`i18n/`）與 `next build`，整合測試交給 CI。
+- 雲端 session 沒有 Docker，但機器上有 Postgres 16：`pg_ctlcluster 16 main start`，再以 `su postgres -c psql` 建使用者與 DB、`DATABASE_URL=... npx prisma migrate deploy`，即可本機跑完整測試（`foundation.test.ts` 固定檢查 DB 名為 `bus_route_trainer`，要用這個名字才會全綠）。
 - Next 16 有破壞性變更：寫程式前先讀 `node_modules/next/dist/docs/`。`cookies()` / `headers()` 是 async。
 - 部署與環境變數見 [DEPLOY.md](./DEPLOY.md)。
 
@@ -43,11 +43,13 @@ Next.js 16（App Router）+ React 19 + TypeScript / Prisma 6 + PostgreSQL / Vite
 | 44 | 答錯時顯示正確答案（`correctAnswer` 只在 FAIL 回傳；prompt API 仍絕不外洩答案） |
 | 45 | 新題型：路口填空（`CROSS_STREET_RECALL`）、站號題（`STOP_NUMBER_RECALL`）；取代會洩題的「辨識站名」；解析不出結構的站退回舊題型 |
 | 46 | 既有報名自動補發新題型卡片（`cardsVersion` + `BackfillVariantCardsUseCase`，只新增、不動既有 SRS 進度） |
+| 47 | 單字填空題 `WORD_CLOZE_RECALL`：沒有路口/站號的車站類站名，遮月台號或最長關鍵字（單字站名只給首字母）；提示永不含答案 |
+| 48 | 無障礙與鍵盤：Modal 焦點管理、`useAdvanceShortcut`（不搶按鈕操作）、常駐 `LiveAnnouncer`、提示 `aria-describedby`、SkipLink、`:focus-visible` |
 
 > 41–43 只有 commit 標題可查，沒有 archive 資料夾；細節請看對應 PR（#38、#39、#41）。
 
 ## 注意事項
-- **編號撞號歷史**：archive 內有兩個 01、兩個 07，以日期前綴區分。下一個 change 請從 **47** 起。
+- **編號撞號歷史**：archive 內有兩個 01、兩個 07，以日期前綴區分。下一個 change 請從 **49** 起。
 - **Zero-Auth 已結束**：資料 API 一律需 session，未登入回 401。`DEFAULT_DRIVER_ID` 只保留作測試 seed。
 - **別重複做 i18n**：`src/i18n/`（`config.ts` / `messages.ts` / `resolve.ts` / `t.ts`）已完成。新字串加進 `messages.ts`，en 與 zh-TW 必須同 key。
 - 不要把交接內容寫進 AGENTS.md 的 `<!-- BEGIN/END:nextjs-agent-rules -->` 標記內（`next dev` 會覆寫）。

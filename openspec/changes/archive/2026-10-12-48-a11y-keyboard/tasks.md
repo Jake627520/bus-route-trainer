@@ -14,4 +14,4 @@
 - [x] Task 7: 提示 `aria-describedby` + 空格讀法；回饋畫面焦點移到「下一題」；error/failed `role="alert"`；裝飾 emoji `aria-hidden` <!-- id: 48-07 -->
 
 ## Phase 48.3: 收尾
-- [ ] Task 8: 守門；archive；PR（說明需真瀏覽器/讀屏實測的項目） <!-- id: 48-08 -->
+- [x] Task 8: 守門；archive；PR（說明需真瀏覽器/讀屏實測的項目） <!-- id: 48-08 -->
