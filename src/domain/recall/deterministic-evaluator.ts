@@ -101,7 +101,8 @@ export class DeterministicRecallEvaluator {
     if (
       mode === RecallMode.NEXT_STOP_FORWARD ||
       mode === RecallMode.STOP_NAME_RECOGNITION ||
-      mode === RecallMode.CROSS_STREET_RECALL
+      mode === RecallMode.CROSS_STREET_RECALL ||
+      mode === RecallMode.WORD_CLOZE_RECALL
     ) {
       const normalizedInput = normalizeStopNameLenient(rawInput);
       const normalizedExpected = normalizeStopNameLenient(expectedAnswer);

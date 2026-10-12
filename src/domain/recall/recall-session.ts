@@ -11,6 +11,8 @@ export enum RecallMode {
   CROSS_STREET_RECALL = 'CROSS_STREET_RECALL',
   /** Change 45: 站號題 —— 給站名，答 stop 編號。 */
   STOP_NUMBER_RECALL = 'STOP_NUMBER_RECALL',
+  /** Change 47: 單字填空 —— 遮住站名中的月台號或關鍵字。 */
+  WORD_CLOZE_RECALL = 'WORD_CLOZE_RECALL',
 }
 
 export enum RecallOutcome {

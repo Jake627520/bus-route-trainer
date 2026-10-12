@@ -101,25 +101,31 @@ function RecallPracticeInner() {
       ? t('recall.modeNextStop')
       : mode === 'CROSS_STREET_RECALL'
         ? t('recall.modeCrossStreet')
-        : mode === 'STOP_NUMBER_RECALL'
-          ? t('recall.modeStopNumber')
-          : t('recall.modeStation');
+        : mode === 'WORD_CLOZE_RECALL'
+          ? t('recall.modeWordCloze')
+          : mode === 'STOP_NUMBER_RECALL'
+            ? t('recall.modeStopNumber')
+            : t('recall.modeStation');
   const hintLabel =
     mode === 'NEXT_STOP_FORWARD'
       ? t('recall.hintCurrentStop')
       : mode === 'CROSS_STREET_RECALL'
         ? t('recall.hintCrossStreet')
-        : mode === 'STOP_NUMBER_RECALL'
-          ? t('recall.hintStopNumber')
-          : t('recall.hintReference');
+        : mode === 'WORD_CLOZE_RECALL'
+          ? t('recall.hintWordCloze')
+          : mode === 'STOP_NUMBER_RECALL'
+            ? t('recall.hintStopNumber')
+            : t('recall.hintReference');
   const answerLabel =
     mode === 'NEXT_STOP_FORWARD'
       ? t('recall.labelEnterNextStop')
       : mode === 'CROSS_STREET_RECALL'
         ? t('recall.labelEnterCrossStreet')
-        : mode === 'STOP_NUMBER_RECALL'
-          ? t('recall.labelEnterStopNumber')
-          : t('recall.labelEnterStop');
+        : mode === 'WORD_CLOZE_RECALL'
+          ? t('recall.labelEnterWordCloze')
+          : mode === 'STOP_NUMBER_RECALL'
+            ? t('recall.labelEnterStopNumber')
+            : t('recall.labelEnterStop');
 
   // Input state for active question
   const [rawInput, setRawInput] = useState('');

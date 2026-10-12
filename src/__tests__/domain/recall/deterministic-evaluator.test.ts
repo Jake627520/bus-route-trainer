@@ -117,4 +117,24 @@ describe('DeterministicRecallEvaluator & normalizeStopName', () => {
       ).toBe(RecallOutcome.FAIL);
     });
   });
+
+  // Change 47: 單字填空走寬鬆站名比對
+  describe('evaluate WORD_CLOZE_RECALL', () => {
+    it('passes ignoring case and punctuation', () => {
+      expect(evaluator.evaluate(RecallMode.WORD_CLOZE_RECALL, 'centre.', 'Centre')).toBe(
+        RecallOutcome.PASS,
+      );
+    });
+    it('passes a platform number typed as a bare digit', () => {
+      expect(evaluator.evaluate(RecallMode.WORD_CLOZE_RECALL, ' 1 ', '1')).toBe(RecallOutcome.PASS);
+    });
+    it('fails a wrong word and an empty answer', () => {
+      expect(evaluator.evaluate(RecallMode.WORD_CLOZE_RECALL, 'Central', 'Centre')).toBe(
+        RecallOutcome.FAIL,
+      );
+      expect(evaluator.evaluate(RecallMode.WORD_CLOZE_RECALL, '', 'Centre')).toBe(
+        RecallOutcome.FAIL,
+      );
+    });
+  });
 });
