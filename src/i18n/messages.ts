@@ -43,6 +43,10 @@ const en = {
     ruleCommon: 'Must not be a commonly used password',
     tooWeak: 'That password does not meet the requirements below.',
   },
+  rateLimit: {
+    tooMany: 'Too many attempts. Please try again in {minutes} minutes.',
+    tooManyOne: 'Too many attempts. Please try again in 1 minute.',
+  },
   forgot: {
     title: 'Reset your password',
     instruction: 'Enter your account email and we’ll send a reset link.',
@@ -266,6 +270,10 @@ const zhTW: Messages = {
     ruleDigitOptional: '數字為選填',
     ruleCommon: '不可為常見弱密碼',
     tooWeak: '這組密碼不符合下列要求。',
+  },
+  rateLimit: {
+    tooMany: '嘗試次數過多，請 {minutes} 分鐘後再試。',
+    tooManyOne: '嘗試次數過多，請 1 分鐘後再試。',
   },
   forgot: {
     title: '重設密碼',

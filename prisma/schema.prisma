@@ -264,3 +264,14 @@ model PasswordResetToken {
   @@index([driverId])
   @@map("password_reset_token")
 }
+
+// Change 49: 認證端點限流計數（固定時間窗；單一原子 upsert 遞增，Vercel 無伺服器也有效）。
+model AuthRateLimit {
+  key         String
+  windowStart DateTime @map("window_start")
+  count       Int      @default(0)
+
+  @@id([key, windowStart])
+  @@index([windowStart])
+  @@map("auth_rate_limit")
+}

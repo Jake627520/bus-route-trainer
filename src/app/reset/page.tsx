@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useT } from '@/app/_components/locale-provider';
 import { PasswordRules } from '@/app/_components/password-rules';
+import { isRateLimited, rateLimitedMessage } from '@/app/_lib/rate-limit-message';
 import type { PasswordRuleCode } from '@/domain/auth/password-policy';
 
 /**
@@ -39,7 +40,11 @@ function ResetPasswordInner() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        const err = (body as { error?: { code?: string; failedRules?: PasswordRuleCode[] } })?.error;
+        const err = (body as { error?: { code?: string; failedRules?: PasswordRuleCode[]; retryAfterSeconds?: number } })?.error;
+        if (isRateLimited(err)) {
+          setError(rateLimitedMessage(err, t));
+          return;
+        }
         if (err?.code === 'WEAK_PASSWORD') {
           setFailedRules(err.failedRules ?? []);
           setError(t('password.tooWeak'));

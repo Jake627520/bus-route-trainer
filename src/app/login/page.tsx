@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useT } from '@/app/_components/locale-provider';
+import { isRateLimited, rateLimitedMessage } from '@/app/_lib/rate-limit-message';
 import { PasswordRules } from '@/app/_components/password-rules';
 import type { PasswordRuleCode } from '@/domain/auth/password-policy';
 
@@ -42,7 +43,11 @@ export default function LoginPage() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const err = (body as { error?: { message?: string; code?: string; failedRules?: PasswordRuleCode[] } })?.error;
+        const err = (body as { error?: { message?: string; code?: string; failedRules?: PasswordRuleCode[]; retryAfterSeconds?: number } })?.error;
+        if (isRateLimited(err)) {
+          setError(rateLimitedMessage(err, t));
+          return;
+        }
         if (err?.code === 'WEAK_PASSWORD') {
           setFailedRules(err.failedRules ?? []);
           setError(t('password.tooWeak'));
