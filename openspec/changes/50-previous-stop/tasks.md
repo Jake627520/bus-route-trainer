@@ -11,7 +11,7 @@
 - [x] Task 4: `CURRENT_CARDS_VERSION` 1→2；補發只新增 `PREV_STOP` 卡、不動既有卡 <!-- id: 50-04 -->
 
 ## Phase 50.3: 出題與批改
-- [ ] Task 5: session 出題（給 B 站名）與批改（答案為 A 站名）接上新卡；進度 DTO 投影 `currentSequence` <!-- id: 50-05 -->
+- [x] Task 5: session 出題（給 B 站名）與批改（答案為 A 站名）接上新卡；進度 DTO 投影 `currentSequence` <!-- id: 50-05 -->
 
 ## Phase 50.4: 前端
 - [ ] Task 6: client 型別、練習頁標籤、i18n（en／zh-TW） <!-- id: 50-06 -->
