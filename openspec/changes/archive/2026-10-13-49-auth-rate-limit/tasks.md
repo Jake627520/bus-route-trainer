@@ -22,4 +22,7 @@
 - [x] Task 10: 登入／忘記密碼／重設密碼頁處理 `RATE_LIMITED`，i18n（en／zh-TW，含分鐘數） <!-- id: 49-10 -->
 
 ## Phase 49.5: 收尾
-- [ ] Task 11: 守門三綠；部署後用真實請求驗證 IP header；更新 spec；archive；PR <!-- id: 49-11 -->
+- [x] Task 11: 守門三綠；更新 spec；archive；PR <!-- id: 49-11 -->
+
+## 部署後待辦（合併上線後才能做，不屬於本 change 的程式範圍）
+- [ ] 用真實請求確認 Vercel 的 `x-forwarded-for` 是真實用戶 IP（見 HANDOFF.md）

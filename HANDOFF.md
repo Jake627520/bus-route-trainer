@@ -4,7 +4,7 @@
 > 最後更新：2026-10-12，對應 Change 48（PR #45，合併後即為 `main`）。
 
 ## 一句話
-昆士蘭（SEQ）巴士司機「路線記憶訓練器」。已上線（Vercel + 獨立 Postgres），有帳號登入、雙語（en / zh-TW）、SRS 複習、四種題型。**進行中：Change 49 登入次數限制（提案已寫、待人審，尚未開工）**，見 `openspec/changes/49-auth-rate-limit/`。
+昆士蘭（SEQ）巴士司機「路線記憶訓練器」。已上線（Vercel + 獨立 Postgres），有帳號登入、雙語（en / zh-TW）、SRS 複習、四種題型。**目前沒有進行中的 change**（`openspec/changes/` 只有 `archive/`）。
 
 ## 技術棧與開發方式
 Next.js 16（App Router）+ React 19 + TypeScript / Prisma 6 + PostgreSQL / Vitest + Testing Library / Playwright。流程：OpenSpec（規格先行）+ TDD。
@@ -45,11 +45,12 @@ Next.js 16（App Router）+ React 19 + TypeScript / Prisma 6 + PostgreSQL / Vite
 | 46 | 既有報名自動補發新題型卡片（`cardsVersion` + `BackfillVariantCardsUseCase`，只新增、不動既有 SRS 進度） |
 | 47 | 單字填空題 `WORD_CLOZE_RECALL`：沒有路口/站號的車站類站名，遮月台號或最長關鍵字（單字站名只給首字母）；提示永不含答案 |
 | 48 | 無障礙與鍵盤：Modal 焦點管理、`useAdvanceShortcut`（不搶按鈕操作）、常駐 `LiveAnnouncer`、提示 `aria-describedby`、SkipLink、`:focus-visible` |
+| 49 | 認證端點限流：login 每 IP 15 分 30 次＋同帳號失敗 5 次暫鎖 15 分（成功清除）、register／forgot／reset 每 IP 每小時 10／10／20、同 email 每小時 3 封（超限靜默回 200 不寄信）；Postgres 原子計數（`auth_rate_limit`），元件故障 fail-open |
 
 > 41–43 只有 commit 標題可查，沒有 archive 資料夾；細節請看對應 PR（#38、#39、#41）。
 
 ## 注意事項
-- **編號撞號歷史**：archive 內有兩個 01、兩個 07，以日期前綴區分。49 已被「登入次數限制」佔用，下一個新 change 請從 **50** 起。
+- **編號撞號歷史**：archive 內有兩個 01、兩個 07，以日期前綴區分。下一個新 change 請從 **50** 起。
 - **Zero-Auth 已結束**：資料 API 一律需 session，未登入回 401。`DEFAULT_DRIVER_ID` 只保留作測試 seed。
 - **別重複做 i18n**：`src/i18n/`（`config.ts` / `messages.ts` / `resolve.ts` / `t.ts`）已完成。新字串加進 `messages.ts`，en 與 zh-TW 必須同 key。
 - 不要把交接內容寫進 AGENTS.md 的 `<!-- BEGIN/END:nextjs-agent-rules -->` 標記內（`next dev` 會覆寫）。
@@ -59,5 +60,5 @@ Next.js 16（App Router）+ React 19 + TypeScript / Prisma 6 + PostgreSQL / Vite
 - 題目品質：約 9.2% 的站名兩種新題型皆不適用，仍用舊的辨識站名。
 - 路線範圍：train 有 707 條，目前只收子集。
 - a11y 深化、更多語言、認證強化（rate limit、角色權限）。
-- 已選定下一個做 **Change 49 登入次數限制**（見上）；之後候選：新題型「上一站是哪裡」、離線可用（PWA）。
+- 候選：新題型「上一站是哪裡」、離線可用（PWA）。
 - 做法：與人確認 → `openspec/changes/47-xxx/`（proposal + tasks）→ 人審 → TDD → 守門三綠（lint / test / build）→ archive → PR。

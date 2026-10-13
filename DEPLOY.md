@@ -32,6 +32,8 @@
 
 > ⚠️ `AUTH_SECRET` 在 production 未設或仍是 dev 後備值時，程式會**啟動即報錯**（防止用可預測密鑰簽 session）。務必設定。
 
+> 🔒 **認證限流（Change 49）**：login／register／forgot／reset 有次數限制，計數存在資料庫的 `auth_rate_limit` 表（`vercel-build` 的 `prisma migrate deploy` 會自動建立）。IP 取自 `x-forwarded-for` 第一個值——**上線後請用真實請求確認它是用戶端真實 IP**。緊急時可設環境變數 `RATE_LIMIT_DISABLED=1` 暫時關閉限流（記得事後移除）。
+
 ## 步驟 4：部署
 - 推送到 `main`（或按 Vercel 的 Deploy）。`vercel-build` 會自動 `prisma migrate deploy` 把 schema 套到新 DB，再 `next build`。
 - 首次部署會建立所有資料表（含 `driver` 帳號表）。
