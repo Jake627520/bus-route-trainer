@@ -95,8 +95,8 @@ describe('Phase 4: POST /api/recall/sessions/[id]/answer Integration Tests', () 
     const prompt0 = await useCases.getSessionPrompt.execute({ sessionId: session.id, driverId: DEFAULT_DRIVER_ID });
 
     const stopMap: Record<string, string> = {
-      'STOP::stop-p4-1': 'Stop 100',
-      'STOP::stop-p4-2': 'Stop 200',
+      'STOP::stop-p4-1': '100',
+      'STOP::stop-p4-2': '200',
     };
 
     const req = new Request(`http://localhost/api/recall/sessions/${session.id}/answer`, {
@@ -153,7 +153,7 @@ describe('Phase 4: POST /api/recall/sessions/[id]/answer Integration Tests', () 
 
     // Change 44: 答錯時回傳正確答案供畫面顯示
     expect(json.data.correctAnswer).toBeDefined();
-    expect(['Stop 100', 'Stop 200']).toContain(json.data.correctAnswer);
+    expect(['100', '200']).toContain(json.data.correctAnswer);
   });
 
   it('3. returns 200 OK and completes session on final card submission', async () => {
@@ -164,7 +164,7 @@ describe('Phase 4: POST /api/recall/sessions/[id]/answer Integration Tests', () 
     await useCases.submitSessionAnswer.execute({
       sessionId: session.id,
       promptIndex: 0,
-      rawInput: 'Stop 100',
+      rawInput: '100',
       driverId: DEFAULT_DRIVER_ID,
     });
 
@@ -176,7 +176,7 @@ describe('Phase 4: POST /api/recall/sessions/[id]/answer Integration Tests', () 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         promptIndex: 1,
-        rawInput: 'Stop 200',
+        rawInput: '200',
       }),
     });
 
@@ -199,8 +199,8 @@ describe('Phase 4: POST /api/recall/sessions/[id]/answer Integration Tests', () 
     const prompt0 = await useCases.getSessionPrompt.execute({ sessionId: session.id, driverId: DEFAULT_DRIVER_ID });
 
     const stopMap: Record<string, string> = {
-      'STOP::stop-p4-1': 'Stop 100',
-      'STOP::stop-p4-2': 'Stop 200',
+      'STOP::stop-p4-1': '100',
+      'STOP::stop-p4-2': '200',
     };
     const answer = stopMap[prompt0.prompt.cardKey]!;
 
@@ -239,8 +239,8 @@ describe('Phase 4: POST /api/recall/sessions/[id]/answer Integration Tests', () 
     const prompt0 = await useCases.getSessionPrompt.execute({ sessionId: session.id, driverId: DEFAULT_DRIVER_ID });
 
     const stopMap: Record<string, string> = {
-      'STOP::stop-p4-1': 'Stop 100',
-      'STOP::stop-p4-2': 'Stop 200',
+      'STOP::stop-p4-1': '100',
+      'STOP::stop-p4-2': '200',
     };
     const answer = stopMap[prompt0.prompt.cardKey]!;
 

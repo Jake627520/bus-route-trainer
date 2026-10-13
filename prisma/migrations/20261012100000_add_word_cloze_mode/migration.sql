@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "RecallMode" ADD VALUE 'WORD_CLOZE_RECALL';

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 export interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -8,7 +8,8 @@ export interface TextInputProps extends React.InputHTMLAttributes<HTMLInputEleme
 
 export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(
   ({ label, error, helperText, id, className = '', disabled, ...props }, ref) => {
-    const inputId = id ?? (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+    const autoId = useId();
+    const inputId = id ?? autoId;
 
     return (
       <div className="w-full">

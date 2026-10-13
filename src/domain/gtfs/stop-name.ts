@@ -20,6 +20,8 @@ export interface ParsedStopName {
   readonly landmark: string | null;
   /** 站號，可能含斜線（如 `59/56`）或為字母（如 `E`）。platform 不算。 */
   readonly stopNumber: string | null;
+  /** Change 47: 月台號（`..., platform 1`）。月台不算 stop number，另外解析。 */
+  readonly platform: string | null;
 }
 
 const EMPTY: ParsedStopName = {
@@ -28,12 +30,15 @@ const EMPTY: ParsedStopName = {
   relation: null,
   landmark: null,
   stopNumber: null,
+  platform: null,
 };
 
 /** 結尾的 `, stop 78` / ` stop 59/56`（逗號選填）。 */
 const TRAILING_STOP = /[,]?\s+stop\s+([A-Za-z0-9]+(?:\/[A-Za-z0-9]+)*)\s*$/i;
 /** 位於 at/near 之前的 `Stop 11`。 */
 const INLINE_STOP = /\s+stop\s+([A-Za-z0-9]+(?:\/[A-Za-z0-9]+)*)(?=\s+(?:at|near)\s+)/i;
+/** 結尾的 `, platform 1` / ` platform B`（逗號選填）。 */
+const PLATFORM = /[,]?\s+platform\s+([A-Za-z0-9]+)\s*$/i;
 /** 第一個 at/near 作為切點。 */
 const RELATION = /^(.*?)\s+(at|near)\s+(.+)$/i;
 
@@ -59,6 +64,8 @@ export function parseStopName(name: string): ParsedStopName {
     }
   }
 
+  const platform = raw.match(PLATFORM)?.[1] ?? null;
+
   // 2. 以第一個 at/near 切出街道與地標
   const rel = rest.match(RELATION);
   if (!rel) {
@@ -68,6 +75,7 @@ export function parseStopName(name: string): ParsedStopName {
       relation: null,
       landmark: null,
       stopNumber,
+      platform,
     };
   }
 
@@ -77,5 +85,6 @@ export function parseStopName(name: string): ParsedStopName {
     relation: rel[2].toLowerCase() as 'at' | 'near',
     landmark: rel[3].trim() || null,
     stopNumber,
+    platform,
   };
 }

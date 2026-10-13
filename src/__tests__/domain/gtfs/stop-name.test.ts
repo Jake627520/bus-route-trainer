@@ -14,6 +14,7 @@ describe('Change 45: parseStopName', () => {
       relation: 'at',
       landmark: 'Ceriman Street',
       stopNumber: '78',
+      platform: null,
     });
   });
 
@@ -53,6 +54,16 @@ describe('Change 45: parseStopName', () => {
     const p = parseStopName('Griffith University station, platform 1');
     expect(p.stopNumber).toBeNull();
     expect(p.landmark).toBeNull();
+  });
+
+  // Change 47: platform 另外解析，供單字填空題遮月台號
+  it('parses the platform number separately', () => {
+    const p = parseStopName('Griffith University station, platform 1');
+    expect(p.platform).toBe('1');
+  });
+
+  it('has no platform for ordinary stops', () => {
+    expect(parseStopName('Freesia St at Muirfield Street, stop 85').platform).toBeNull();
   });
 
   it('returns all-null parts for a name with no recognisable structure', () => {

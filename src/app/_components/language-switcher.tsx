@@ -29,6 +29,7 @@ export function LanguageSwitcher() {
           type="button"
           onClick={() => setLocale(l)}
           aria-pressed={l === current}
+          lang={l}
           className={
             l === current
               ? 'rounded px-2 py-1 font-semibold text-pink-600 underline decoration-2 underline-offset-4 dark:text-pink-400'

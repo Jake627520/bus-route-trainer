@@ -116,7 +116,7 @@ describe('Change 10 Phase 10.3: RecallPracticePage View States & UX Acceptance',
 
     // FEEDBACK state
     await waitFor(() => {
-      expect(screen.getByText('Correct Recall!')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Correct Recall!' })).toBeInTheDocument();
       expect(screen.getByText(/LEARNING/)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /Next Question/i })).toBeInTheDocument();
     });
@@ -147,7 +147,7 @@ describe('Change 10 Phase 10.3: RecallPracticePage View States & UX Acceptance',
     fireEvent.click(screen.getByRole('button', { name: /Submit Answer/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Practice Session Completed!')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Practice Session Completed!' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Practice Again' })).toBeInTheDocument();
     });
   });

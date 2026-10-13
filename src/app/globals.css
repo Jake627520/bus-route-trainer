@@ -61,6 +61,17 @@ body {
   background: color-mix(in srgb, var(--color-pink-500) 30%, transparent);
 }
 
+/* Change 48: 鍵盤焦點備援——元件自己有 ring 的不受影響（ring 為 box-shadow，這裡是 outline）。 */
+:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+}
+@media (prefers-color-scheme: dark) {
+  :focus-visible {
+    outline-color: var(--color-pink-500);
+  }
+}
+
 /* 動效一律尊重 reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   *,
