@@ -4,9 +4,9 @@
 > 開工前須通過人審（見 proposal.md「待你決定」）。
 
 ## Phase 49.1: 核心邏輯
-- [ ] Task 1: 限流設定檔（各端點的次數／時間窗）+ `RateLimitRepository` port <!-- id: 49-01 -->
-- [ ] Task 2: `CheckRateLimit`（假 clock + 記憶體 repo 測：窗內累加／跨窗歸零／超限回 retryAfter／清除失敗計數） <!-- id: 49-02 -->
-- [ ] Task 3: `getClientIp(request)`（x-forwarded-for 第一個值；缺失回 `unknown`） <!-- id: 49-03 -->
+- [x] Task 1: 限流設定檔（各端點的次數／時間窗）+ `RateLimitRepository` port <!-- id: 49-01 -->
+- [x] Task 2: `CheckRateLimit`（假 clock + 記憶體 repo 測：窗內累加／跨窗歸零／超限回 retryAfter／清除失敗計數） <!-- id: 49-02 -->
+- [x] Task 3: `getClientIp(request)`（x-forwarded-for 第一個值；缺失回 `unknown`） <!-- id: 49-03 -->
 
 ## Phase 49.2: 資料庫
 - [ ] Task 4: Prisma `auth_rate_limit` + migration <!-- id: 49-04 -->
