@@ -9,8 +9,8 @@
 - [x] Task 3: `getClientIp(request)`（x-forwarded-for 第一個值；缺失回 `unknown`） <!-- id: 49-03 -->
 
 ## Phase 49.2: 資料庫
-- [ ] Task 4: Prisma `auth_rate_limit` + migration <!-- id: 49-04 -->
-- [ ] Task 5: `PrismaRateLimitRepository`（原子 upsert 遞增、過期清理；整合測試含並發） <!-- id: 49-05 -->
+- [x] Task 4: Prisma `auth_rate_limit` + migration <!-- id: 49-04 -->
+- [x] Task 5: `PrismaRateLimitRepository`（原子 upsert 遞增、過期清理；整合測試含並發） <!-- id: 49-05 -->
 
 ## Phase 49.3: 接上路由
 - [ ] Task 6: login（每 IP + 每帳號失敗計數；成功清除）→ 429 + `Retry-After` <!-- id: 49-06 -->
