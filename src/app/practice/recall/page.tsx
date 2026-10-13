@@ -4,6 +4,7 @@ import React, { useId, useState, useEffect, useRef, useMemo, Suspense } from 're
 import { useSearchParams } from 'next/navigation';
 import { parseQueue } from '@/app/_lib/practice-queue';
 import { useAdvanceShortcut } from '@/app/_lib/use-advance-shortcut';
+import { spokenHint } from '@/app/_lib/spoken-hint';
 import { parseVariantKey } from '@/domain/route/route-variant';
 import { useRecallSession } from '@/application/recall/client/use-recall-session';
 import {
@@ -147,10 +148,7 @@ function RecallPracticeInner() {
 
   // Change 48: 提示文字與輸入框關聯；底線改成「空格」的讀法，螢幕閱讀器才不會念一串底線。
   const promptId = useId();
-  const spokenReference = (currentPrompt?.givenReference ?? '').replace(
-    /_{2,}/g,
-    t('recall.blankSpoken'),
-  );
+  const spokenReference = spokenHint(currentPrompt?.givenReference ?? '', t);
 
   // Change 48: 常駐播報區（答對/答錯＋正確答案；完成）。
   const announcement =
