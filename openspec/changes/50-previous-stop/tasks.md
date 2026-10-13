@@ -7,8 +7,8 @@
 - [x] Task 2: `RecallMode.PREVIOUS_STOP_BACKWARD`；評分走寬鬆站名比對 <!-- id: 50-02 -->
 
 ## Phase 50.2: 資料庫與補發
-- [ ] Task 3: Prisma enum（`CardType.PREV_STOP`、`RecallMode.PREVIOUS_STOP_BACKWARD`）+ migration <!-- id: 50-03 -->
-- [ ] Task 4: `CURRENT_CARDS_VERSION` 1→2；補發只新增 `PREV_STOP` 卡、不動既有卡 <!-- id: 50-04 -->
+- [x] Task 3: Prisma enum（`CardType.PREV_STOP`、`RecallMode.PREVIOUS_STOP_BACKWARD`）+ migration <!-- id: 50-03 -->
+- [x] Task 4: `CURRENT_CARDS_VERSION` 1→2；補發只新增 `PREV_STOP` 卡、不動既有卡 <!-- id: 50-04 -->
 
 ## Phase 50.3: 出題與批改
 - [ ] Task 5: session 出題（給 B 站名）與批改（答案為 A 站名）接上新卡；進度 DTO 投影 `currentSequence` <!-- id: 50-05 -->

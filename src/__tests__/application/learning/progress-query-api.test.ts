@@ -86,7 +86,7 @@ describe('GET /api/progress/[variantKey] Route Handler Integration Tests', () =>
     const body = await response.json();
     expect(body).toHaveProperty('data');
     expect(body.data.targetVariantKey).toBe(sampleVariantKey);
-    expect(body.data.cards).toHaveLength(5);
+    expect(body.data.cards).toHaveLength(7); // 3 STOP + 2 NEXT_STOP + 2 PREV_STOP
 
     // Verify sequences
     const stopRbwh = body.data.cards.find((c: { cardKey: string }) => c.cardKey === 'STOP::stop_rbwh');
@@ -95,6 +95,12 @@ describe('GET /api/progress/[variantKey] Route Handler Integration Tests', () =>
     );
     expect(stopRbwh.currentSequence).toBe(1);
     expect(nextRbwhKg.currentSequence).toBe(1); // sequence of departure station
+    // Change 50: 上一站卡的「題目站」是 to，序號取 to 的序號（stop_kg 為第 2 站）
+    const prevRbwhKg = body.data.cards.find(
+      (c: { cardKey: string }) => c.cardKey === 'PREV_STOP::stop_rbwh->stop_kg'
+    );
+    expect(prevRbwhKg.cardType).toBe('PREV_STOP');
+    expect(prevRbwhKg.currentSequence).toBe(2);
   });
 
   it('Test C: URL encoding round-trip: operates on framework-provided decoded parameter without double decoding', async () => {

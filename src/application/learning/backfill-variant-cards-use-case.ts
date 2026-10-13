@@ -2,8 +2,10 @@ import { randomUUID } from 'crypto';
 import { CardState, CardType, LearningCard } from '@/domain/learning/learning-card';
 import {
   generateNextStopCardKey,
+  generatePreviousStopCardKey,
   generateStopCardKey,
   generateStopNumberCardKey,
+  hasPreviousStopCard,
 } from '@/domain/learning/card-key-generator';
 import { parseStopName } from '@/domain/gtfs/stop-name';
 import { GetRouteVariantsUseCase } from '@/application/gtfs/get-route-variants-use-case';
@@ -13,8 +15,9 @@ import { GetRouteVariantsUseCase } from '@/application/gtfs/get-route-variants-u
  * 每當引入新題型（＝新的 cardKey 種類）就 +1，既有報名會在下次開練習時補發。
  *
  * 1 = Change 45 的 STOP_NUM:: 站號卡
+ * 2 = Change 50 的 PREV_STOP:: 上一站卡
  */
-export const CURRENT_CARDS_VERSION = 1;
+export const CURRENT_CARDS_VERSION = 2;
 
 export interface ProgressForBackfill {
   readonly id: string;
@@ -98,6 +101,11 @@ export class BackfillVariantCardsUseCase {
     }
     for (let i = 0; i < stops.length - 1; i++) {
       push(generateNextStopCardKey(stops[i].stopId, stops[i + 1].stopId), CardType.NEXT_STOP);
+    }
+    // Change 50: 上一站卡（相鄰站同名者不出）
+    for (let i = 0; i < stops.length - 1; i++) {
+      if (!hasPreviousStopCard(stops[i].stopName, stops[i + 1].stopName)) continue;
+      push(generatePreviousStopCardKey(stops[i].stopId, stops[i + 1].stopId), CardType.PREV_STOP);
     }
 
     await this.repo.addCardsAndSetVersion(progress.id, missing, CURRENT_CARDS_VERSION);

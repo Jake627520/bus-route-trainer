@@ -1,3 +1,4 @@
+import { parsePreviousStopCardKey } from '@/domain/learning/card-key-generator';
 import { CardType } from '@/domain/learning/learning-card';
 import {
   LearningProgressRepository,
@@ -72,6 +73,10 @@ export class GetVariantProgressUseCase {
           const [fromStopId] = edge.split('->');
           // Departure station sequence
           currentSequence = stopSequenceMap.get(fromStopId) ?? null;
+        } else if (card.cardType === CardType.PREV_STOP) {
+          // Change 50: PREV_STOP::{fromStopId}->{toStopId}。題目給的是 to，序號取 to。
+          const edge = parsePreviousStopCardKey(card.cardKey);
+          currentSequence = edge ? (stopSequenceMap.get(edge.toStopId) ?? null) : null;
         }
       }
 
