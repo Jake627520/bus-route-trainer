@@ -4,7 +4,7 @@
 > 最後更新：2026-10-12，對應 Change 48（PR #45，合併後即為 `main`）。
 
 ## 一句話
-昆士蘭（SEQ）巴士司機「路線記憶訓練器」。已上線（Vercel + 獨立 Postgres），有帳號登入、雙語（en / zh-TW）、SRS 複習、六種題型。**目前沒有進行中的 change**（`openspec/changes/` 只有 `archive/`）。
+昆士蘭（SEQ）巴士司機「路線記憶訓練器」。已上線（Vercel + 獨立 Postgres），有帳號登入、雙語（en / zh-TW）、SRS 複習、五種題型（下一站、上一站、路口填空、站號、單字填空）。**目前沒有進行中的 change**（`openspec/changes/` 只有 `archive/`）。
 
 ## 技術棧與開發方式
 Next.js 16（App Router）+ React 19 + TypeScript / Prisma 6 + PostgreSQL / Vitest + Testing Library / Playwright。流程：OpenSpec（規格先行）+ TDD。
