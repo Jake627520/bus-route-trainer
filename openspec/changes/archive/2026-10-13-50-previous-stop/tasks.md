@@ -17,4 +17,4 @@
 - [x] Task 6: client 型別、練習頁標籤、i18n（en／zh-TW） <!-- id: 50-06 -->
 
 ## Phase 50.5: 收尾
-- [ ] Task 7: 守門三綠；真瀏覽器完整流程；更新 spec／HANDOFF；archive；PR <!-- id: 50-07 -->
+- [x] Task 7: 守門三綠；真瀏覽器完整流程；更新 spec／HANDOFF；archive；PR <!-- id: 50-07 -->
