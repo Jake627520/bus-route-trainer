@@ -19,7 +19,7 @@
 - [x] Task 9: 限流元件故障時 fail-open（記 log） <!-- id: 49-09 -->
 
 ## Phase 49.4: 前端
-- [ ] Task 10: 登入／忘記密碼／重設密碼頁處理 `RATE_LIMITED`，i18n（en／zh-TW，含分鐘數） <!-- id: 49-10 -->
+- [x] Task 10: 登入／忘記密碼／重設密碼頁處理 `RATE_LIMITED`，i18n（en／zh-TW，含分鐘數） <!-- id: 49-10 -->
 
 ## Phase 49.5: 收尾
 - [ ] Task 11: 守門三綠；部署後用真實請求驗證 IP header；更新 spec；archive；PR <!-- id: 49-11 -->

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useT } from '@/app/_components/locale-provider';
+import { isRateLimited, rateLimitedMessage } from '@/app/_lib/rate-limit-message';
 
 /**
  * Change 41: 忘記密碼頁。送出 email → POST /api/auth/forgot（永遠回 200，不洩漏帳號是否存在）。
@@ -13,21 +14,31 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    setError(null);
+    let limitedMessage: string | null = null;
     try {
-      await fetch('/api/auth/forgot', {
+      const res = await fetch('/api/auth/forgot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim() }),
       });
+      // Change 49: 被限流（429）時要明說，不能假裝已寄出。
+      if (res.status === 429) {
+        const body = await res.json().catch(() => ({}));
+        const err = (body as { error?: { code?: string; retryAfterSeconds?: number } })?.error;
+        if (isRateLimited(err)) limitedMessage = rateLimitedMessage(err, t);
+      }
     } catch {
       // 不洩漏任何狀態，一律視為已送出。
     } finally {
       setSubmitting(false);
-      setSent(true);
+      if (limitedMessage) setError(limitedMessage);
+      else setSent(true);
     }
   };
 
@@ -56,6 +67,9 @@ export default function ForgotPasswordPage() {
                 className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
               />
             </label>
+            {error ? (
+              <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            ) : null}
             <button
               type="submit"
               disabled={submitting}
