@@ -13,6 +13,8 @@ export enum RecallMode {
   STOP_NUMBER_RECALL = 'STOP_NUMBER_RECALL',
   /** Change 47: 單字填空 —— 遮住站名中的月台號或關鍵字。 */
   WORD_CLOZE_RECALL = 'WORD_CLOZE_RECALL',
+  /** Change 50: 上一站 —— 給站 B，答它的前一站 A。 */
+  PREVIOUS_STOP_BACKWARD = 'PREVIOUS_STOP_BACKWARD',
 }
 
 export enum RecallOutcome {

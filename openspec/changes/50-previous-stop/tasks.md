@@ -3,8 +3,8 @@
 > TDD。守門三綠：`eslint` / `vitest run --fileParallelism=false` / `next build`。
 
 ## Phase 50.1: 領域
-- [ ] Task 1: `CardType.PREV_STOP`、`generatePreviousStopCardKey`、鍵解析；卡片產生器為每對相鄰站（寬鬆站名不同者）產生上一站卡 <!-- id: 50-01 -->
-- [ ] Task 2: `RecallMode.PREVIOUS_STOP_BACKWARD`；評分走寬鬆站名比對 <!-- id: 50-02 -->
+- [x] Task 1: `CardType.PREV_STOP`、`generatePreviousStopCardKey`、鍵解析；卡片產生器為每對相鄰站（寬鬆站名不同者）產生上一站卡 <!-- id: 50-01 -->
+- [x] Task 2: `RecallMode.PREVIOUS_STOP_BACKWARD`；評分走寬鬆站名比對 <!-- id: 50-02 -->
 
 ## Phase 50.2: 資料庫與補發
 - [ ] Task 3: Prisma enum（`CardType.PREV_STOP`、`RecallMode.PREVIOUS_STOP_BACKWARD`）+ migration <!-- id: 50-03 -->
