@@ -14,7 +14,7 @@
 - [x] Task 5: session 出題（給 B 站名）與批改（答案為 A 站名）接上新卡；進度 DTO 投影 `currentSequence` <!-- id: 50-05 -->
 
 ## Phase 50.4: 前端
-- [ ] Task 6: client 型別、練習頁標籤、i18n（en／zh-TW） <!-- id: 50-06 -->
+- [x] Task 6: client 型別、練習頁標籤、i18n（en／zh-TW） <!-- id: 50-06 -->
 
 ## Phase 50.5: 收尾
 - [ ] Task 7: 守門三綠；真瀏覽器完整流程；更新 spec／HANDOFF；archive；PR <!-- id: 50-07 -->
