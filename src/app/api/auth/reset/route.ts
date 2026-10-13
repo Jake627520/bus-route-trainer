@@ -6,8 +6,12 @@ import { hashResetToken } from '@/infrastructure/auth/reset-token';
 import { hashPassword } from '@/infrastructure/auth/password-hasher';
 import { SystemClock } from '@/application/common/clock';
 import { validatePassword, describePasswordPolicy } from '@/domain/auth/password-policy';
+import { getClientIp } from '@/app/_lib/client-ip';
+import { createAuthRateGate, tooManyRequests } from '@/app/_lib/auth-rate-gate';
+import { RATE_RULES } from '@/domain/auth/rate-limit-policy';
 
 const prisma = new PrismaClient();
+const gate = createAuthRateGate(prisma);
 const useCase = new ResetPasswordUseCase(new PrismaDriverAccountRepository(prisma), new SystemClock());
 
 const badRequest = (message: string) =>
@@ -15,6 +19,9 @@ const badRequest = (message: string) =>
 
 /** Change 41: POST /api/auth/reset — 以 token 設定新密碼。 */
 export async function POST(request: Request): Promise<NextResponse> {
+  const ipDecision = await gate.hit(RATE_RULES.resetIp, getClientIp(request));
+  if (!ipDecision.allowed) return tooManyRequests(ipDecision);
+
   let body: unknown;
   try {
     body = await request.json();

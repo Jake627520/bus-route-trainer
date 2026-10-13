@@ -13,10 +13,10 @@
 - [x] Task 5: `PrismaRateLimitRepository`（原子 upsert 遞增、過期清理；整合測試含並發） <!-- id: 49-05 -->
 
 ## Phase 49.3: 接上路由
-- [ ] Task 6: login（每 IP + 每帳號失敗計數；成功清除）→ 429 + `Retry-After` <!-- id: 49-06 -->
-- [ ] Task 7: register、reset（每 IP） <!-- id: 49-07 -->
-- [ ] Task 8: forgot（每 IP 429；每 email 超限靜默 200 且不寄信） <!-- id: 49-08 -->
-- [ ] Task 9: 限流元件故障時 fail-open（記 log） <!-- id: 49-09 -->
+- [x] Task 6: login（每 IP + 每帳號失敗計數；成功清除）→ 429 + `Retry-After` <!-- id: 49-06 -->
+- [x] Task 7: register、reset（每 IP） <!-- id: 49-07 -->
+- [x] Task 8: forgot（每 IP 429；每 email 超限靜默 200 且不寄信） <!-- id: 49-08 -->
+- [x] Task 9: 限流元件故障時 fail-open（記 log） <!-- id: 49-09 -->
 
 ## Phase 49.4: 前端
 - [ ] Task 10: 登入／忘記密碼／重設密碼頁處理 `RATE_LIMITED`，i18n（en／zh-TW，含分鐘數） <!-- id: 49-10 -->

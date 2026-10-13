@@ -4,8 +4,12 @@ import { PrismaDriverAccountRepository } from '@/infrastructure/auth/prisma-driv
 import { RegisterDriverUseCase, UsernameTakenError, EmailTakenError } from '@/application/auth/register-driver-use-case';
 import { hashPassword } from '@/infrastructure/auth/password-hasher';
 import { validatePassword, describePasswordPolicy } from '@/domain/auth/password-policy';
+import { getClientIp } from '@/app/_lib/client-ip';
+import { createAuthRateGate, tooManyRequests } from '@/app/_lib/auth-rate-gate';
+import { RATE_RULES } from '@/domain/auth/rate-limit-policy';
 
 const prisma = new PrismaClient();
+const gate = createAuthRateGate(prisma);
 const registerUseCase = new RegisterDriverUseCase(new PrismaDriverAccountRepository(prisma), hashPassword);
 
 const badRequest = (message: string) =>
@@ -13,6 +17,9 @@ const badRequest = (message: string) =>
 
 /** Change 25: POST /api/auth/register — 開放自助註冊。 */
 export async function POST(request: Request): Promise<NextResponse> {
+  const ipDecision = await gate.hit(RATE_RULES.registerIp, getClientIp(request));
+  if (!ipDecision.allowed) return tooManyRequests(ipDecision);
+
   let body: unknown;
   try {
     body = await request.json();
