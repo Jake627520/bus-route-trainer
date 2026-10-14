@@ -17,4 +17,4 @@
 - [x] Task 7: 練習頁在 SUBMIT_FAILED 時，恢復連線自動重送一次（沿用冪等重送） <!-- id: 51-07 -->
 
 ## Phase 51.4: 收尾
-- [ ] Task 8: 守門三綠；真瀏覽器離線驗證；更新 spec／HANDOFF（含「自我註銷 SW」救援作法）／DEPLOY；archive；PR <!-- id: 51-08 -->
+- [x] Task 8: 守門三綠；真瀏覽器離線驗證；更新 spec／HANDOFF（含「自我註銷 SW」救援作法）／DEPLOY；archive；PR <!-- id: 51-08 -->

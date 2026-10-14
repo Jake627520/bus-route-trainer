@@ -45,6 +45,9 @@
 
 ---
 
+## PWA 驗證（Change 51）
+部署後用手機 Chrome／Safari 開網站：選單應出現「加到主畫面／安裝」；開飛航模式再開 App 應看到「目前離線」頁而非瀏覽器錯誤。`/sw.js`、`/manifest.webmanifest`、`/offline.html` 與圖示不需登入即可存取（`src/proxy.ts` 已排除）。緊急停用 SW 見 HANDOFF.md。
+
 ## 疑難排解
 - **部署 build 失敗在 migrate**：多半是 `DIRECT_URL` 沒設或用了 pooled URL。migrate 必須走 direct 連線。
 - **登入後又被導回登入頁**：cookie 沒帶上，確認網址是 https（SameSite=Lax + Secure 需 https）。

@@ -1,10 +1,10 @@
 # 交接手冊（Handoff）
 
 > 給接手的 agent（Claude Code / Antigravity）：先讀這份，再讀 [AGENTS.md](./AGENTS.md)（長期慣例）。
-> 最後更新：2026-10-12，對應 Change 48（PR #45，合併後即為 `main`）。
+> 最後更新：2026-10-14，對應 Change 51（PWA，合併後即為 `main`）。
 
 ## 一句話
-昆士蘭（SEQ）巴士司機「路線記憶訓練器」。已上線（Vercel + 獨立 Postgres），有帳號登入、雙語（en / zh-TW）、SRS 複習、五種題型（下一站、上一站、路口填空、站號、單字填空）。**目前沒有進行中的 change**（`openspec/changes/` 只有 `archive/`）。
+昆士蘭（SEQ）巴士司機「路線記憶訓練器」。已上線（Vercel + 獨立 Postgres），有帳號登入、雙語（en / zh-TW）、SRS 複習、五種題型（下一站、上一站、路口填空、站號、單字填空），可安裝到主畫面、離線時顯示離線頁。**目前沒有進行中的 change**（`openspec/changes/` 只有 `archive/`）。
 
 ## 技術棧與開發方式
 Next.js 16（App Router）+ React 19 + TypeScript / Prisma 6 + PostgreSQL / Vitest + Testing Library / Playwright。流程：OpenSpec（規格先行）+ TDD。
@@ -47,19 +47,31 @@ Next.js 16（App Router）+ React 19 + TypeScript / Prisma 6 + PostgreSQL / Vite
 | 48 | 無障礙與鍵盤：Modal 焦點管理、`useAdvanceShortcut`（不搶按鈕操作）、常駐 `LiveAnnouncer`、提示 `aria-describedby`、SkipLink、`:focus-visible` |
 | 49 | 認證端點限流：login 每 IP 15 分 30 次＋同帳號失敗 5 次暫鎖 15 分（成功清除）、register／forgot／reset 每 IP 每小時 10／10／20、同 email 每小時 3 封（超限靜默回 200 不寄信）；Postgres 原子計數（`auth_rate_limit`），元件故障 fail-open |
 | 50 | 新題型「上一站是哪裡」`PREVIOUS_STOP_BACKWARD`：新卡 `PREV_STOP::{from}->{to}`（每對相鄰站一張，第一站沒有；相鄰同名站不出）、`CardType.PREV_STOP`；卡片組版本 2，既有報名下次練習時自動補發（只新增、不動既有進度）；給站 B 答前一站 A，寬鬆比對 |
+| 51 | PWA（等級 A）：manifest＋圖示可安裝、`public/sw.js`（離線頁；`/_next/static` 快取優先；**不快取 /api 與 HTML**）、`OfflineBanner`、提交失敗後恢復連線自動重送一次。離線練習（答案放裝置）刻意未做 |
 
 > 41–43 只有 commit 標題可查，沒有 archive 資料夾；細節請看對應 PR（#38、#39、#41）。
 
 ## 注意事項
-- **編號撞號歷史**：archive 內有兩個 01、兩個 07，以日期前綴區分。下一個新 change 請從 **51** 起。
+- **編號撞號歷史**：archive 內有兩個 01、兩個 07，以日期前綴區分。下一個新 change 請從 **52** 起。
 - **Zero-Auth 已結束**：資料 API 一律需 session，未登入回 401。`DEFAULT_DRIVER_ID` 只保留作測試 seed。
 - **別重複做 i18n**：`src/i18n/`（`config.ts` / `messages.ts` / `resolve.ts` / `t.ts`）已完成。新字串加進 `messages.ts`，en 與 zh-TW 必須同 key。
 - 不要把交接內容寫進 AGENTS.md 的 `<!-- BEGIN/END:nextjs-agent-rules -->` 標記內（`next dev` 會覆寫）。
 - 進度的唯一依據是 `openspec/changes/` 內未 archive 的 change 的 `tasks.md`。開工前先 `git fetch`、看 `main` 與開放中的 PR，避免像 Change 30 那樣兩邊撞工。
 
+## Service worker 緊急停用（Change 51）
+`public/sw.js` 寫壞可能讓使用者看到舊畫面。急救：把 `sw.js` 換成下面這段並部署（`/sw.js` 不被快取，裝置下次載入就會自我註銷並清快取）：
+```js
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (e) => e.waitUntil(
+  caches.keys().then((ks) => Promise.all(ks.map((k) => caches.delete(k))))
+    .then(() => self.registration.unregister())
+));
+```
+改 `sw.js` 內容時順便把 `VERSION` 加一，舊快取會在新版啟用時清掉。SW 只在 production 註冊。
+
 ## 下一步候選（尚無提案，需與人確認）
 - 題目品質：約 9.2% 的站名兩種新題型皆不適用，仍用舊的辨識站名。
 - 路線範圍：train 有 707 條，目前只收子集。
 - a11y 深化、更多語言、認證強化（rate limit、角色權限）。
-- 候選：離線可用（PWA）。
+- 候選：離線練習（PWA 等級 B）——答案要存在裝置上，與「答案絕不先送出」的安全原則衝突，另需同步／衝突設計，需先決策。
 - 做法：與人確認 → `openspec/changes/47-xxx/`（proposal + tasks）→ 人審 → TDD → 守門三綠（lint / test / build）→ archive → PR。

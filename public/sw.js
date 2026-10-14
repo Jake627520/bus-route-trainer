@@ -62,7 +62,7 @@ self.addEventListener('fetch', function (event) {
     if (url.pathname.indexOf('/_next/static/') === 0) {
       event.respondWith(handleStatic(request));
     }
-  } catch (e) {
+  } catch {
     // 出任何錯：不接手，讓瀏覽器照常處理。
   }
 });
