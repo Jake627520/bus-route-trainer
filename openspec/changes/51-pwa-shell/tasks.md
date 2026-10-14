@@ -13,7 +13,7 @@
 - [x] Task 5: `ServiceWorkerRegister`（只在 production、失敗靜默）掛進 layout；`next.config` 為 `/sw.js` 設標頭 <!-- id: 51-05 -->
 
 ## Phase 51.3: 使用者體驗
-- [ ] Task 6: `OfflineBanner`（`role="status"`、i18n en／zh-TW） <!-- id: 51-06 -->
+- [x] Task 6: `OfflineBanner`（`role="status"`、i18n en／zh-TW） <!-- id: 51-06 -->
 - [ ] Task 7: 練習頁在 SUBMIT_FAILED 時，恢復連線自動重送一次（沿用冪等重送） <!-- id: 51-07 -->
 
 ## Phase 51.4: 收尾

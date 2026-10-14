@@ -85,6 +85,9 @@ const en = {
   a11y: {
     skipToContent: 'Skip to main content',
   },
+  offline: {
+    banner: "You're offline. Answers will be sent when you reconnect.",
+  },
   lang: {
     label: 'Language',
     en: 'English',
@@ -314,6 +317,9 @@ const zhTW: Messages = {
   },
   a11y: {
     skipToContent: '跳到主要內容',
+  },
+  offline: {
+    banner: '目前離線。恢復連線後會自動送出你的答案。',
   },
   lang: {
     label: '語言',
