@@ -8,8 +8,8 @@
 - [x] Task 2: proxy 例外：manifest、`sw.js`、圖示、`/offline.html` 不需登入 <!-- id: 51-02 -->
 
 ## Phase 51.2: Service Worker
-- [ ] Task 3: `public/offline.html`（雙語、無外部資源、重試鈕） <!-- id: 51-03 -->
-- [ ] Task 4: `public/sw.js`（導覽 network-first＋離線頁；靜態快取優先＋數量上限；不快取 /api 與 HTML；版本化；出錯放行） <!-- id: 51-04 -->
+- [x] Task 3: `public/offline.html`（雙語、無外部資源、重試鈕） <!-- id: 51-03 -->
+- [x] Task 4: `public/sw.js`（導覽 network-first＋離線頁；靜態快取優先＋數量上限；不快取 /api 與 HTML；版本化；出錯放行） <!-- id: 51-04 -->
 - [ ] Task 5: `ServiceWorkerRegister`（只在 production、失敗靜默）掛進 layout；`next.config` 為 `/sw.js` 設標頭 <!-- id: 51-05 -->
 
 ## Phase 51.3: 使用者體驗
