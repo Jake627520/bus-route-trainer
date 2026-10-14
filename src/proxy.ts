@@ -33,5 +33,8 @@ export function proxy(request: NextRequest): NextResponse {
 
 export const config = {
   // 排除 api、Next 內部資源、常見 metadata 檔；其餘頁面都經過保護。
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)'],
+  matcher: [
+    // Change 51: 另外排除 PWA 檔案（manifest、service worker、離線頁、圖示），它們必須未登入也能取得。
+    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.webmanifest|sw.js|offline.html|icon-192.png|icon-512.png|icon-maskable-512.png|apple-touch-icon.png).*)',
+  ],
 };

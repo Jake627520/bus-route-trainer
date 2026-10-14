@@ -46,4 +46,27 @@ describe('Change 26: page-protection proxy', () => {
     expect(unstable_doesMiddlewareMatch({ config, nextConfig, url: '/api/auth/login' })).toBe(false);
     expect(unstable_doesMiddlewareMatch({ config, nextConfig, url: '/_next/static/chunk.js' })).toBe(false);
   });
+
+  // Change 51: PWA 檔案必須不需登入（否則未登入時安裝／離線頁都會被導向 /login）
+  it('does not run on PWA files (manifest, service worker, icons, offline page)', () => {
+    const nextConfig = {};
+    for (const url of [
+      '/manifest.webmanifest',
+      '/sw.js',
+      '/offline.html',
+      '/icon-192.png',
+      '/icon-512.png',
+      '/icon-maskable-512.png',
+      '/apple-touch-icon.png',
+    ]) {
+      expect(unstable_doesMiddlewareMatch({ config, nextConfig, url }), url).toBe(false);
+    }
+  });
+
+  it('still protects ordinary pages that merely look similar', () => {
+    const nextConfig = {};
+    for (const url of ['/offline', '/routes/R1', '/practice/recall', '/icons']) {
+      expect(unstable_doesMiddlewareMatch({ config, nextConfig, url }), url).toBe(true);
+    }
+  });
 });

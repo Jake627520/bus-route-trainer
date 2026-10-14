@@ -147,6 +147,15 @@ function RecallPracticeInner() {
     }
   }, [viewState, currentPrompt?.promptIndex]);
 
+  // Change 51: 提交失敗後，網路恢復時自動重送一次（沿用冪等重送，重複送不會重複計分）。
+  // 每次失敗只重送一次；若仍失敗，仍保留手動重試按鈕。
+  useEffect(() => {
+    if (viewState !== 'SUBMIT_FAILED' || !pendingSubmission) return;
+    const onOnline = () => retrySubmission();
+    window.addEventListener('online', onOnline, { once: true });
+    return () => window.removeEventListener('online', onOnline);
+  }, [viewState, pendingSubmission, retrySubmission]);
+
   // Change 48: Enter/Space 進下一題——只在焦點位於頁面本體時生效，不搶按鈕自己的操作。
   useAdvanceShortcut(viewState === 'FEEDBACK', nextPrompt);
 
