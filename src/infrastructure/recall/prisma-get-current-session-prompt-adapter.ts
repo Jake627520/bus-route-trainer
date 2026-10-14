@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { parsePreviousStopCardKey } from '@/domain/learning/card-key-generator';
 import {
   GetCurrentSessionPromptPort,
   GetCurrentSessionPromptTxContext,
@@ -69,6 +70,9 @@ export class PrismaGetCurrentSessionPromptAdapter implements GetCurrentSessionPr
           if (card.cardKey.startsWith('NEXT_STOP::')) {
             const parts = card.cardKey.replace('NEXT_STOP::', '').split('->');
             stopId = parts[0] ?? null;
+          } else if (card.cardKey.startsWith('PREV_STOP::')) {
+            // Change 50: 上一站卡，題目站是 to
+            stopId = parsePreviousStopCardKey(card.cardKey)?.toStopId ?? null;
           } else if (card.cardKey.startsWith('STOP_NUM::')) {
             // Change 45: 站號卡
             stopId = card.cardKey.replace('STOP_NUM::', '');

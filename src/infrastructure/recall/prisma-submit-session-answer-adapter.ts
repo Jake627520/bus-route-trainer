@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { parsePreviousStopCardKey } from '@/domain/learning/card-key-generator';
 import {
   SubmitSessionAnswerPort,
   SubmitSessionAnswerTxContext,
@@ -138,6 +139,14 @@ export class PrismaSubmitSessionAnswerAdapter implements SubmitSessionAnswerPort
                 })
               : null;
             expectedAnswer = nextStop?.name ?? nextStopId;
+          } else if (card.cardKey.startsWith('PREV_STOP::')) {
+            // Change 50: 上一站——答案是 from 站（前一站）的站名
+            defaultRecallMode = RecallMode.PREVIOUS_STOP_BACKWARD;
+            const fromStopId = parsePreviousStopCardKey(card.cardKey)?.fromStopId ?? '';
+            const fromStop = fromStopId
+              ? await tx.gtfsStop.findUnique({ where: { id: fromStopId }, select: { name: true } })
+              : null;
+            expectedAnswer = fromStop?.name ?? fromStopId;
           } else if (card.cardKey.startsWith('STOP_NUM::') || card.cardKey.startsWith('STOP::')) {
             // Change 45: 與出題端共用 buildStopQuestion，確保批改用的是同一題
             const stopId = card.cardKey.replace(/^STOP_NUM::|^STOP::/, '');

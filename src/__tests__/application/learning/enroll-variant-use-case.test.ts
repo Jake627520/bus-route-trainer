@@ -98,12 +98,12 @@ describe('EnrollVariantUseCase Unit & Concurrency Tests', () => {
     expect(result.progress.driverId).toBe(DEFAULT_DRIVER_ID);
     expect(result.progress.routeId).toBe(sampleRouteId);
     expect(result.progress.targetVariantKey).toBe(sampleVariantKey);
-    // 3 stops -> 3 STOP cards + 2 NEXT_STOP cards = 5 cards total
-    expect(result.progress.totalCards).toBe(5);
+    // 3 stops -> 3 STOP + 2 NEXT_STOP + 2 PREV_STOP (Change 50) = 7 cards total
+    expect(result.progress.totalCards).toBe(7);
 
     const saved = await learningRepo.findByDriverAndVariant(DEFAULT_DRIVER_ID, sampleVariantKey);
     expect(saved).not.toBeNull();
-    expect(saved!.cards).toHaveLength(5);
+    expect(saved!.cards).toHaveLength(7);
   });
 
   it('sequential repeat enrollment is idempotent and does not create duplicate cards', async () => {
@@ -125,7 +125,7 @@ describe('EnrollVariantUseCase Unit & Concurrency Tests', () => {
     const totalProgress = await prisma.driverVariantProgress.count();
     const totalCards = await prisma.learningCard.count();
     expect(totalProgress).toBe(1);
-    expect(totalCards).toBe(5);
+    expect(totalCards).toBe(7);
   });
 
   it('Test B (concurrent enrollment): parallel enrollment requests resolve idempotently without throwing P2002 error', async () => {
@@ -149,7 +149,7 @@ describe('EnrollVariantUseCase Unit & Concurrency Tests', () => {
     const cardsCount = await prisma.learningCard.count({
       where: { progress: { driverId, targetVariantKey: sampleVariantKey } },
     });
-    expect(cardsCount).toBe(5);
+    expect(cardsCount).toBe(7);
   });
 
   it('throws VariantNotFoundError (404) when target variant does not exist', async () => {

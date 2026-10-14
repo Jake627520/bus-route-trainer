@@ -85,7 +85,7 @@ describe('Change 04 Driver Learning State End-to-End Vertical Slice Integration'
     const enrollRes = await enrollHandler(enrollReq);
     expect(enrollRes.status).toBe(201); // Newly enrolled
     const enrollBody = await enrollRes.json();
-    expect(enrollBody.data.totalCards).toBe(5); // 3 STOP + 2 NEXT_STOP
+    expect(enrollBody.data.totalCards).toBe(7); // 3 STOP + 2 NEXT_STOP + 2 PREV_STOP
 
     // 3. Query progress via Change 04 GET /api/progress/[variantKey] with URL encoding
     const encodedKey = encodeURIComponent(enrolledVariantKey);
@@ -99,7 +99,7 @@ describe('Change 04 Driver Learning State End-to-End Vertical Slice Integration'
     const getBody = await getRes.json();
 
     expect(getBody.data.targetVariantKey).toBe(enrolledVariantKey);
-    expect(getBody.data.cards).toHaveLength(5);
+    expect(getBody.data.cards).toHaveLength(7);
 
     // Verify dynamic sequence projection
     const stop1 = getBody.data.cards.find((c: { cardKey: string }) => c.cardKey === 'STOP::ST_01');

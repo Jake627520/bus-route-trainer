@@ -102,6 +102,8 @@ function RecallPracticeInner() {
   const modeLabel =
     mode === 'NEXT_STOP_FORWARD'
       ? t('recall.modeNextStop')
+      : mode === 'PREVIOUS_STOP_BACKWARD'
+      ? t('recall.modePrevStop')
       : mode === 'CROSS_STREET_RECALL'
         ? t('recall.modeCrossStreet')
         : mode === 'WORD_CLOZE_RECALL'
@@ -110,7 +112,7 @@ function RecallPracticeInner() {
             ? t('recall.modeStopNumber')
             : t('recall.modeStation');
   const hintLabel =
-    mode === 'NEXT_STOP_FORWARD'
+    mode === 'NEXT_STOP_FORWARD' || mode === 'PREVIOUS_STOP_BACKWARD'
       ? t('recall.hintCurrentStop')
       : mode === 'CROSS_STREET_RECALL'
         ? t('recall.hintCrossStreet')
@@ -122,6 +124,8 @@ function RecallPracticeInner() {
   const answerLabel =
     mode === 'NEXT_STOP_FORWARD'
       ? t('recall.labelEnterNextStop')
+      : mode === 'PREVIOUS_STOP_BACKWARD'
+      ? t('recall.labelEnterPrevStop')
       : mode === 'CROSS_STREET_RECALL'
         ? t('recall.labelEnterCrossStreet')
         : mode === 'WORD_CLOZE_RECALL'
@@ -297,7 +301,7 @@ function RecallPracticeInner() {
             />
 
             <div className="flex items-center justify-between">
-              <Badge variant={currentPrompt.recallMode === 'NEXT_STOP_FORWARD' ? 'blue' : 'purple'}>
+              <Badge variant={currentPrompt.recallMode === 'NEXT_STOP_FORWARD' || currentPrompt.recallMode === 'PREVIOUS_STOP_BACKWARD' ? 'blue' : 'purple'}>
                 {modeLabel}
               </Badge>
               <span className="text-xs text-zinc-500 dark:text-zinc-400">

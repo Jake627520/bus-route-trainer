@@ -1,4 +1,5 @@
 import { buildStopQuestion } from '@/domain/recall/stop-question';
+import { parsePreviousStopCardKey } from '@/domain/learning/card-key-generator';
 import { RecallMode, SessionStatus } from '@/domain/recall/recall-session';
 import { Clock, SystemClock } from '@/application/common/clock';
 import { GetCurrentSessionPromptPort } from './get-current-session-prompt-port';
@@ -103,6 +104,10 @@ export class GetCurrentSessionPromptUseCase {
         const parts = card.cardKey.replace('NEXT_STOP::', '').split('->');
         const fromStopId = parts[0] ?? card.cardKey;
         givenReference = stopName ?? fromStopId;
+      } else if (card.cardKey.startsWith('PREV_STOP::')) {
+        // Change 50: 上一站——給 to 的站名（adapter 已把 stopName 解析成 to 站），答 from 站名。
+        recallMode = RecallMode.PREVIOUS_STOP_BACKWARD;
+        givenReference = stopName ?? parsePreviousStopCardKey(card.cardKey)?.toStopId ?? card.cardKey;
       } else if (card.cardKey.startsWith('STOP_NUM::') || card.cardKey.startsWith('STOP::')) {
         // Change 45: 與批改端共用 buildStopQuestion，確保題型與答案一致
         const stopId = card.cardKey.replace(/^STOP_NUM::|^STOP::/, '');

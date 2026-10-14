@@ -3,6 +3,8 @@ import { SrsLevel } from '@/domain/srs/srs-interval-policy';
 export enum CardType {
   STOP = 'STOP',
   NEXT_STOP = 'NEXT_STOP',
+  /** Change 50: 上一站卡（給站 B，問前一站 A）。 */
+  PREV_STOP = 'PREV_STOP',
 }
 
 export enum CardState {

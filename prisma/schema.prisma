@@ -120,6 +120,7 @@ enum ProgressStatus {
 enum CardType {
   STOP
   NEXT_STOP
+  PREV_STOP
 }
 
 enum CardState {
@@ -181,6 +182,7 @@ enum RecallMode {
   CROSS_STREET_RECALL
   STOP_NUMBER_RECALL
   WORD_CLOZE_RECALL
+  PREVIOUS_STOP_BACKWARD
 }
 
 enum RecallOutcome {

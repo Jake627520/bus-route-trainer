@@ -10,6 +10,8 @@ export type RecallMode =
   // Change 45
   | 'CROSS_STREET_RECALL'
   | 'WORD_CLOZE_RECALL'
+  // Change 50
+  | 'PREVIOUS_STOP_BACKWARD'
   | 'STOP_NUMBER_RECALL';
 export type RecallOutcome = 'PASS' | 'FAIL';
 export type SessionStatus = 'IN_PROGRESS' | 'COMPLETED' | 'ABANDONED';

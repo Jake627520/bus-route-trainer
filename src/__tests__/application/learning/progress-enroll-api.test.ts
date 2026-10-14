@@ -81,7 +81,7 @@ describe('POST /api/progress/enroll Route Handler Integration Tests', () => {
     expect(body).toHaveProperty('data');
     expect(body.data.routeId).toBe('R66');
     expect(body.data.targetVariantKey).toBe(variantKey);
-    expect(body.data.totalCards).toBe(5); // 3 STOP + 2 NEXT_STOP
+    expect(body.data.totalCards).toBe(7); // 3 STOP + 2 NEXT_STOP + 2 PREV_STOP
   });
 
   it('returns 200 OK on idempotent repeated enrollment', async () => {

@@ -137,4 +137,16 @@ describe('DeterministicRecallEvaluator & normalizeStopName', () => {
       );
     });
   });
+
+  // Change 50: 上一站走寬鬆站名比對（與「下一站」一致）
+  describe('evaluate PREVIOUS_STOP_BACKWARD', () => {
+    it('passes ignoring case, punctuation and common abbreviations', () => {
+      expect(evaluator.evaluate(RecallMode.PREVIOUS_STOP_BACKWARD, 'cultural centre stn', 'Cultural Centre Station')).toBe(RecallOutcome.PASS);
+      expect(evaluator.evaluate(RecallMode.PREVIOUS_STOP_BACKWARD, ' Roma St. ', 'Roma Street')).toBe(RecallOutcome.PASS);
+    });
+    it('fails a different stop and an empty answer', () => {
+      expect(evaluator.evaluate(RecallMode.PREVIOUS_STOP_BACKWARD, 'Roma Street', 'Cultural Centre')).toBe(RecallOutcome.FAIL);
+      expect(evaluator.evaluate(RecallMode.PREVIOUS_STOP_BACKWARD, '', 'Cultural Centre')).toBe(RecallOutcome.FAIL);
+    });
+  });
 });
