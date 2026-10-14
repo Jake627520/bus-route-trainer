@@ -7,6 +7,7 @@ import { LOCALE_COOKIE } from "@/i18n/config";
 import { LocaleProvider } from "@/app/_components/locale-provider";
 import { BRAND_NAVY } from "@/pwa/brand";
 import { SkipLink } from "@/app/_components/skip-link";
+import { ServiceWorkerRegister } from "@/app/_components/service-worker-register";
 import { LanguageSwitcher } from "@/app/_components/language-switcher";
 
 const geistSans = Geist({
@@ -48,6 +49,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <LocaleProvider locale={locale}>
           <SkipLink />
+          <ServiceWorkerRegister />
           <div className="mx-auto flex w-full max-w-2xl justify-end px-4 pt-3">
             <LanguageSwitcher />
           </div>
