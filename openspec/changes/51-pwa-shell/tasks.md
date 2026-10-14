@@ -4,8 +4,8 @@
 > 範圍只含 A（可安裝＋訊號差不白屏）；B（完全離線練習）需先經人決定，不在本 change。
 
 ## Phase 51.1: 可安裝
-- [ ] Task 1: `app/manifest.ts` + 可重現的圖示產生腳本與 PNG（192／512／maskable／apple 180）+ viewport 品牌色 <!-- id: 51-01 -->
-- [ ] Task 2: proxy 例外：manifest、`sw.js`、圖示、`/offline.html` 不需登入 <!-- id: 51-02 -->
+- [x] Task 1: `app/manifest.ts` + 可重現的圖示產生腳本與 PNG（192／512／maskable／apple 180）+ viewport 品牌色 <!-- id: 51-01 -->
+- [x] Task 2: proxy 例外：manifest、`sw.js`、圖示、`/offline.html` 不需登入 <!-- id: 51-02 -->
 
 ## Phase 51.2: Service Worker
 - [ ] Task 3: `public/offline.html`（雙語、無外部資源、重試鈕） <!-- id: 51-03 -->
