@@ -33,11 +33,14 @@ export function unauthorizedResponse(): NextResponse {
   );
 }
 
+/** production 一律加 Secure；本機 http://localhost 開發不加，否則瀏覽器不送 cookie。 */
+const secureAttr = (): string => (process.env.NODE_ENV === 'production' ? '; Secure' : '');
+
 export function sessionSetCookie(driverId: string): string {
   const token = signSession({ driverId }, getAuthSecret(), SESSION_TTL_MS);
-  return `${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_TTL_MS / 1000}`;
+  return `${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax${secureAttr()}; Max-Age=${SESSION_TTL_MS / 1000}`;
 }
 
 export function sessionClearCookie(): string {
-  return `${SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
+  return `${SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax${secureAttr()}; Max-Age=0`;
 }

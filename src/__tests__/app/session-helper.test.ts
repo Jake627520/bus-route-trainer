@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { requireDriverId, UnauthenticatedError, readSessionDriverId, sessionSetCookie, sessionClearCookie, SESSION_COOKIE, getAuthSecret } from '@/app/_lib/session';
 import { signSession } from '@/infrastructure/auth/session-token';
 
@@ -42,5 +42,22 @@ describe('Change 25/29: session helper', () => {
     expect(set).toMatch(/HttpOnly/);
     expect(set).toMatch(/Max-Age=\d+/);
     expect(sessionClearCookie()).toMatch(/Max-Age=0/);
+  });
+
+  describe('Secure attribute (security audit 2026-11)', () => {
+    afterEach(() => vi.unstubAllEnvs());
+
+    it('adds Secure to set/clear cookies in production', () => {
+      vi.stubEnv('NODE_ENV', 'production');
+      vi.stubEnv('AUTH_SECRET', 'prod-test-secret-0123456789abcdef');
+      expect(sessionSetCookie('drv-1')).toMatch(/; Secure(;|$)/);
+      expect(sessionClearCookie()).toMatch(/; Secure(;|$)/);
+    });
+
+    it('omits Secure outside production so http://localhost keeps working', () => {
+      vi.stubEnv('NODE_ENV', 'test');
+      expect(sessionSetCookie('drv-1')).not.toMatch(/Secure/);
+      expect(sessionClearCookie()).not.toMatch(/Secure/);
+    });
   });
 });
