@@ -56,7 +56,7 @@ export class PrismaDriverAccountRepository implements DriverAccountRepository {
   }
 
   async updatePassword(driverId: string, passwordHash: string, passwordSalt: string): Promise<void> {
-    await this.prisma.driver.update({ where: { id: driverId }, data: { passwordHash, passwordSalt } });
+    await this.prisma.driver.update({ where: { id: driverId }, data: { passwordHash, passwordSalt, sessionVersion: { increment: 1 } } });
   }
 
   async createResetToken(driverId: string, tokenHash: string, expiresAt: Date): Promise<void> {

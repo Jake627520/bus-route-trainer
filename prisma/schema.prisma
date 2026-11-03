@@ -245,6 +245,8 @@ model Driver {
   email        String?  @unique
   passwordHash String   @map("password_hash")
   passwordSalt String   @map("password_salt")
+  // 資安稽核 2026-11：session 版本號。登出、重設密碼時遞增，舊 cookie 立即失效。
+  sessionVersion Int    @default(0) @map("session_version")
   createdAt    DateTime @default(now()) @map("created_at")
 
   resetTokens  PasswordResetToken[]

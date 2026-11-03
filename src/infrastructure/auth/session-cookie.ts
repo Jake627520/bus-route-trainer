@@ -1,4 +1,5 @@
-import { verifySession } from './session-token';
+import { verifySession, type SessionPayload } from './session-token';
+import { currentSessionVersion } from './session-version';
 
 /** 簽章 session cookie 的名稱。 */
 export const SESSION_COOKIE = 'brt_session';
@@ -39,10 +40,21 @@ export function readCookie(request: Request, name: string): string | null {
   return null;
 }
 
-/** 有效且未過期的 session → 其 driverId；無 cookie / 竄改 / 過期 → null。 */
-export function readSessionDriverId(request: Request): string | null {
+/** 只驗簽章與到期（不查 DB）。給需要 token 內容的地方用，例如登出時找出 driverId。 */
+export function readSessionClaims(request: Request): SessionPayload | null {
   const token = readCookie(request, SESSION_COOKIE);
   if (!token) return null;
-  const payload = verifySession(token, getAuthSecret());
-  return payload?.driverId ?? null;
+  return verifySession(token, getAuthSecret());
+}
+
+/**
+ * 有效 session → 其 driverId；無 cookie / 竄改 / 過期 / 已撤銷 / driver 已刪 → null。
+ * 撤銷檢查：token 的 sv 必須等於 DB 目前的 Driver.sessionVersion。
+ */
+export async function readSessionDriverId(request: Request): Promise<string | null> {
+  const claims = readSessionClaims(request);
+  if (!claims) return null;
+  const version = await currentSessionVersion(claims.driverId);
+  if (version === null || version !== claims.sv) return null;
+  return claims.driverId;
 }

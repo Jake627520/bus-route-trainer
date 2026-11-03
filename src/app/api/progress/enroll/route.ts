@@ -17,7 +17,7 @@ const enrollVariantUseCase = new EnrollVariantUseCase(learningRepo, getRouteVari
 
 export async function POST(request: Request) {
   try {
-    const driverId = readSessionDriverId(request);
+    const driverId = await readSessionDriverId(request);
     if (!driverId) return unauthorizedResponse();
 
     let body: unknown;

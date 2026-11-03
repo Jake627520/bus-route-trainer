@@ -97,7 +97,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const driverId = resolveAuthenticatedDriver(request);
+    const driverId = await resolveAuthenticatedDriver(request);
 
     // Change 46: 開練習前先補齊卡片；失敗不得影響開始練習
     try {

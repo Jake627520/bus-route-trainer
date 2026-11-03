@@ -8,7 +8,7 @@ const repo = new PrismaDriverAccountRepository(prisma);
 
 /** Change 26: GET /api/auth/me — 回目前登入司機 { id, username }；未登入 401。 */
 export async function GET(request: Request): Promise<NextResponse> {
-  const driverId = readSessionDriverId(request);
+  const driverId = await readSessionDriverId(request);
   if (!driverId) {
     return NextResponse.json(
       { error: { code: 'UNAUTHENTICATED', message: 'Not signed in' } },

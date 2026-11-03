@@ -101,7 +101,7 @@ export async function POST(request: Request, context: RouteParams) {
       );
     }
 
-    const driverId = resolveAuthenticatedDriver(request);
+    const driverId = await resolveAuthenticatedDriver(request);
 
     const result = await useCases.submitSessionAnswer.execute({
       sessionId: sessionId.trim(),

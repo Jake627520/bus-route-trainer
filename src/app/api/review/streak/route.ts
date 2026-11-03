@@ -17,7 +17,7 @@ const getPracticeStreakUseCase = new GetPracticeStreakUseCase(
  */
 export async function GET(request: Request): Promise<NextResponse> {
   try {
-    const driverId = readSessionDriverId(request);
+    const driverId = await readSessionDriverId(request);
     if (!driverId) return unauthorizedResponse();
     const data = await getPracticeStreakUseCase.execute({ driverId });
     return NextResponse.json({ data }, { status: 200 });

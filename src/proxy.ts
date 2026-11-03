@@ -12,9 +12,10 @@ const PUBLIC_PATHS = new Set(['/login', '/forgot', '/reset']);
  * - /login、/forgot、/reset 未登入可達（密碼重設時本來就無法登入）
  * matcher 已排除 api / _next / 靜態資源；proxy 預設 Node.js runtime，可用 verifySession。
  */
-export function proxy(request: NextRequest): NextResponse {
+export async function proxy(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
-  const hasSession = readSessionDriverId(request) !== null;
+  // 資安稽核 2026-11：也檢查 sessionVersion，已撤銷的 cookie 視同未登入（才能回到 /login）。
+  const hasSession = (await readSessionDriverId(request)) !== null;
 
   if (pathname === '/login') {
     return hasSession ? NextResponse.redirect(new URL('/', request.url)) : NextResponse.next();

@@ -2,12 +2,15 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { GET } from '@/app/api/review/mastery-trend/route';
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
-import { sessionCookie } from '@/__tests__/helpers/session';
+import { sessionCookie, ensureDrivers } from '@/__tests__/helpers/session';
 
 /**
  * Change 17 Task 5 / 29: GET /api/review/mastery-trend 整合測試（真 DB，強制認證）。
  */
 describe('GET /api/review/mastery-trend', () => {
+  // 資安稽核 2026-11：session 驗證會比對 DB 的 sessionVersion，driver 列必須存在。
+  beforeEach(() => ensureDrivers(DEFAULT_DRIVER_ID));
+
   const prisma = new PrismaClient();
   const cleanup = async () => {
     await prisma.recallAttempt.deleteMany();

@@ -20,7 +20,7 @@ export async function GET(
   context: { params: Promise<{ variantKey: string }> }
 ) {
   try {
-    const driverId = readSessionDriverId(request);
+    const driverId = await readSessionDriverId(request);
     if (!driverId) return unauthorizedResponse();
 
     const { variantKey } = await context.params;

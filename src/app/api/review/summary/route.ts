@@ -24,7 +24,7 @@ const getReviewSummaryUseCase = new GetReviewSummaryUseCase(
  */
 export async function GET(request: Request): Promise<NextResponse> {
   try {
-    const driverId = readSessionDriverId(request);
+    const driverId = await readSessionDriverId(request);
     if (!driverId) return unauthorizedResponse();
     const summaries = await getReviewSummaryUseCase.execute({ driverId });
     return NextResponse.json({ data: summaries }, { status: 200 });

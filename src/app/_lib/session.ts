@@ -6,6 +6,7 @@ import {
   getAuthSecret,
   readSessionDriverId,
 } from '@/infrastructure/auth/session-cookie';
+import { currentSessionVersion } from '@/infrastructure/auth/session-version';
 
 // Re-export（保留既有 import 路徑 @/app/_lib/session）。
 export { SESSION_COOKIE, getAuthSecret, readSessionDriverId };
@@ -18,9 +19,9 @@ export class UnauthenticatedError extends Error {
   }
 }
 
-/** 有效 session → driverId；否則 throw UnauthenticatedError（Change 29：強制認證，無 DEFAULT 後備）。 */
-export function requireDriverId(request: Request): string {
-  const driverId = readSessionDriverId(request);
+/** 有效且未撤銷的 session → driverId；否則 throw UnauthenticatedError（Change 29：強制認證，無 DEFAULT 後備）。 */
+export async function requireDriverId(request: Request): Promise<string> {
+  const driverId = await readSessionDriverId(request);
   if (!driverId) throw new UnauthenticatedError();
   return driverId;
 }
@@ -36,8 +37,10 @@ export function unauthorizedResponse(): NextResponse {
 /** production 一律加 Secure；本機 http://localhost 開發不加，否則瀏覽器不送 cookie。 */
 const secureAttr = (): string => (process.env.NODE_ENV === 'production' ? '; Secure' : '');
 
-export function sessionSetCookie(driverId: string): string {
-  const token = signSession({ driverId }, getAuthSecret(), SESSION_TTL_MS);
+/** 簽發 session cookie，帶入 driver 目前的 sessionVersion（撤銷用）。 */
+export async function sessionSetCookie(driverId: string): Promise<string> {
+  const sessionVersion = (await currentSessionVersion(driverId)) ?? 0;
+  const token = signSession({ driverId, sessionVersion }, getAuthSecret(), SESSION_TTL_MS);
   return `${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax${secureAttr()}; Max-Age=${SESSION_TTL_MS / 1000}`;
 }
 

@@ -13,7 +13,7 @@ const getMasteryTrendUseCase = new GetMasteryTrendUseCase(new PrismaMasteryHisto
  */
 export async function GET(request: Request): Promise<NextResponse> {
   try {
-    const driverId = readSessionDriverId(request);
+    const driverId = await readSessionDriverId(request);
     if (!driverId) return unauthorizedResponse();
     const variantKey = new URL(request.url).searchParams.get('variantKey') ?? undefined;
     const data = await getMasteryTrendUseCase.execute({ driverId, variantKey });

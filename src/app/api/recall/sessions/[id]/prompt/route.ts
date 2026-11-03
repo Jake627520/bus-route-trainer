@@ -33,7 +33,7 @@ export async function GET(request: Request, context: RouteParams) {
       );
     }
 
-    const driverId = resolveAuthenticatedDriver(request);
+    const driverId = await resolveAuthenticatedDriver(request);
 
     const result = await useCases.getSessionPrompt.execute({
       sessionId: sessionId.trim(),

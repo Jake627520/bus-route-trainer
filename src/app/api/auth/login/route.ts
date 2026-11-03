@@ -43,6 +43,6 @@ export async function POST(request: Request): Promise<NextResponse> {
   await gate.clear(RATE_RULES.loginFailUser, userKey); // 成功登入即清除失敗計數
   return NextResponse.json(
     { data: driver },
-    { status: 200, headers: { 'Set-Cookie': sessionSetCookie(driver.id) } }
+    { status: 200, headers: { 'Set-Cookie': await sessionSetCookie(driver.id) } }
   );
 }
