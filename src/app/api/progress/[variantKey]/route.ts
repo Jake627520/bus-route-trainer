@@ -45,13 +45,10 @@ export async function GET(
       );
     }
 
+    // 內部錯誤只寫 log，不把訊息（可能含 Prisma 表名/欄位）回給客戶端。
+    console.error('GET /api/progress/[variantKey] failed', error);
     return NextResponse.json(
-      {
-        error: {
-          code: 'INTERNAL_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown internal error',
-        },
-      },
+      { error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' } },
       { status: 500 }
     );
   }
