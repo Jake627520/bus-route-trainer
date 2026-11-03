@@ -70,7 +70,35 @@ export class PrismaDriverAccountRepository implements DriverAccountRepository {
       : null;
   }
 
-  async markResetTokenUsed(id: string): Promise<void> {
-    await this.prisma.passwordResetToken.update({ where: { id }, data: { usedAt: new Date() } });
+  async consumeResetTokenAndUpdatePassword(input: {
+    tokenHash: string;
+    now: Date;
+    passwordHash: string;
+    passwordSalt: string;
+  }): Promise<boolean> {
+    return this.prisma.$transaction(async (tx) => {
+      // 條件更新：只有一個請求能把 usedAt 從 null 改掉（避免併發重複使用）。
+      const claimed = await tx.passwordResetToken.updateMany({
+        where: { tokenHash: input.tokenHash, usedAt: null, expiresAt: { gte: input.now } },
+        data: { usedAt: input.now },
+      });
+      if (claimed.count !== 1) return false;
+
+      const token = await tx.passwordResetToken.findUniqueOrThrow({ where: { tokenHash: input.tokenHash } });
+      await tx.driver.update({
+        where: { id: token.driverId },
+        data: {
+          passwordHash: input.passwordHash,
+          passwordSalt: input.passwordSalt,
+          sessionVersion: { increment: 1 },
+        },
+      });
+      // 作廢同一 driver 其他還沒用的 token（舊信裡的連結不能再用）。
+      await tx.passwordResetToken.updateMany({
+        where: { driverId: token.driverId, usedAt: null },
+        data: { usedAt: input.now },
+      });
+      return true;
+    });
   }
 }
