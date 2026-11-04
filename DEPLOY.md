@@ -6,7 +6,7 @@
 ## 架構決策
 - **獨立 DB**（不與問卷系統共用）+ **Vercel** 部署。
 - Serverless 連線：`DATABASE_URL`＝pooled 連線（給 app runtime）、`DIRECT_URL`＝direct 連線（給 `prisma migrate deploy`）。
-- Build 指令＝`npm run vercel-build`（`prisma generate && prisma migrate deploy && next build`），已寫進 `vercel.json`。
+- Build 指令＝`npm run vercel-build`（`scripts/vercel-build.sh`：一律 `prisma generate`，只有 `VERCEL_ENV=production` 才 `prisma migrate deploy`，然後 `next build`），已寫進 `vercel.json`。Preview 不跑 migration。
 
 ---
 
@@ -32,10 +32,10 @@
 
 > ⚠️ `AUTH_SECRET` 在 production 未設或仍是 dev 後備值時，程式會**啟動即報錯**（防止用可預測密鑰簽 session）。務必設定。
 
-> 🔒 **認證限流（Change 49）**：login／register／forgot／reset 有次數限制，計數存在資料庫的 `auth_rate_limit` 表（`vercel-build` 的 `prisma migrate deploy` 會自動建立）。IP 取自 `x-forwarded-for` 第一個值——**上線後請用真實請求確認它是用戶端真實 IP**。緊急時可設環境變數 `RATE_LIMIT_DISABLED=1` 暫時關閉限流（記得事後移除）。
+> 🔒 **認證限流（Change 49）**：login／register／forgot／reset 有次數限制，計數存在資料庫的 `auth_rate_limit` 表（production 的 `vercel-build` 會 `prisma migrate deploy` 並自動建立）。IP 取自 `x-forwarded-for` 第一個值——**上線後請用真實請求確認它是用戶端真實 IP**。緊急時可設環境變數 `RATE_LIMIT_DISABLED=1` 暫時關閉限流（記得事後移除）。
 
 ## 步驟 4：部署
-- 推送到 `main`（或按 Vercel 的 Deploy）。`vercel-build` 會自動 `prisma migrate deploy` 把 schema 套到新 DB，再 `next build`。
+- 推送到 `main`（或按 Vercel 的 Deploy）。production 的 `vercel-build`（`VERCEL_ENV=production`）會自動 `prisma migrate deploy` 把 schema 套到新 DB，再 `next build`。Preview 只做 `prisma generate` 與 `next build`。
 - 首次部署會建立所有資料表（含 `driver` 帳號表）。
 
 ## 步驟 5：驗證
@@ -49,7 +49,7 @@
 部署後用手機 Chrome／Safari 開網站：選單應出現「加到主畫面／安裝」；開飛航模式再開 App 應看到「目前離線」頁而非瀏覽器錯誤。`/sw.js`、`/manifest.webmanifest`、`/offline.html` 與圖示不需登入即可存取（`src/proxy.ts` 已排除）。緊急停用 SW 見 HANDOFF.md。
 
 ## 疑難排解
-- **部署 build 失敗在 migrate**：多半是 `DIRECT_URL` 沒設或用了 pooled URL。migrate 必須走 direct 連線。
+- **production 部署 build 失敗在 migrate**：多半是 `DIRECT_URL` 沒設或用了 pooled URL。migrate 必須走 direct 連線。Preview 不會跑 `prisma migrate deploy`。
 - **登入後又被導回登入頁**：cookie 沒帶上，確認網址是 https（SameSite=Lax + Secure 需 https）。
 - **啟動報 AUTH_SECRET 錯**：production 未設 `AUTH_SECRET`，到 Settings 補上後 redeploy。
 - **本地開發**：`.env` 內 `DATABASE_URL` 與 `DIRECT_URL` 指同一個本地 Postgres 即可（見 `.env.example`）。

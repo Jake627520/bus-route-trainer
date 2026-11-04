@@ -23,9 +23,13 @@ TBD - created by archiving change 27-deploy-config. Update Purpose after archive
 ### Requirement: Serverless 資料庫連線
 系統 SHALL 支援 pooled + direct 雙連線：app runtime 用 `DATABASE_URL`（pooled），migration 用 `DIRECT_URL`（direct）。
 
-#### Scenario: 部署 build 套用 migration
-- **WHEN** Vercel 執行 `vercel-build`
+#### Scenario: production 部署 build 套用 migration
+- **WHEN** Vercel 執行 `vercel-build` 且 `VERCEL_ENV=production`
 - **THEN** 先 `prisma generate && prisma migrate deploy`（走 `DIRECT_URL`）再 `next build`
+
+#### Scenario: 非 production 部署不套用 migration
+- **WHEN** Vercel 執行 `vercel-build` 且 `VERCEL_ENV` 不是 `production`（例如 preview，或未設定）
+- **THEN** 先 `prisma generate` 再 `next build`，不執行 `prisma migrate deploy`
 
 #### Scenario: 本地/CI 單一 DB
 - **WHEN** 本地或 CI 無連線池
