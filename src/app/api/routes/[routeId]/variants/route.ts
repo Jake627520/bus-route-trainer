@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/infrastructure/db/prisma';
 import { PrismaGtfsReadRepository } from '@/infrastructure/gtfs/query/prisma-gtfs-read-repository';
 import {
   GetRouteVariantsUseCase,
   RouteNotFoundError,
 } from '@/application/gtfs/get-route-variants-use-case';
 
-const prisma = new PrismaClient();
 const readRepository = new PrismaGtfsReadRepository(prisma);
 const getRouteVariantsUseCase = new GetRouteVariantsUseCase(readRepository);
 

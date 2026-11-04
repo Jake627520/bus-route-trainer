@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/infrastructure/db/prisma';
 import { PrismaLearningProgressRepository } from '@/infrastructure/learning/prisma-learning-progress-repository';
 import { PrismaGtfsReadRepository } from '@/infrastructure/gtfs/query/prisma-gtfs-read-repository';
 import { GetRouteVariantsUseCase } from '@/application/gtfs/get-route-variants-use-case';
@@ -8,7 +8,6 @@ import { GetReviewSummaryUseCase } from '@/application/learning/get-review-summa
 import { SystemClock } from '@/application/common/clock';
 import { readSessionDriverId, unauthorizedResponse } from '@/app/_lib/session';
 
-const prisma = new PrismaClient();
 const progressRepository = new PrismaLearningProgressRepository(prisma);
 const gtfsReadRepository = new PrismaGtfsReadRepository(prisma);
 const headsignAdapter = new GtfsVariantHeadsignAdapter(new GetRouteVariantsUseCase(gtfsReadRepository));

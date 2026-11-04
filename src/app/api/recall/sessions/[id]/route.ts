@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/infrastructure/db/prisma';
 import { createRecallUseCases } from '@/infrastructure/recall/recall-composition';
 import {
   resolveAuthenticatedDriver,
@@ -7,7 +7,6 @@ import {
 } from '@/application/recall/api/driver-context';
 import { handleApiError } from '@/application/recall/api/error-mapper';
 
-const prisma = new PrismaClient();
 const useCases = createRecallUseCases(prisma);
 
 interface RouteParams {

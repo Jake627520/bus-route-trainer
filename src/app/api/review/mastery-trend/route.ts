@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/infrastructure/db/prisma';
 import { PrismaMasteryHistoryAdapter } from '@/infrastructure/recall/prisma-mastery-history-adapter';
 import { GetMasteryTrendUseCase } from '@/application/learning/get-mastery-trend-use-case';
 import { readSessionDriverId, unauthorizedResponse } from '@/app/_lib/session';
 
-const prisma = new PrismaClient();
 const getMasteryTrendUseCase = new GetMasteryTrendUseCase(new PrismaMasteryHistoryAdapter(prisma));
 
 /**

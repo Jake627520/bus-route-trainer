@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/infrastructure/db/prisma';
 import { PrismaPracticeStatsAdapter } from '@/infrastructure/recall/prisma-practice-stats-adapter';
 import { GetPracticeAccuracyUseCase } from '@/application/learning/get-practice-accuracy-use-case';
 import { readSessionDriverId, unauthorizedResponse } from '@/app/_lib/session';
 
-const prisma = new PrismaClient();
 const getPracticeAccuracyUseCase = new GetPracticeAccuracyUseCase(new PrismaPracticeStatsAdapter(prisma));
 
 /**

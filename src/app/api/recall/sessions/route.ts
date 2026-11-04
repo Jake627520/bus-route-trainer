@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/infrastructure/db/prisma';
 import { createRecallUseCases } from '@/infrastructure/recall/recall-composition';
 import {
   assertNoClientDriverId,
@@ -11,7 +11,6 @@ import { PrismaBackfillCardsRepository } from '@/infrastructure/learning/prisma-
 import { GetRouteVariantsUseCase } from '@/application/gtfs/get-route-variants-use-case';
 import { PrismaGtfsReadRepository } from '@/infrastructure/gtfs/query/prisma-gtfs-read-repository';
 
-const prisma = new PrismaClient();
 const useCases = createRecallUseCases(prisma);
 
 // Change 46: 既有報名補發新題型卡片（版本落後時才動作，O(1) 檢查）

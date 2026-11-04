@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/infrastructure/db/prisma';
 import { PrismaDriverAccountRepository } from '@/infrastructure/auth/prisma-driver-account-repository';
 import { AuthenticateDriverUseCase } from '@/application/auth/authenticate-driver-use-case';
 import { verifyPassword } from '@/infrastructure/auth/password-hasher';
@@ -8,7 +8,6 @@ import { getClientIp } from '@/app/_lib/client-ip';
 import { createAuthRateGate, tooManyRequests, rateKey } from '@/app/_lib/auth-rate-gate';
 import { RATE_RULES } from '@/domain/auth/rate-limit-policy';
 
-const prisma = new PrismaClient();
 const gate = createAuthRateGate(prisma);
 const authUseCase = new AuthenticateDriverUseCase(new PrismaDriverAccountRepository(prisma), verifyPassword);
 
