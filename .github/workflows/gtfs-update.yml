@@ -42,7 +42,12 @@ jobs:
         id: ver
         run: |
           # feed_info.txt: feed_publisher_name,feed_publisher_url,feed_lang,feed_start_date,feed_end_date
-          NEW=$(awk -F',' 'NR==2 {print $4"-"$5}' seq_gtfs/feed_info.txt)
+          NEW=$(awk -F',' 'NR==2 {print $4"-"$5}' seq_gtfs/feed_info.txt | tr -d '\r"')
+          # 外部 feed 內容不可信：只接受 YYYYMMDD-YYYYMMDD，避免把任意字串帶進後續 shell / output。
+          if ! [[ "$NEW" =~ ^[0-9]{8}-[0-9]{8}$ ]]; then
+            echo "::error::Unexpected feed version format in feed_info.txt"
+            exit 1
+          fi
           OLD=$(cat .github/gtfs-feed-version 2>/dev/null || echo none)
           echo "new=$NEW" >> "$GITHUB_OUTPUT"
           echo "old=$OLD" >> "$GITHUB_OUTPUT"
@@ -70,14 +75,18 @@ jobs:
 
       - name: Commit new feed-version marker
         if: steps.ver.outputs.changed == 'true'
+        env:
+          NEW_VERSION: ${{ steps.ver.outputs.new }}
         run: |
-          echo "${{ steps.ver.outputs.new }}" > .github/gtfs-feed-version
+          echo "$NEW_VERSION" > .github/gtfs-feed-version
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .github/gtfs-feed-version
-          git commit -m "chore(gtfs): update feed version to ${{ steps.ver.outputs.new }}" || echo "no change to commit"
+          git commit -m "chore(gtfs): update feed version to $NEW_VERSION" || echo "no change to commit"
           git push
 
       - name: No update needed
         if: steps.ver.outputs.changed == 'false'
-        run: echo "Feed version unchanged (${{ steps.ver.outputs.old }}); skipping import."
+        env:
+          OLD_VERSION: ${{ steps.ver.outputs.old }}
+        run: echo "Feed version unchanged ($OLD_VERSION); skipping import."

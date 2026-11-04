@@ -48,12 +48,12 @@ export class UnauthenticatedError extends Error {
  *   NEVER falls back to default driver in production, preventing authentication bypass or data misplacement.
  * - Client-supplied query params or body fields named 'driverId' are unconditionally forbidden (HTTP 400).
  */
-export function resolveAuthenticatedDriver(request?: Request): string {
+export async function resolveAuthenticatedDriver(request?: Request): Promise<string> {
   if (request) {
     assertNoDriverIdInUrl(request);
 
     // Change 26: 登入 session cookie 是第一等身分，跨環境有效（不需 trusted gateway）。
-    const sessionDriverId = readSessionDriverId(request);
+    const sessionDriverId = await readSessionDriverId(request);
     if (sessionDriverId) {
       return sessionDriverId;
     }

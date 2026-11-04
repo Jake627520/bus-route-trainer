@@ -16,6 +16,7 @@ export interface ResetPasswordCommand {
 
 /**
  * Change 41: 以 token 重設密碼。token 需存在、未過期、未使用過；成功後更新密碼並作廢 token。
+ * 資安稽核 2026-11：消耗 token、改密碼、作廢其他 token 在同一個 transaction 內完成。
  */
 export class ResetPasswordUseCase {
   constructor(
@@ -24,11 +25,12 @@ export class ResetPasswordUseCase {
   ) {}
 
   async execute(command: ResetPasswordCommand): Promise<void> {
-    const record = await this.repo.findResetToken(command.tokenHash);
-    if (!record || record.usedAt !== null || record.expiresAt.getTime() < this.clock.now().getTime()) {
-      throw new InvalidResetTokenError();
-    }
-    await this.repo.updatePassword(record.driverId, command.newPasswordHash, command.newPasswordSalt);
-    await this.repo.markResetTokenUsed(record.id);
+    const ok = await this.repo.consumeResetTokenAndUpdatePassword({
+      tokenHash: command.tokenHash,
+      now: this.clock.now(),
+      passwordHash: command.newPasswordHash,
+      passwordSalt: command.newPasswordSalt,
+    });
+    if (!ok) throw new InvalidResetTokenError();
   }
 }

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import {
   resolveAuthenticatedDriver,
   assertNoClientDriverId,
@@ -10,6 +10,7 @@ import { handleApiError } from '@/application/recall/api/error-mapper';
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
 import { signSession } from '@/infrastructure/auth/session-token';
 import { SESSION_COOKIE, getAuthSecret } from '@/infrastructure/auth/session-cookie';
+import { ensureDrivers } from '@/__tests__/helpers/session';
 import { DriverNotEnrolledError } from '@/application/recall/start-planned-recall-session-use-case';
 import {
   SessionNotFoundError,
@@ -22,38 +23,40 @@ import { CannotAbandonCompletedSessionError } from '@/application/recall/abandon
 
 describe('Change 09 Auth & Error Boundary Contract Unit Tests', () => {
   describe('P0 Security Invariant: driver-context', () => {
-    it('authoritatively resolves default driver ID when no driverId in request', () => {
-      const driverId = resolveAuthenticatedDriver();
+    beforeAll(() => ensureDrivers('drv-session', 'drv-prod'));
+
+    it('authoritatively resolves default driver ID when no driverId in request', async () => {
+      const driverId = await resolveAuthenticatedDriver();
       expect(driverId).toBe(DEFAULT_DRIVER_ID);
     });
 
-    it('throws ClientSuppliedDriverIdError when payload contains driverId', () => {
+    it('throws ClientSuppliedDriverIdError when payload contains driverId', async () => {
       expect(() => {
         assertNoClientDriverId({ routeId: 'R66', driverId: 'hacker_driver' });
       }).toThrow(ClientSuppliedDriverIdError);
     });
 
-    it('passes assertion when payload does NOT contain driverId', () => {
+    it('passes assertion when payload does NOT contain driverId', async () => {
       expect(() => {
         assertNoClientDriverId({ routeId: 'R66', variantKey: 'R66_0' });
       }).not.toThrow();
     });
 
-    it('throws ClientSuppliedDriverIdError when URL contains driverId query param', () => {
+    it('throws ClientSuppliedDriverIdError when URL contains driverId query param', async () => {
       expect(() => {
         assertNoDriverIdInUrl('http://localhost/api/recall/sessions/123?driverId=hacker_driver');
       }).toThrow(ClientSuppliedDriverIdError);
     });
 
-    it('resolves authenticated driver from header in test environment', () => {
+    it('resolves authenticated driver from header in test environment', async () => {
       const req = new Request('http://localhost/api/test', {
         headers: { 'x-authenticated-driver-id': 'mock-driver-auth' },
       });
-      expect(resolveAuthenticatedDriver(req)).toBe('mock-driver-auth');
+      expect(await resolveAuthenticatedDriver(req)).toBe('mock-driver-auth');
     });
 
     // Test 1: Production + spoofed header + no trusted gateway -> throws UnauthenticatedError
-    it('1. throws UnauthenticatedError in production when client passes spoofed header without trusted gateway', () => {
+    it('1. throws UnauthenticatedError in production when client passes spoofed header without trusted gateway', async () => {
       const origEnv = process.env.NODE_ENV;
       const origTrust = process.env.TRUST_UPSTREAM_DRIVER_HEADER;
       try {
@@ -63,7 +66,7 @@ describe('Change 09 Auth & Error Boundary Contract Unit Tests', () => {
         const req = new Request('http://localhost/api/test', {
           headers: { 'x-authenticated-driver-id': 'spoofed-driver' },
         });
-        expect(() => resolveAuthenticatedDriver(req)).toThrow(UnauthenticatedError);
+        await expect(resolveAuthenticatedDriver(req)).rejects.toThrow(UnauthenticatedError);
       } finally {
         (process.env as Record<string, string | undefined>).NODE_ENV = origEnv;
         if (origTrust !== undefined) {
@@ -73,7 +76,7 @@ describe('Change 09 Auth & Error Boundary Contract Unit Tests', () => {
     });
 
     // Test 2: Production + no identity -> throws UnauthenticatedError
-    it('2. throws UnauthenticatedError in production when request has no identity', () => {
+    it('2. throws UnauthenticatedError in production when request has no identity', async () => {
       const origEnv = process.env.NODE_ENV;
       const origTrust = process.env.TRUST_UPSTREAM_DRIVER_HEADER;
       try {
@@ -81,7 +84,7 @@ describe('Change 09 Auth & Error Boundary Contract Unit Tests', () => {
         delete process.env.TRUST_UPSTREAM_DRIVER_HEADER;
 
         const req = new Request('http://localhost/api/test');
-        expect(() => resolveAuthenticatedDriver(req)).toThrow(UnauthenticatedError);
+        await expect(resolveAuthenticatedDriver(req)).rejects.toThrow(UnauthenticatedError);
       } finally {
         (process.env as Record<string, string | undefined>).NODE_ENV = origEnv;
         if (origTrust !== undefined) {
@@ -91,7 +94,7 @@ describe('Change 09 Auth & Error Boundary Contract Unit Tests', () => {
     });
 
     // Test 3: Production + trusted gateway identity -> resolves verified driver
-    it('3. resolves verified driver in production when trusted gateway flag is enabled', () => {
+    it('3. resolves verified driver in production when trusted gateway flag is enabled', async () => {
       const origEnv = process.env.NODE_ENV;
       const origTrust = process.env.TRUST_UPSTREAM_DRIVER_HEADER;
       try {
@@ -101,7 +104,7 @@ describe('Change 09 Auth & Error Boundary Contract Unit Tests', () => {
         const req = new Request('http://localhost/api/test', {
           headers: { 'x-authenticated-driver-id': 'gateway-verified-driver' },
         });
-        expect(resolveAuthenticatedDriver(req)).toBe('gateway-verified-driver');
+        expect(await resolveAuthenticatedDriver(req)).toBe('gateway-verified-driver');
       } finally {
         (process.env as Record<string, string | undefined>).NODE_ENV = origEnv;
         if (origTrust !== undefined) {
@@ -113,23 +116,23 @@ describe('Change 09 Auth & Error Boundary Contract Unit Tests', () => {
     });
 
     // Test 4: Test environment + test header -> maintains current testing seam
-    it('4. resolves authenticated driver from test header in test environment', () => {
+    it('4. resolves authenticated driver from test header in test environment', async () => {
       const req = new Request('http://localhost/api/test', {
         headers: { 'x-authenticated-driver-id': 'test-seam-driver' },
       });
-      expect(resolveAuthenticatedDriver(req)).toBe('test-seam-driver');
+      expect(await resolveAuthenticatedDriver(req)).toBe('test-seam-driver');
     });
 
     // Change 26: 登入 session cookie 是第一等身分，跨環境有效
-    it('5. resolves the logged-in driver from a valid session cookie (Change 26)', () => {
+    it('5. resolves the logged-in driver from a valid session cookie (Change 26)', async () => {
       const token = signSession({ driverId: 'drv-session' }, getAuthSecret(), 3600_000);
       const req = new Request('http://localhost/api/recall/sessions', {
         headers: { cookie: `${SESSION_COOKIE}=${encodeURIComponent(token)}` },
       });
-      expect(resolveAuthenticatedDriver(req)).toBe('drv-session');
+      expect(await resolveAuthenticatedDriver(req)).toBe('drv-session');
     });
 
-    it('6. accepts a valid session cookie in production without trusted gateway (Change 26)', () => {
+    it('6. accepts a valid session cookie in production without trusted gateway (Change 26)', async () => {
       const origEnv = process.env.NODE_ENV;
       const origTrust = process.env.TRUST_UPSTREAM_DRIVER_HEADER;
       const origSecret = process.env.AUTH_SECRET;
@@ -143,7 +146,7 @@ describe('Change 09 Auth & Error Boundary Contract Unit Tests', () => {
         const req = new Request('http://localhost/api/recall/sessions', {
           headers: { cookie: `${SESSION_COOKIE}=${encodeURIComponent(token)}` },
         });
-        expect(resolveAuthenticatedDriver(req)).toBe('drv-prod');
+        expect(await resolveAuthenticatedDriver(req)).toBe('drv-prod');
       } finally {
         (process.env as Record<string, string | undefined>).NODE_ENV = origEnv;
         if (origTrust !== undefined) process.env.TRUST_UPSTREAM_DRIVER_HEADER = origTrust;
@@ -152,12 +155,12 @@ describe('Change 09 Auth & Error Boundary Contract Unit Tests', () => {
       }
     });
 
-    it('7. still rejects a driverId in the URL even with a session cookie (Change 26)', () => {
+    it('7. still rejects a driverId in the URL even with a session cookie (Change 26)', async () => {
       const token = signSession({ driverId: 'drv-session' }, getAuthSecret(), 3600_000);
       const req = new Request('http://localhost/api/recall/sessions?driverId=hacker', {
         headers: { cookie: `${SESSION_COOKIE}=${encodeURIComponent(token)}` },
       });
-      expect(() => resolveAuthenticatedDriver(req)).toThrow(ClientSuppliedDriverIdError);
+      await expect(resolveAuthenticatedDriver(req)).rejects.toThrow(ClientSuppliedDriverIdError);
     });
   });
 
