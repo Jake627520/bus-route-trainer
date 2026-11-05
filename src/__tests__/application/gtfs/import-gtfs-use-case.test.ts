@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vites
 import path from 'node:path';
 import { PrismaClient } from '@prisma/client';
 import { ImportGtfsUseCase } from '@/application/gtfs/import-gtfs-use-case';
-import { PrismaGtfsRepository } from '@/infrastructure/gtfs/importer/prisma-gtfs-repository';
+import { PrismaGtfsTransactionalRepository, PrismaGtfsRepository } from '@/infrastructure/gtfs/importer/prisma-gtfs-repository';
 import { UnsupportedMultiAgencyFeedError } from '@/infrastructure/gtfs/parser/gtfs-row-schemas';
 import { ReferentialIntegrityError } from '@/application/gtfs/cross-file-validator';
 
@@ -169,6 +169,39 @@ describe('ImportGtfsUseCase (Pass 1 Streaming Validation + Pass 2 Atomic Persist
       // 只保留這兩條的 trips/stop_times（TRAIN1 的不進）
       const trips = await prisma.gtfsTrip.findMany();
       expect(trips.map((t) => t.id).sort()).toEqual(['TBUS', 'TFERRY']);
+    });
+
+    it('limits train routes independently while retaining bus and ferry', async () => {
+      await useCase.execute(mixedModesFeedDir, undefined, {
+        routeTypes: [2, 3, 4], maxRoutesByType: { 2: 0 }, clear: true,
+      });
+      const routes = await prisma.gtfsRoute.findMany({ orderBy: { id: 'asc' } });
+      expect(routes.map((r) => r.id)).toEqual(['BUS1', 'FERRY1']);
+      expect((await prisma.gtfsTrip.findMany()).map((t) => t.id).sort()).toEqual(['TBUS', 'TFERRY']);
+    });
+
+    it('keeps existing data when validation fails before a replacement', async () => {
+      await useCase.execute(mixedModesFeedDir);
+      const before = await prisma.gtfsRoute.findMany({ orderBy: { id: 'asc' } });
+      await expect(useCase.execute(multiAgencyFeedDir, undefined, { clear: true }))
+        .rejects.toThrow(UnsupportedMultiAgencyFeedError);
+      expect(await prisma.gtfsRoute.findMany({ orderBy: { id: 'asc' } })).toEqual(before);
+    });
+
+    it('rolls back the clear and partial writes when persistence fails', async () => {
+      await useCase.execute(mixedModesFeedDir);
+      const before = await prisma.gtfsRoute.findMany({ orderBy: { id: 'asc' } });
+      const fail = vi.spyOn(PrismaGtfsTransactionalRepository.prototype, 'saveStops')
+        .mockRejectedValueOnce(new Error('injected persistence failure'));
+      try {
+        await expect(useCase.execute(mixedModesFeedDir, undefined, {
+          routeTypes: [3], clear: true,
+        })).rejects.toThrow('injected persistence failure');
+        expect(await prisma.gtfsRoute.findMany({ orderBy: { id: 'asc' } })).toEqual(before);
+        expect(await prisma.gtfsTrip.count()).toBe(3);
+      } finally {
+        fail.mockRestore();
+      }
     });
 
     it('combines routeTypes and maxRoutes', async () => {

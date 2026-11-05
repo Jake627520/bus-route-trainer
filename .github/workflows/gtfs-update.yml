@@ -21,6 +21,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
+      - name: Check required secret
+        env:
+          GTFS_DATABASE_URL: ${{ secrets.GTFS_DATABASE_URL }}
+        run: |
+          if [ -z "$GTFS_DATABASE_URL" ]; then
+            echo "::error::GTFS_DATABASE_URL secret is not set. Add the direct database URL in repository Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
@@ -60,18 +69,10 @@ jobs:
           GTFS_DATABASE_URL: ${{ secrets.GTFS_DATABASE_URL }}
           NODE_OPTIONS: --max-old-space-size=4096
         run: |
-          if [ -z "$GTFS_DATABASE_URL" ]; then
-            echo "::error::GTFS_DATABASE_URL secret is not set (Neon direct URL). Add it in repo Settings → Secrets."
-            exit 1
-          fi
           export DATABASE_URL="$GTFS_DATABASE_URL"
           export DIRECT_URL="$GTFS_DATABASE_URL"
-          # bus（全）：--clear 先清空整份 gtfs 再灌
-          npx tsx scripts/import-gtfs.ts ./seq_gtfs --clear --route-types=3 --tx-timeout-ms=1800000
-          # ferry（全）
-          npx tsx scripts/import-gtfs.ts ./seq_gtfs --route-types=4 --tx-timeout-ms=600000
-          # train 子集（50 條，控制在 Neon 1GB 內）
-          npx tsx scripts/import-gtfs.ts ./seq_gtfs --route-types=2 --max-routes=50 --tx-timeout-ms=600000
+          # Refresh all selected modes in one transaction, including the clear.
+          npx tsx scripts/import-gtfs.ts ./seq_gtfs --clear --weekly --tx-timeout-ms=1800000
 
       - name: Commit new feed-version marker
         if: steps.ver.outputs.changed == 'true'
