@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/infrastructure/db/prisma';
 import { PrismaMasteryHistoryAdapter } from '@/infrastructure/recall/prisma-mastery-history-adapter';
 import { GetMasteryTrendUseCase } from '@/application/learning/get-mastery-trend-use-case';
-import { readSessionDriverId, unauthorizedResponse } from '@/app/_lib/session';
+import {
+  readSessionDriverId,
+  unauthorizedResponse,
+  SessionLookupError,
+  sessionUnavailableResponse,
+} from '@/app/_lib/session';
 
 const getMasteryTrendUseCase = new GetMasteryTrendUseCase(new PrismaMasteryHistoryAdapter(prisma));
 
@@ -17,7 +22,8 @@ export async function GET(request: Request): Promise<NextResponse> {
     const variantKey = new URL(request.url).searchParams.get('variantKey') ?? undefined;
     const data = await getMasteryTrendUseCase.execute({ driverId, variantKey });
     return NextResponse.json({ data }, { status: 200 });
-  } catch {
+  } catch (error: unknown) {
+    if (error instanceof SessionLookupError) return sessionUnavailableResponse();
     return NextResponse.json(
       { error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' } },
       { status: 500 }

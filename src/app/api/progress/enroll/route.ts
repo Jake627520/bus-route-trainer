@@ -7,7 +7,12 @@ import {
   EnrollVariantUseCase,
   VariantNotFoundError,
 } from '@/application/learning/enroll-variant-use-case';
-import { readSessionDriverId, unauthorizedResponse } from '@/app/_lib/session';
+import {
+  readSessionDriverId,
+  unauthorizedResponse,
+  SessionLookupError,
+  sessionUnavailableResponse,
+} from '@/app/_lib/session';
 
 const learningRepo = new PrismaLearningProgressRepository(prisma);
 const gtfsReadRepo = new PrismaGtfsReadRepository(prisma);
@@ -55,6 +60,7 @@ export async function POST(request: Request) {
     const status = result.isNew ? 201 : 200;
     return NextResponse.json({ data: result.progress }, { status });
   } catch (error: unknown) {
+    if (error instanceof SessionLookupError) return sessionUnavailableResponse();
     if (error instanceof VariantNotFoundError) {
       return NextResponse.json(
         { error: { code: 'VARIANT_NOT_FOUND', message: error.message } },
