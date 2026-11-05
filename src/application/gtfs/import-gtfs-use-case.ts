@@ -33,6 +33,8 @@ export interface ImportGtfsReport {
 export interface ImportFilter {
   routeTypes?: number[];
   maxRoutes?: number;
+  maxRoutesByType?: Record<number, number>;
+  clear?: boolean;
 }
 
 export class ImportGtfsUseCase {
@@ -47,7 +49,8 @@ export class ImportGtfsUseCase {
     const routeTypeFilter =
       filter?.routeTypes && filter.routeTypes.length > 0 ? new Set(filter.routeTypes) : null;
     const maxRoutes = filter?.maxRoutes && filter.maxRoutes > 0 ? filter.maxRoutes : null;
-    const hasFilter = routeTypeFilter !== null || maxRoutes !== null;
+    const hasFilter = routeTypeFilter !== null || maxRoutes !== null || !!filter?.maxRoutesByType;
+    const routeCountsByType = new Map<number, number>();
     const keptRouteIds = new Set<string>();
     const keptTripIds = new Set<string>();
     const agencyFile = path.join(feedDirPath, 'agency.txt');
@@ -79,7 +82,11 @@ export class ImportGtfsUseCase {
       const parsed = routeRowSchema.parse(row);
       if (routeTypeFilter && !routeTypeFilter.has(parsed.routeType)) continue;
       if (maxRoutes !== null && keptRouteIds.size >= maxRoutes) continue;
+      const typeLimit = filter?.maxRoutesByType?.[parsed.routeType];
+      const typeCount = routeCountsByType.get(parsed.routeType) ?? 0;
+      if (typeLimit !== undefined && typeCount >= typeLimit) continue;
       keptRouteIds.add(parsed.id);
+      routeCountsByType.set(parsed.routeType, typeCount + 1);
       validator.registerRoute(parsed.id, parsed.agencyId, {
         shortName: parsed.shortName,
         longName: parsed.longName,
@@ -180,6 +187,7 @@ export class ImportGtfsUseCase {
     // PASS 2: Atomic Persistence inside Single Transaction
     // =========================================================================
     return await this.repository.executeInTransaction(async (tx) => {
+      if (filter?.clear) await tx.clear();
       // 1. Agency
       const agencyCount = await tx.saveAgencies([
         { id: validAgency.id, name: validAgency.name, timezone: validAgency.timezone },

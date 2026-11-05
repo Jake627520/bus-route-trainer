@@ -152,9 +152,14 @@ docker compose run --rm app npx tsx scripts/import-gtfs.ts ./path-to-gtfs --rout
 | `--bus-only` | Import bus routes only (GTFS route type 3) |
 | `--route-types=2,4` | Import specific GTFS route types (2 = train, 3 = bus, 4 = ferry) |
 | `--max-routes=N` | Cap the number of routes — useful to stay inside a free database tier |
-| `--clear` | Delete existing GTFS tables before importing |
+| `--clear` | Replace existing GTFS tables atomically with the imported data |
+| `--weekly` | Import all bus and ferry routes plus the first 50 train routes |
 
-A scheduled GitHub Actions workflow refreshes the feed automatically; see `.github/workflows/gtfs-update.yml`.
+A scheduled GitHub Actions workflow refreshes the feed automatically; see `.github/workflows/gtfs-update.yml`. In the GitHub repository, configure **Settings → Secrets and variables → Actions → New repository secret**:
+
+- `GTFS_DATABASE_URL`: the direct (non-pooled) PostgreSQL connection URL for the GTFS database. The workflow checks this before downloading or changing anything.
+
+The workflow uses GitHub's automatically provided `GITHUB_TOKEN` to commit the feed version marker; it does not need a manually configured secret for that token. The database refresh runs in one transaction, so a failed import rolls back the replacement.
 
 ### Troubleshooting
 
