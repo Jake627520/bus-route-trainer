@@ -9,7 +9,7 @@ const badRequest = (message: string) =>
 /** Change 52: POST /api/push/subscribe — 登入司機為這台裝置建立（或更新）推播訂閱。 */
 export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const driverId = readSessionDriverId(request);
+    const driverId = await readSessionDriverId(request);
     if (!driverId) return unauthorizedResponse();
 
     let body: unknown;

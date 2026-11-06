@@ -8,7 +8,7 @@ const badRequest = (message: string) =>
 /** Change 52: POST /api/push/unsubscribe — 取消這台裝置的訂閱（只能取消自己的；不存在也回成功）。 */
 export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const driverId = readSessionDriverId(request);
+    const driverId = await readSessionDriverId(request);
     if (!driverId) return unauthorizedResponse();
 
     let body: unknown;
