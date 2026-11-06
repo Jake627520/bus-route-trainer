@@ -35,6 +35,19 @@ describe('getAppBaseUrl: reset-link base URL comes from config, not the request'
     expect(() => getAppBaseUrl(spoofed)).toThrow(/APP_URL/);
   });
 
+  it('in production accepts only an https APP_URL', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('APP_URL', 'http://bus.example.com');
+    expect(() => getAppBaseUrl(spoofed)).toThrow(/https/);
+    vi.stubEnv('APP_URL', 'https://bus.example.com');
+    expect(getAppBaseUrl(spoofed)).toBe('https://bus.example.com');
+  });
+
+  it('outside production allows an http APP_URL such as localhost', () => {
+    vi.stubEnv('APP_URL', 'http://localhost:3000');
+    expect(getAppBaseUrl(spoofed)).toBe('http://localhost:3000');
+  });
+
   it('falls back to the request origin outside production when APP_URL is unset', () => {
     vi.stubEnv('APP_URL', '');
     expect(getAppBaseUrl(new Request('http://localhost:3000/api/auth/forgot'))).toBe('http://localhost:3000');

@@ -3,7 +3,7 @@
  *
  * 不從 request 取 origin：request.url 由 Host / X-Forwarded-Host 組成，
  * 偽造時重設連結會指向攻擊者網域，token 外洩（password reset poisoning）。
- * - APP_URL 有設 → 一律用它（只取 origin）。
+ * - APP_URL 有設 → 一律用它（只取 origin）；production 只接受 https。
  * - production 沒設 → throw（fail closed，不寄信）。
  * - 非 production 沒設 → 用 request origin（本機開發方便）。
  */
@@ -18,6 +18,9 @@ export function getAppBaseUrl(request: Request): string {
     }
     if (url.protocol !== 'https:' && url.protocol !== 'http:') {
       throw new Error(`APP_URL must be an http(s) URL: ${configured}`);
+    }
+    if (process.env.NODE_ENV === 'production' && url.protocol !== 'https:') {
+      throw new Error(`APP_URL must use https in production: ${configured}`);
     }
     return url.origin;
   }
