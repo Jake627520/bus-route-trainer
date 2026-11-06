@@ -69,4 +69,12 @@ describe('Change 26: page-protection proxy', () => {
       expect(unstable_doesMiddlewareMatch({ config, nextConfig, url }), url).toBe(true);
     }
   });
+
+  // Change 52: cron 與推播 API 走自己的驗證（密鑰／session），不能被頁面導向 /login 擋住。
+  it('does not run on the push and cron APIs', () => {
+    const nextConfig = {};
+    for (const url of ['/api/cron/review-reminders', '/api/push/subscribe', '/api/push/unsubscribe']) {
+      expect(unstable_doesMiddlewareMatch({ config, nextConfig, url }), url).toBe(false);
+    }
+  });
 });

@@ -14,8 +14,8 @@
 - [x] Task 6: `WebPushSender`（`web-push`；缺環境變數時為停用狀態） <!-- id: 52-06 -->
 
 ## Phase 52.3: API
-- [ ] Task 7: `POST /api/push/subscribe`、`/unsubscribe`（需登入、輸入驗證、冪等） <!-- id: 52-07 -->
-- [ ] Task 8: `GET /api/cron/review-reminders`（Bearer 密鑰、定時比較、無密鑰不查 DB、未設定回 skipped）+ `vercel.json` cron + `src/proxy.ts` 例外與 matcher 測試 <!-- id: 52-08 -->
+- [x] Task 7: `POST /api/push/subscribe`、`/unsubscribe`（需登入、輸入驗證、冪等） <!-- id: 52-07 -->
+- [x] Task 8: `GET /api/cron/review-reminders`（Bearer 密鑰、定時比較、無密鑰不查 DB、未設定回 skipped）+ `vercel.json` cron；`/api/*` 本來就不經 `src/proxy.ts`，僅加 matcher 測試鎖住（不需新增例外） <!-- id: 52-08 -->
 
 ## Phase 52.4: Service worker
 - [ ] Task 9: `sw.js` 加 `push`（壞 payload 仍顯示通用通知）與 `notificationclick`（同網域白名單）；VERSION → v2；變異驗證 <!-- id: 52-09 -->
