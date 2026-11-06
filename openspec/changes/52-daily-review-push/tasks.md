@@ -18,7 +18,7 @@
 - [x] Task 8: `GET /api/cron/review-reminders`（Bearer 密鑰、定時比較、無密鑰不查 DB、未設定回 skipped）+ `vercel.json` cron；`/api/*` 本來就不經 `src/proxy.ts`，僅加 matcher 測試鎖住（不需新增例外） <!-- id: 52-08 -->
 
 ## Phase 52.4: Service worker
-- [ ] Task 9: `sw.js` 加 `push`（壞 payload 仍顯示通用通知）與 `notificationclick`（同網域白名單）；VERSION → v2；變異驗證 <!-- id: 52-09 -->
+- [x] Task 9: `sw.js` 加 `push`（壞 payload 仍顯示通用通知）與 `notificationclick`（同網域白名單）；VERSION → v2；變異驗證 <!-- id: 52-09 -->
 
 ## Phase 52.5: 前端
 - [ ] Task 10: `PushReminderToggle`（不支援／iOS 需加到主畫面／已拒絕／可開啟／已開啟）+ 與 `ReviewNotifier` 整併 + i18n <!-- id: 52-10 -->

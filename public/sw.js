@@ -10,11 +10,15 @@
  *  5. 不呼叫 skipWaiting / clients.claim：新版在「下次載入」才生效，不會在使用者
  *     練習到一半時換掉底層。
  *
+ * Change 52 加入 push／notificationclick 兩個事件（每日複習提醒）：
+ *  - push 一定顯示通知（瀏覽器要求；內容壞掉也顯示通用文字）。
+ *  - 點通知只開同網域的路徑，其餘一律回首頁。
+ *
  * 想緊急停用：部署一個只做「unregister + 清空 caches」的 sw.js（見 HANDOFF.md）。
  */
 'use strict';
 
-var VERSION = 'v1';
+var VERSION = 'v2';
 var SHELL_CACHE = 'shell-' + VERSION;
 var STATIC_CACHE = 'static-' + VERSION;
 var OFFLINE_URL = '/offline.html';
@@ -122,3 +126,60 @@ function trim(cache) {
     return Promise.all(deletions);
   });
 }
+
+/* ---------- Change 52: 每日複習提醒 ---------- */
+
+var NOTIFICATION_TAG = 'daily-review';
+var FALLBACK_TITLE = 'Route Memory Trainer';
+var FALLBACK_BODY = 'Time to review / 該複習了';
+
+/** 只接受同網域的路徑（含查詢字串）；其他一律回首頁。 */
+function safePath(value) {
+  try {
+    if (typeof value !== 'string' || value.charAt(0) !== '/' || value.charAt(1) === '/' || value.indexOf('\\') !== -1) {
+      return '/';
+    }
+    var u = new URL(value, self.location.origin);
+    if (u.origin !== self.location.origin) return '/';
+    return u.pathname + u.search;
+  } catch {
+    return '/';
+  }
+}
+
+self.addEventListener('push', function (event) {
+  var data = {};
+  try {
+    var parsed = event.data ? event.data.json() : null;
+    if (parsed && typeof parsed === 'object') data = parsed;
+  } catch {
+    // 內容無法解析：仍然顯示通用通知。
+  }
+  var title = typeof data.title === 'string' && data.title ? data.title : FALLBACK_TITLE;
+  var body = typeof data.body === 'string' && data.body ? data.body : FALLBACK_BODY;
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: body,
+      icon: '/icon-192.png',
+      tag: NOTIFICATION_TAG,
+      data: { url: safePath(data.url) },
+    })
+  );
+});
+
+self.addEventListener('notificationclick', function (event) {
+  event.notification.close();
+  var stored = event.notification.data;
+  var target = self.location.origin + safePath(stored && stored.url);
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: 'window', includeUncontrolled: true })
+      .then(function (windows) {
+        for (var i = 0; i < windows.length; i++) {
+          var w = windows[i];
+          if (w.url.indexOf(self.location.origin) === 0 && w.focus) return w.focus();
+        }
+        return self.clients.openWindow(target);
+      })
+  );
+});
