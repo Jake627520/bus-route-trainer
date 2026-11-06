@@ -32,6 +32,7 @@
 | `DATABASE_URL` | Production 的 **pooled** 連線字串 | Production |
 | `DIRECT_URL` | Production 的 **direct** 連線字串 | Production |
 | `AUTH_SECRET` | `openssl rand -base64 32` 產生的強隨機值 | Production（＋ Preview） |
+| `APP_URL` | 對外正式網址，例如 `https://<你的網域>`。重設密碼信的連結用它（不用 request Host，防 reset poisoning）；未設時 production 不寄重設信 | Production（Preview 要測重設信才設） |
 | `DATABASE_URL` | **另一個**資料庫的 pooled 連線字串（見下方） | Preview |
 | `PREVIEW_DIRECT_URL` | **同一個** Preview 資料庫的 direct 連線字串 | Preview |
 

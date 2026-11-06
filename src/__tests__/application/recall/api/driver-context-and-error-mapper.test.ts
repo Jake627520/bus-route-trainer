@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
 import {
   resolveAuthenticatedDriver,
   assertNoClientDriverId,
@@ -93,26 +93,47 @@ describe('Change 09 Auth & Error Boundary Contract Unit Tests', () => {
       }
     });
 
-    // Test 3: Production + trusted gateway identity -> resolves verified driver
-    it('3. resolves verified driver in production when trusted gateway flag is enabled', async () => {
-      const origEnv = process.env.NODE_ENV;
-      const origTrust = process.env.TRUST_UPSTREAM_DRIVER_HEADER;
-      try {
-        (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
-        process.env.TRUST_UPSTREAM_DRIVER_HEADER = 'true';
+    // Test 3: Production + trusted gateway identity + shared secret -> resolves verified driver
+    // 稽核待辦 2：只開 TRUST_UPSTREAM_DRIVER_HEADER 不夠；Vercel 前面沒有會剝掉
+    // x-authenticated-driver-id 的 gateway，客戶端可直接送這個 header 冒充任何 driver。
+    // 因此上游必須同時帶出與 UPSTREAM_AUTH_SECRET 相符的 x-upstream-auth-secret。
+    describe('3. trusted gateway mode requires a shared secret', () => {
+      const SECRET = 'gateway-shared-secret-0123456789abcdef';
+      const asProdGateway = async (headers: Record<string, string>, secret: string | undefined) => {
+        vi.stubEnv('NODE_ENV', 'production');
+        vi.stubEnv('TRUST_UPSTREAM_DRIVER_HEADER', 'true');
+        vi.stubEnv('UPSTREAM_AUTH_SECRET', secret ?? '');
+        return resolveAuthenticatedDriver(new Request('http://localhost/api/test', { headers }));
+      };
+      afterEach(() => vi.unstubAllEnvs());
 
-        const req = new Request('http://localhost/api/test', {
-          headers: { 'x-authenticated-driver-id': 'gateway-verified-driver' },
-        });
-        expect(await resolveAuthenticatedDriver(req)).toBe('gateway-verified-driver');
-      } finally {
-        (process.env as Record<string, string | undefined>).NODE_ENV = origEnv;
-        if (origTrust !== undefined) {
-          process.env.TRUST_UPSTREAM_DRIVER_HEADER = origTrust;
-        } else {
-          delete process.env.TRUST_UPSTREAM_DRIVER_HEADER;
-        }
-      }
+      it('resolves the upstream driver when the shared secret matches', async () => {
+        await expect(
+          asProdGateway({ 'x-authenticated-driver-id': 'gateway-verified-driver', 'x-upstream-auth-secret': SECRET }, SECRET),
+        ).resolves.toBe('gateway-verified-driver');
+      });
+
+      it('rejects a client-sent identity header without the shared secret', async () => {
+        await expect(asProdGateway({ 'x-authenticated-driver-id': 'spoofed-driver' }, SECRET)).rejects.toThrow(UnauthenticatedError);
+      });
+
+      it('rejects a wrong shared secret', async () => {
+        await expect(
+          asProdGateway({ 'x-authenticated-driver-id': 'spoofed-driver', 'x-upstream-auth-secret': SECRET.replace('0', 'X') }, SECRET),
+        ).rejects.toThrow(UnauthenticatedError);
+      });
+
+      it('fails closed when the flag is on but UPSTREAM_AUTH_SECRET is not configured', async () => {
+        await expect(
+          asProdGateway({ 'x-authenticated-driver-id': 'spoofed-driver', 'x-upstream-auth-secret': '' }, undefined),
+        ).rejects.toThrow(UnauthenticatedError);
+      });
+
+      it('fails closed when UPSTREAM_AUTH_SECRET is too short to be a real secret', async () => {
+        await expect(
+          asProdGateway({ 'x-authenticated-driver-id': 'spoofed-driver', 'x-upstream-auth-secret': 'short' }, 'short'),
+        ).rejects.toThrow(UnauthenticatedError);
+      });
     });
 
     // Test 4: Test environment + test header -> maintains current testing seam

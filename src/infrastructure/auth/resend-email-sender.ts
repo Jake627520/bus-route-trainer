@@ -33,9 +33,20 @@ export class ConsoleEmailSender implements EmailSender {
   }
 }
 
-/** 依環境選擇寄信器：有 RESEND_API_KEY 用 Resend，否則 console（dev）。 */
+/**
+ * production 沒有金鑰時：不寄、不印內容（信裡有重設 token 的連結，印出來會進 Vercel log）。
+ * 只記一行不含收件人與內容的警告。
+ */
+export class DisabledEmailSender implements EmailSender {
+  async send(): Promise<void> {
+    console.warn('[email] RESEND_API_KEY is not set in production; email not sent.');
+  }
+}
+
+/** 依環境選擇寄信器：有 RESEND_API_KEY 用 Resend；production 沒有 → 停用（不印內容）；其他 → console（dev）。 */
 export function createEmailSender(): EmailSender {
   const key = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM ?? 'onboarding@resend.dev';
-  return key && key.length > 0 ? new ResendEmailSender(key, from) : new ConsoleEmailSender();
+  if (key && key.length > 0) return new ResendEmailSender(key, from);
+  return process.env.NODE_ENV === 'production' ? new DisabledEmailSender() : new ConsoleEmailSender();
 }

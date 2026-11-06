@@ -13,7 +13,7 @@ jobs:
     name: Lint, Test, Build (in container)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       # 容器以非 root 的 node (uid 1000) 執行；把 checkout 交給它，
       # 否則寫 .next/、prisma 產物到 bind-mount 會 EACCES。
