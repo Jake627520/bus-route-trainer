@@ -25,7 +25,7 @@
 - [x] Task 11: 登出時取消本機訂閱（best-effort） <!-- id: 52-11 -->
 
 ## Phase 52.6: 收尾
-- [ ] Task 12: 守門三綠；真瀏覽器驗證（訂閱流程、SW push 事件以模擬事件測）；更新 spec／HANDOFF／DEPLOY（VAPID、環境變數、人工驗證）；archive；PR <!-- id: 52-12 -->
+- [x] Task 12: 守門三綠；真瀏覽器驗證（訂閱流程、SW push 事件以模擬事件測）；更新 spec／HANDOFF／DEPLOY（VAPID、環境變數、人工驗證）；archive；PR <!-- id: 52-12 -->
 
 ## 部署後待辦（合併上線後才能做，不屬於本 change 的程式範圍）
 - [ ] 產生 VAPID 金鑰並在 Vercel 設環境變數
