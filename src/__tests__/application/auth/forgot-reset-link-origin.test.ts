@@ -48,6 +48,27 @@ describe('POST /api/auth/forgot: reset link ignores the request host', () => {
     expect(mail).not.toContain('evil.example');
   });
 
+  it('in production with APP_URL but no RESEND_API_KEY: answers 200 and no log carries the token or link', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('APP_URL', 'https://bus.example.com');
+    vi.stubEnv('RESEND_API_KEY', '');
+    vi.stubEnv('AUTH_SECRET', 'test-only-strong-secret-value');
+    for (const m of ['info', 'warn', 'error', 'debug'] as const) {
+      vi.spyOn(console, m).mockImplementation((...args: unknown[]) => { logged.push(args.join(' ')); });
+    }
+    // route 在 module 載入時建 sender，要在 production env 下重新載入。
+    vi.resetModules();
+    const { POST: prodForgot } = await import('@/app/api/auth/forgot/route');
+    const res = await prodForgot(req('https://bus.example.com/api/auth/forgot', { email: 'frank@example.com' }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ data: { ok: true } });
+    expect(await prisma.passwordResetToken.count()).toBe(1);
+    const all = logged.join('\n');
+    expect(all).not.toContain('/reset');
+    expect(all).not.toMatch(/token=/);
+    expect(all).not.toContain('frank@example.com');
+  });
+
   it('in production without APP_URL: still answers 200 but sends no email and stores no token', async () => {
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('APP_URL', '');
