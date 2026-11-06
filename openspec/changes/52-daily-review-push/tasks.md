@@ -21,8 +21,8 @@
 - [x] Task 9: `sw.js` 加 `push`（壞 payload 仍顯示通用通知）與 `notificationclick`（同網域白名單）；VERSION → v2；變異驗證 <!-- id: 52-09 -->
 
 ## Phase 52.5: 前端
-- [ ] Task 10: `PushReminderToggle`（不支援／iOS 需加到主畫面／已拒絕／可開啟／已開啟）+ 與 `ReviewNotifier` 整併 + i18n <!-- id: 52-10 -->
-- [ ] Task 11: 登出時取消本機訂閱（best-effort） <!-- id: 52-11 -->
+- [x] Task 10: `PushReminderToggle`（不支援／iOS 需加到主畫面／已拒絕／可開啟／已開啟）+ 與 `ReviewNotifier` 整併 + i18n <!-- id: 52-10 -->
+- [x] Task 11: 登出時取消本機訂閱（best-effort） <!-- id: 52-11 -->
 
 ## Phase 52.6: 收尾
 - [ ] Task 12: 守門三綠；真瀏覽器驗證（訂閱流程、SW push 事件以模擬事件測）；更新 spec／HANDOFF／DEPLOY（VAPID、環境變數、人工驗證）；archive；PR <!-- id: 52-12 -->

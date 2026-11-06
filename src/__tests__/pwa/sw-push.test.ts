@@ -79,14 +79,14 @@ describe('Change 52: service worker push', () => {
   ])('refuses to carry a non-local URL into the notification: %s', async (url) => {
     const sw = loadSw();
     await push(sw, { json: () => ({ title: 't', body: 'b', url }) });
-    const options = sw.showNotification.mock.calls[0][1] as unknown as { data: { url: string } };
+    const options = (sw.showNotification.mock.calls as unknown as Array<[string, { data: { url: string } }]>)[0][1];
     expect(options.data.url).toBe('/');
   });
 
   it('keeps a local path with a query', async () => {
     const sw = loadSw();
     await push(sw, { json: () => ({ title: 't', body: 'b', url: '/practice/recall?x=1' }) });
-    expect((sw.showNotification.mock.calls[0][1] as unknown as { data: { url: string } }).data.url).toBe('/practice/recall?x=1');
+    expect((sw.showNotification.mock.calls as unknown as Array<[string, { data: { url: string } }]>)[0][1].data.url).toBe('/practice/recall?x=1');
   });
 });
 

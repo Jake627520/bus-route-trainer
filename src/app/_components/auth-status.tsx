@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient, type AuthMe } from '@/app/_lib/api-client';
 import { useT } from '@/app/_components/locale-provider';
+import { unsubscribeOnLogout } from '@/app/_lib/push-client';
 
 /**
  * Change 26: 顯示目前登入司機帳號與登出鈕（client component）。
@@ -32,6 +33,8 @@ export function AuthStatus() {
   if (me === null) return null;
 
   const onLogout = async () => {
+    // Change 52: 先取消這台裝置的推播訂閱（需要還在登入狀態才能呼叫 API）。
+    await unsubscribeOnLogout();
     try {
       await apiClient.logout();
     } catch {
