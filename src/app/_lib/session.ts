@@ -5,11 +5,12 @@ import {
   SESSION_TTL_MS,
   getAuthSecret,
   readSessionDriverId,
+  SessionLookupError,
 } from '@/infrastructure/auth/session-cookie';
 import { currentSessionVersion } from '@/infrastructure/auth/session-version';
 
 // Re-export（保留既有 import 路徑 @/app/_lib/session）。
-export { SESSION_COOKIE, getAuthSecret, readSessionDriverId };
+export { SESSION_COOKIE, getAuthSecret, readSessionDriverId, SessionLookupError };
 
 /** Change 29：未登入。route 捕捉後回 401。 */
 export class UnauthenticatedError extends Error {
@@ -31,6 +32,14 @@ export function unauthorizedResponse(): NextResponse {
   return NextResponse.json(
     { error: { code: 'UNAUTHENTICATED', message: 'Authentication required. Please sign in.' } },
     { status: 401 }
+  );
+}
+
+/** 標準 503 回應（暫時無法驗證 session，例如 DB 失敗）。不帶任何例外細節。 */
+export function sessionUnavailableResponse(): NextResponse {
+  return NextResponse.json(
+    { error: { code: 'SERVICE_UNAVAILABLE', message: 'Service temporarily unavailable. Please try again.' } },
+    { status: 503 }
   );
 }
 

@@ -6,7 +6,12 @@ import { GetRouteVariantsUseCase } from '@/application/gtfs/get-route-variants-u
 import { GtfsVariantHeadsignAdapter } from '@/infrastructure/gtfs/gtfs-variant-headsign-adapter';
 import { GetReviewSummaryUseCase } from '@/application/learning/get-review-summary-use-case';
 import { SystemClock } from '@/application/common/clock';
-import { readSessionDriverId, unauthorizedResponse } from '@/app/_lib/session';
+import {
+  readSessionDriverId,
+  unauthorizedResponse,
+  SessionLookupError,
+  sessionUnavailableResponse,
+} from '@/app/_lib/session';
 
 const progressRepository = new PrismaLearningProgressRepository(prisma);
 const gtfsReadRepository = new PrismaGtfsReadRepository(prisma);
@@ -27,7 +32,8 @@ export async function GET(request: Request): Promise<NextResponse> {
     if (!driverId) return unauthorizedResponse();
     const summaries = await getReviewSummaryUseCase.execute({ driverId });
     return NextResponse.json({ data: summaries }, { status: 200 });
-  } catch {
+  } catch (error: unknown) {
+    if (error instanceof SessionLookupError) return sessionUnavailableResponse();
     return NextResponse.json(
       { error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' } },
       { status: 500 }
