@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { apiClient } from '@/app/_lib/api-client';
 import { useT } from '@/app/_components/locale-provider';
+import { isPushConfigured } from '@/app/_lib/push-client';
 
 type PermState = NotificationPermission | 'unsupported';
 
@@ -54,7 +55,8 @@ export function ReviewNotifier() {
     setOverride(result);
   };
 
-  if (perm !== 'default') return null;
+  // Change 52: 這個部署有推播時，由「每日複習提醒」開關統一處理權限，這裡不再多放一顆按鈕。
+  if (perm !== 'default' || isPushConfigured()) return null;
 
   return (
     <button

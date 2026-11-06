@@ -193,6 +193,27 @@ export class ApiClient {
   async logout(): Promise<void> {
     await this.request<{ ok: true }>('/api/auth/logout', { method: 'POST' });
   }
+
+  /** Change 52: 為這台裝置建立推播訂閱。 */
+  async subscribePush(
+    subscription: { endpoint: string; keys: { p256dh: string; auth: string } },
+    locale: string,
+  ): Promise<void> {
+    await this.request<{ ok: true }>('/api/push/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...subscription, locale }),
+    });
+  }
+
+  /** Change 52: 取消這台裝置的推播訂閱。 */
+  async unsubscribePush(endpoint: string): Promise<void> {
+    await this.request<{ ok: true }>('/api/push/unsubscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint }),
+    });
+  }
 }
 
 /** 預設實例：同源（baseUrl=''），瀏覽器 fetch。 */

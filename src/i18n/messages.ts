@@ -85,6 +85,17 @@ const en = {
   a11y: {
     skipToContent: 'Skip to main content',
   },
+  push: {
+    title: 'Daily review reminder',
+    description: 'Get one notification each morning when you have cards to review.',
+    enable: 'Turn on',
+    disable: 'Turn off',
+    working: 'Working…',
+    on: 'On. You will get a reminder each morning.',
+    denied: 'Notifications are blocked. Allow them in your browser settings, then come back to turn this on.',
+    iosInstall: 'On iPhone, first add this site to your Home Screen (Share, then Add to Home Screen) and open it from there. Then you can turn reminders on.',
+    error: 'Could not change this setting. Please try again.',
+  },
   offline: {
     banner: "You're offline. Answers will be sent when you reconnect.",
   },
@@ -317,6 +328,17 @@ const zhTW: Messages = {
   },
   a11y: {
     skipToContent: '跳到主要內容',
+  },
+  push: {
+    title: '每日複習提醒',
+    description: '有卡片要複習時，每天早上通知你一次。',
+    enable: '開啟',
+    disable: '關閉',
+    working: '處理中…',
+    on: '已開啟：每天早上提醒你。',
+    denied: '通知已被封鎖。請到瀏覽器設定允許通知，再回來開啟。',
+    iosInstall: 'iPhone 請先把網站「加到主畫面」（分享 → 加入主畫面），再從主畫面開啟，就能開啟提醒。',
+    error: '設定失敗，請再試一次。',
   },
   offline: {
     banner: '目前離線。恢復連線後會自動送出你的答案。',

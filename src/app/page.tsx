@@ -1,4 +1,5 @@
 import { ReviewNotifier } from '@/app/_components/review-notifier';
+import { PushReminderToggle } from '@/app/_components/push-reminder-toggle';
 import { ReviewReminder } from '@/app/_components/review-reminder';
 import { BatchPracticeButton } from '@/app/_components/batch-practice-button';
 import { ReviewDashboard } from '@/app/_components/review-dashboard';
@@ -35,6 +36,7 @@ export default function Home() {
 
       <div className="mb-4">
         <ReviewNotifier />
+        <PushReminderToggle />
       </div>
 
       <ReviewReminder />
