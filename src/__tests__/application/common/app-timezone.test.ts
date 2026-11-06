@@ -20,3 +20,15 @@ describe('Change 33: app timezone', () => {
     expect(toAppDateString(new Date('2026-03-02T14:00:00.000Z'))).toBe('2026-03-03');
   });
 });
+
+import { toAppDayStart } from '@/application/common/app-timezone';
+describe('Change 52: toAppDayStart', () => {
+  it('is Brisbane midnight of the same Brisbane day', () => {
+    // 2026-10-14T19:00Z = 2026-10-15 05:00 Brisbane → 當日起點 = 2026-10-14T14:00Z
+    expect(toAppDayStart(new Date('2026-10-14T19:00:00Z')).toISOString()).toBe('2026-10-14T14:00:00.000Z');
+  });
+  it('late UTC evening still belongs to the next Brisbane day', () => {
+    expect(toAppDayStart(new Date('2026-10-14T14:00:00Z')).toISOString()).toBe('2026-10-14T14:00:00.000Z');
+    expect(toAppDayStart(new Date('2026-10-14T13:59:59Z')).toISOString()).toBe('2026-10-13T14:00:00.000Z');
+  });
+});

@@ -1,6 +1,6 @@
 # Proposal: 52-daily-review-push
 
-狀態：`proposed`（待人審，審過才開工）
+狀態：`approved`（人審已通過，開工中）
 編號：52。依賴 Change 51（PWA／service worker）已合入 main。
 
 ## Why
@@ -20,10 +20,10 @@ Change 51 讓網站可裝到手機主畫面、有了 service worker，這是「�
    - 同一個 Brisbane 日（沿用 Change 33 日界）已發過就不再發（cron 重跑也不會重複）。
    - 司機**今天已經練習過**就跳過（已經在用了，不需要再提醒）。
 3. **內容只寫數量，不含任何題目或站名**：例「你有 12 張卡片要複習」。通知會出現在鎖定畫面，不能洩漏學習內容；也與「答案不外洩」原則一致。語言用訂閱當下的介面語言（en／zh-TW）存起來。
-4. **發送時間：每天一次，固定 Brisbane 16:00**（= UTC 06:00，Brisbane 無夏令時間），常數集中一處。
+4. **發送時間：每天一次，固定 Brisbane 05:00（上班前）**（= 前一日 UTC 19:00，cron `0 19 * * *`；Brisbane 無夏令時間），常數集中一處。**（已由你確認：上班前；Vercel Hobby。）**
    - 為什麼不做「每人自選時間」：需要每小時甚至更密的 cron；Vercel Hobby 方案**只允許每天一次**，設更密的 cron 會讓**部署失敗**。第一版不冒這個險。若你的 Vercel 是 Pro，可在後續 change 加「自選時間」。
-   - Hobby 方案的 cron 時間點不精準（可能晚到一小時內），對「每天一則提醒」可接受。
-5. **cron 端點只認密鑰**：`GET /api/cron/review-reminders` 需 `Authorization: Bearer $CRON_SECRET`（Vercel cron 會自動帶），用定時比較防旁路；沒帶或錯誤回 401。`src/proxy.ts` 為它開例外（它不走使用者 session），並有測試。
+   - Hobby 方案的 cron 時間點不精準（05:00–05:59 之間都可能），對「每天一則提醒」可接受。
+5. **cron 端點只認密鑰**：`GET /api/cron/review-reminders` 需 `Authorization: Bearer $CRON_SECRET`（Vercel cron 會自動帶），用定時比較防旁路；沒帶、錯誤、或伺服器**沒設定 `CRON_SECRET`** 一律回 401（絕不因為「密鑰是空的」而放行）。通過後若 VAPID 沒設定才回 200 `{ skipped: true }`。`src/proxy.ts` 為它開例外（它不走使用者 session），並有測試。
 6. **用 `web-push` 套件**：Web Push 的訊息加密與 VAPID 簽章不該自己手寫。放在 port 後面（`PushSender`），測試用假的。這是**新增一個正式相依**，請確認接受。
 7. **失效訂閱自動清除**：推播服務回 404／410（使用者撤銷或裝置失效）→ 刪除該訂閱。其他暫時性錯誤只記 log，下次再試。
 8. **登出時移除本機訂閱**：共用手機登出後，不能繼續收到上一個人的提醒。登出流程 best-effort 呼叫取消訂閱。
@@ -37,7 +37,7 @@ Change 51 讓網站可裝到手機主畫面、有了 service worker，這是「�
 - 基礎設施：`PrismaPushSubscriptionRepository`、`WebPushSender`（`web-push`）、「每位司機到期卡片數」純計數查詢（不載入站名／車次，避免 N+1）。
 - API：`POST /api/push/subscribe`、`POST /api/push/unsubscribe`（需登入）、`GET /api/cron/review-reminders`（密鑰）。
 - 前端：首頁 `PushReminderToggle`（狀態：不支援／iOS 需先加到主畫面／已拒絕／可開啟／已開啟）；與現有前景 `ReviewNotifier` 整併，避免同時出現兩種提醒鈕；登出時取消訂閱；i18n（en／zh-TW）。
-- `public/sw.js`：`push`、`notificationclick`；`vercel.json`：cron（`0 6 * * *` UTC）；`src/proxy.ts` 例外。
+- `public/sw.js`：`push`、`notificationclick`；`vercel.json`：cron（`0 19 * * *` UTC = Brisbane 05:00）；`src/proxy.ts` 例外。
 - 文件：HANDOFF／DEPLOY（產生 VAPID 金鑰、設環境變數、驗證步驟）。
 
 ## Non-goals
@@ -63,8 +63,8 @@ Change 51 讓網站可裝到手機主畫面、有了 service worker，這是「�
 - 私鑰一旦外洩或更換，所有既有訂閱都會失效（需重新開啟）——請妥善保管。
 - 用手機（Android Chrome；iPhone 需先加到主畫面）開啟提醒，手動觸發一次 cron 確認收到通知。
 
-## 待你決定
-1. **發送時間** Brisbane 16:00 是否合適？（司機下班後；也可改早上班前。）
-2. 你的 Vercel 是 **Hobby 還是 Pro**？Pro 才能做「每人自選時間」，決定是否列入下一個 change。
-3. 「今天已練習就不再提醒」是否接受（建議接受，減少打擾）。
-4. 接受新增 `web-push` 相依？
+## 已決定（審查結果）
+1. 發送時間：**上班前**（Brisbane 05:00）。
+2. Vercel 為 **Hobby**：每天一次 cron；「每人自選時間」不做（升級 Pro 後再議）。
+3. 「今天已練習就不再提醒」：接受。
+4. 新增 `web-push` 相依：接受。

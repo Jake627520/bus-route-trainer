@@ -4,9 +4,9 @@
 > 開工前須通過人審（見 proposal.md「待你決定」）。
 
 ## Phase 52.1: 核心邏輯
-- [ ] Task 1: 提醒設定常數（發送時間、批次大小、上限）+ 通知內容樣板（en／zh-TW，只含張數）+ `PushSender`、`PushSubscriptionRepository`、`DueCountQuery` port <!-- id: 52-01 -->
-- [ ] Task 2: `SubscribeToPush`／`UnsubscribeFromPush`（驗證 endpoint 為 https、重複訂閱冪等、同 endpoint 換帳號時轉移） <!-- id: 52-02 -->
-- [ ] Task 3: `SendDailyReviewReminders`（無到期不發／日界去重／今天已練習跳過／404·410 清除／其他錯誤保留並記 log／單點失敗不影響他人／批次與上限） <!-- id: 52-03 -->
+- [x] Task 1: 提醒設定常數（發送時間、批次大小、上限）+ 通知內容樣板（en／zh-TW，只含張數）+ `PushSender`、`PushSubscriptionRepository`、`DueCountQuery` port <!-- id: 52-01 -->
+- [x] Task 2: `SubscribeToPush`／`UnsubscribeFromPush`（驗證 endpoint 為 https、重複訂閱冪等、同 endpoint 換帳號時轉移） <!-- id: 52-02 -->
+- [x] Task 3: `SendDailyReviewReminders`（無到期不發／日界去重／今天已練習跳過／404·410 清除／其他錯誤保留並記 log／單點失敗不影響他人／批次與上限） <!-- id: 52-03 -->
 
 ## Phase 52.2: 資料庫與基礎設施
 - [ ] Task 4: Prisma `push_subscription` + migration <!-- id: 52-04 -->

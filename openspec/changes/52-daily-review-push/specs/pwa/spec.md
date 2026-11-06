@@ -20,7 +20,7 @@
 推播內容 MUST 僅包含固定樣板與到期張數（依訂閱時的語言 en／zh-TW），MUST NOT 包含站名、路線、題目或答案。
 
 ### Requirement: 排程端點僅限持有密鑰者
-`GET /api/cron/review-reminders` MUST 要求正確的 `Authorization: Bearer` 密鑰，否則回 401 且不存取資料庫。未設定推播相關環境變數時 SHALL 回 200 並略過、不影響其他功能。
+`GET /api/cron/review-reminders` MUST 要求正確的 `Authorization: Bearer` 密鑰，否則回 401 且不存取資料庫；伺服器未設定密鑰時亦 MUST 回 401（不得因密鑰為空而放行）。通過驗證後若未設定推播金鑰，SHALL 回 200 並略過、不影響其他功能。
 
 ### Requirement: 失效訂閱自動清除
 推播服務回 404 或 410 時，系統 SHALL 刪除該訂閱；其他錯誤 SHALL 保留訂閱並記錄，且單一訂閱的失敗 MUST NOT 影響其他訂閱的發送。
