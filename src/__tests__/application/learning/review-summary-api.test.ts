@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { GET } from '@/app/api/review/summary/route';
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
-import { sessionCookie } from '@/__tests__/helpers/session';
+import { sessionCookie, ensureDrivers } from '@/__tests__/helpers/session';
 
 /**
  * Change 11 Task 4 / 29: GET /api/review/summary 整合測試（真 DB）。
@@ -12,6 +12,9 @@ const reqNoCookie = () => new Request('http://localhost/api/review/summary');
 const reqWithSession = (driverId: string) =>
   new Request('http://localhost/api/review/summary', { headers: { cookie: sessionCookie(driverId) } });
 describe('GET /api/review/summary', () => {
+  // 資安稽核 2026-11：session 驗證會比對 DB 的 sessionVersion，driver 列必須存在。
+  beforeEach(() => ensureDrivers(DEFAULT_DRIVER_ID, 'drv-bob'));
+
   const prisma = new PrismaClient();
 
   beforeAll(async () => {

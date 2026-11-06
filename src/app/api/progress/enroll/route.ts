@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/infrastructure/db/prisma';
 import { PrismaLearningProgressRepository } from '@/infrastructure/learning/prisma-learning-progress-repository';
 import { PrismaGtfsReadRepository } from '@/infrastructure/gtfs/query/prisma-gtfs-read-repository';
 import { GetRouteVariantsUseCase } from '@/application/gtfs/get-route-variants-use-case';
@@ -9,7 +9,6 @@ import {
 } from '@/application/learning/enroll-variant-use-case';
 import { readSessionDriverId, unauthorizedResponse } from '@/app/_lib/session';
 
-const prisma = new PrismaClient();
 const learningRepo = new PrismaLearningProgressRepository(prisma);
 const gtfsReadRepo = new PrismaGtfsReadRepository(prisma);
 const getRouteVariantsUseCase = new GetRouteVariantsUseCase(gtfsReadRepo);
@@ -17,7 +16,7 @@ const enrollVariantUseCase = new EnrollVariantUseCase(learningRepo, getRouteVari
 
 export async function POST(request: Request) {
   try {
-    const driverId = readSessionDriverId(request);
+    const driverId = await readSessionDriverId(request);
     if (!driverId) return unauthorizedResponse();
 
     let body: unknown;
@@ -63,13 +62,10 @@ export async function POST(request: Request) {
       );
     }
 
+    // 內部錯誤只寫 log，不把訊息（可能含 Prisma 表名/欄位）回給客戶端。
+    console.error('POST /api/progress/enroll failed', error);
     return NextResponse.json(
-      {
-        error: {
-          code: 'INTERNAL_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown internal error',
-        },
-      },
+      { error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' } },
       { status: 500 }
     );
   }

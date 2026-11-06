@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/infrastructure/db/prisma';
 import { PrismaPracticeStatsAdapter } from '@/infrastructure/recall/prisma-practice-stats-adapter';
 import { GetPracticeStreakUseCase } from '@/application/learning/get-practice-streak-use-case';
 import { SystemClock } from '@/application/common/clock';
 import { readSessionDriverId, unauthorizedResponse } from '@/app/_lib/session';
 
-const prisma = new PrismaClient();
 const getPracticeStreakUseCase = new GetPracticeStreakUseCase(
   new PrismaPracticeStatsAdapter(prisma),
   new SystemClock()
@@ -17,7 +16,7 @@ const getPracticeStreakUseCase = new GetPracticeStreakUseCase(
  */
 export async function GET(request: Request): Promise<NextResponse> {
   try {
-    const driverId = readSessionDriverId(request);
+    const driverId = await readSessionDriverId(request);
     if (!driverId) return unauthorizedResponse();
     const data = await getPracticeStreakUseCase.execute({ driverId });
     return NextResponse.json({ data }, { status: 200 });

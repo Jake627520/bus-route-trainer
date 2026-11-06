@@ -43,9 +43,16 @@ function fakeRepo(seed: DriverAccount[] = []): DriverAccountRepository {
       tokens.push({ id: `tok-${tokens.length + 1}`, driverId, tokenHash, expiresAt, usedAt: null });
     },
     findResetToken: async (tokenHash) => tokens.find((t) => t.tokenHash === tokenHash) ?? null,
-    markResetTokenUsed: async (id) => {
-      const t = tokens.find((x) => x.id === id);
-      if (t) t.usedAt = new Date();
+    consumeResetTokenAndUpdatePassword: async ({ tokenHash, now, passwordHash, passwordSalt }) => {
+      const t = tokens.find((x) => x.tokenHash === tokenHash && x.usedAt === null && x.expiresAt >= now);
+      if (!t) return false;
+      const r = rows.find((x) => x.id === t.driverId);
+      if (r) {
+        r.passwordHash = passwordHash;
+        r.passwordSalt = passwordSalt;
+      }
+      for (const other of tokens) if (other.driverId === t.driverId && other.usedAt === null) other.usedAt = now;
+      return true;
     },
   };
 }

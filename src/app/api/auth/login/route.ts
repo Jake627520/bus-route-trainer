@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/infrastructure/db/prisma';
 import { PrismaDriverAccountRepository } from '@/infrastructure/auth/prisma-driver-account-repository';
 import { AuthenticateDriverUseCase } from '@/application/auth/authenticate-driver-use-case';
 import { verifyPassword } from '@/infrastructure/auth/password-hasher';
@@ -8,7 +8,6 @@ import { getClientIp } from '@/app/_lib/client-ip';
 import { createAuthRateGate, tooManyRequests, rateKey } from '@/app/_lib/auth-rate-gate';
 import { RATE_RULES } from '@/domain/auth/rate-limit-policy';
 
-const prisma = new PrismaClient();
 const gate = createAuthRateGate(prisma);
 const authUseCase = new AuthenticateDriverUseCase(new PrismaDriverAccountRepository(prisma), verifyPassword);
 
@@ -43,6 +42,6 @@ export async function POST(request: Request): Promise<NextResponse> {
   await gate.clear(RATE_RULES.loginFailUser, userKey); // 成功登入即清除失敗計數
   return NextResponse.json(
     { data: driver },
-    { status: 200, headers: { 'Set-Cookie': sessionSetCookie(driver.id) } }
+    { status: 200, headers: { 'Set-Cookie': await sessionSetCookie(driver.id) } }
   );
 }

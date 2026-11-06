@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/infrastructure/db/prisma';
 import { PrismaGtfsReadRepository } from '@/infrastructure/gtfs/query/prisma-gtfs-read-repository';
 import { ListRoutesUseCase } from '@/application/gtfs/list-routes-use-case';
 
-const prisma = new PrismaClient();
 const readRepository = new PrismaGtfsReadRepository(prisma);
 const listRoutesUseCase = new ListRoutesUseCase(readRepository);
 

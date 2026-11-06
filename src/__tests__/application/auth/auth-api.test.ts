@@ -34,6 +34,15 @@ describe('auth API', () => {
     expect(bad.status).toBe(400);
   });
 
+  // 資安稽核 2026-11：email 重複時不回顯 email。
+  it('does not echo the address back when the email is already registered', async () => {
+    await register(jreq({ username: 'owner', password: 'Secret#1a', email: 'victim@example.com' }));
+    const res = await register(jreq({ username: 'probe', password: 'Secret#1a', email: 'victim@example.com' }));
+    expect(res.status).toBe(409);
+    const body = await res.json();
+    expect(JSON.stringify(body)).not.toContain('victim@example.com');
+  });
+
   // Change 42: 密碼強度政策
   it('rejects a weak password with WEAK_PASSWORD and the failed rule list', async () => {
     const res = await register(jreq({ username: 'weakuser', password: 'password123' }));

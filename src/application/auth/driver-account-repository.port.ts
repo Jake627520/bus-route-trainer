@@ -34,5 +34,15 @@ export interface DriverAccountRepository {
   // Change 41: 密碼重設 token。
   createResetToken(driverId: string, tokenHash: string, expiresAt: Date): Promise<void>;
   findResetToken(tokenHash: string): Promise<ResetTokenRecord | null>;
-  markResetTokenUsed(id: string): Promise<void>;
+
+  /**
+   * 原子操作：消耗一個「未用、未過期」的 token，更新該 driver 的密碼，
+   * 並作廢同一 driver 其他未用 token。token 無效或已被併發請求用掉 → false。
+   */
+  consumeResetTokenAndUpdatePassword(input: {
+    tokenHash: string;
+    now: Date;
+    passwordHash: string;
+    passwordSalt: string;
+  }): Promise<boolean>;
 }

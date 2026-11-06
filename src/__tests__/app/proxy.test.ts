@@ -1,9 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { NextRequest } from 'next/server';
 import { unstable_doesMiddlewareMatch } from 'next/experimental/testing/server';
 import { proxy, config } from '@/proxy';
 import { signSession } from '@/infrastructure/auth/session-token';
 import { SESSION_COOKIE, getAuthSecret } from '@/infrastructure/auth/session-cookie';
+import { ensureDrivers } from '@/__tests__/helpers/session';
 
 /**
  * Change 26 Task 5: 頁面保護 proxy（Next 16）。
@@ -19,23 +20,25 @@ const req = (path: string, opts?: { session?: string }) => {
 };
 
 describe('Change 26: page-protection proxy', () => {
-  it('redirects unauthenticated visitors to /login', () => {
-    const res = proxy(req('/'));
+  beforeAll(() => ensureDrivers('drv-1'));
+
+  it('redirects unauthenticated visitors to /login', async () => {
+    const res = await proxy(req('/'));
     expect(res.headers.get('location')).toBe('http://localhost/login');
   });
 
-  it('lets authenticated visitors through', () => {
-    const res = proxy(req('/', { session: 'drv-1' }));
+  it('lets authenticated visitors through', async () => {
+    const res = await proxy(req('/', { session: 'drv-1' }));
     expect(res.headers.get('location')).toBeNull();
   });
 
-  it('redirects authenticated visitors away from /login to home', () => {
-    const res = proxy(req('/login', { session: 'drv-1' }));
+  it('redirects authenticated visitors away from /login to home', async () => {
+    const res = await proxy(req('/login', { session: 'drv-1' }));
     expect(res.headers.get('location')).toBe('http://localhost/');
   });
 
-  it('lets unauthenticated visitors reach /login', () => {
-    const res = proxy(req('/login'));
+  it('lets unauthenticated visitors reach /login', async () => {
+    const res = await proxy(req('/login'));
     expect(res.headers.get('location')).toBeNull();
   });
 

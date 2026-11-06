@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/infrastructure/db/prisma';
 import { PrismaDriverAccountRepository } from '@/infrastructure/auth/prisma-driver-account-repository';
 import { RegisterDriverUseCase, UsernameTakenError, EmailTakenError } from '@/application/auth/register-driver-use-case';
 import { hashPassword } from '@/infrastructure/auth/password-hasher';
@@ -8,7 +8,6 @@ import { getClientIp } from '@/app/_lib/client-ip';
 import { createAuthRateGate, tooManyRequests } from '@/app/_lib/auth-rate-gate';
 import { RATE_RULES } from '@/domain/auth/rate-limit-policy';
 
-const prisma = new PrismaClient();
 const gate = createAuthRateGate(prisma);
 const registerUseCase = new RegisterDriverUseCase(new PrismaDriverAccountRepository(prisma), hashPassword);
 
@@ -64,7 +63,16 @@ export async function POST(request: Request): Promise<NextResponse> {
       return NextResponse.json({ error: { code: 'USERNAME_TAKEN', message: e.message } }, { status: 409 });
     }
     if (e instanceof EmailTakenError) {
-      return NextResponse.json({ error: { code: 'EMAIL_TAKEN', message: e.message } }, { status: 409 });
+      // 資安稽核 2026-11：不回顯 email，訊息固定。完整防列舉需要 email 驗證流程，見 PR 說明。
+      return NextResponse.json(
+        {
+          error: {
+            code: 'EMAIL_TAKEN',
+            message: 'This email cannot be used. If you already have an account, sign in or reset your password.',
+          },
+        },
+        { status: 409 }
+      );
     }
     return NextResponse.json({ error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' } }, { status: 500 });
   }

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import path from 'node:path';
 import { PrismaClient } from '@prisma/client';
 import { ImportGtfsUseCase } from '@/application/gtfs/import-gtfs-use-case';
@@ -11,9 +11,12 @@ import { PrismaLearningProgressRepository } from '@/infrastructure/learning/pris
 import { PrismaGtfsReadRepository } from '@/infrastructure/gtfs/query/prisma-gtfs-read-repository';
 import { GetRouteVariantsUseCase } from '@/application/gtfs/get-route-variants-use-case';
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
-import { sessionCookie } from '@/__tests__/helpers/session';
+import { sessionCookie, ensureDrivers } from '@/__tests__/helpers/session';
 
 describe('Change 04 Driver Learning State End-to-End Vertical Slice Integration', () => {
+  // 資安稽核 2026-11：session 驗證會比對 DB 的 sessionVersion，driver 列必須存在。
+  beforeEach(() => ensureDrivers(DEFAULT_DRIVER_ID));
+
   const prisma = new PrismaClient();
   const writeRepo = new PrismaGtfsRepository(prisma);
   const importer = new ImportGtfsUseCase(writeRepo);

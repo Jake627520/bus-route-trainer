@@ -3,9 +3,12 @@ import { PrismaClient } from '@prisma/client';
 import { GET } from '@/app/api/progress/[variantKey]/route';
 import { POST } from '@/app/api/progress/enroll/route';
 import { DEFAULT_DRIVER_ID } from '@/application/learning/auth-constants';
-import { sessionCookie } from '@/__tests__/helpers/session';
+import { sessionCookie, ensureDrivers } from '@/__tests__/helpers/session';
 
 describe('GET /api/progress/[variantKey] Route Handler Integration Tests', () => {
+  // 資安稽核 2026-11：session 驗證會比對 DB 的 sessionVersion，driver 列必須存在。
+  beforeEach(() => ensureDrivers(DEFAULT_DRIVER_ID));
+
   const prisma = new PrismaClient();
   const sampleVariantKey = 'R66_DIR0_stop_rbwh>stop_kg>stop_uq';
 

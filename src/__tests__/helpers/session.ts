@@ -11,3 +11,23 @@ export function sessionCookie(driverId: string): string {
 export function authHeaders(driverId: string, extra: Record<string, string> = {}): Record<string, string> {
   return { cookie: sessionCookie(driverId), ...extra };
 }
+
+/**
+ * 測試用：確保 driver 列存在（資安稽核 2026-11 後，session 驗證會比對 DB 的 sessionVersion，
+ * driver 不存在的 cookie 一律視為未登入）。
+ */
+export async function ensureDrivers(...driverIds: string[]): Promise<void> {
+  const { PrismaClient } = await import('@prisma/client');
+  const prisma = new PrismaClient();
+  try {
+    for (const id of driverIds) {
+      await prisma.driver.upsert({
+        where: { id },
+        update: {},
+        create: { id, username: `test-${id}`, passwordHash: 'x', passwordSalt: 'x' },
+      });
+    }
+  } finally {
+    await prisma.$disconnect();
+  }
+}

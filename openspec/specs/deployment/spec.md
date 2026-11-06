@@ -23,9 +23,21 @@ TBD - created by archiving change 27-deploy-config. Update Purpose after archive
 ### Requirement: Serverless 資料庫連線
 系統 SHALL 支援 pooled + direct 雙連線：app runtime 用 `DATABASE_URL`（pooled），migration 用 `DIRECT_URL`（direct）。
 
-#### Scenario: 部署 build 套用 migration
-- **WHEN** Vercel 執行 `vercel-build`
+#### Scenario: production 部署 build 套用 migration
+- **WHEN** Vercel 執行 `vercel-build` 且 `VERCEL_ENV=production`
 - **THEN** 先 `prisma generate && prisma migrate deploy`（走 `DIRECT_URL`）再 `next build`
+
+#### Scenario: preview 沒有獨立資料庫時不套用 migration
+- **WHEN** Vercel 執行 `vercel-build` 且 `VERCEL_ENV=preview`，但未設定 `PREVIEW_DIRECT_URL`
+- **THEN** 先 `prisma generate` 再 `next build`，不執行 `prisma migrate deploy`（也不使用 `DIRECT_URL`，因為它可能是 production）
+
+#### Scenario: preview 只 migrate 獨立資料庫
+- **WHEN** Vercel 執行 `vercel-build` 且 `VERCEL_ENV=preview`，且 `PREVIEW_DIRECT_URL` 已設定
+- **THEN** `prisma migrate deploy` 的 `DATABASE_URL` 與 `DIRECT_URL` 都是 `PREVIEW_DIRECT_URL`，然後 `next build` 仍使用原本的 runtime 環境變數
+
+#### Scenario: 本地或未標記的環境不從 vercel-build 套用 migration
+- **WHEN** `VERCEL_ENV` 未設定，或不是 `production`，也不是已設定 `PREVIEW_DIRECT_URL` 的 `preview`
+- **THEN** 先 `prisma generate` 再 `next build`，不執行 `prisma migrate deploy`
 
 #### Scenario: 本地/CI 單一 DB
 - **WHEN** 本地或 CI 無連線池
