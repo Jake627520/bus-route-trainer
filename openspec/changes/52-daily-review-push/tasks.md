@@ -9,9 +9,9 @@
 - [x] Task 3: `SendDailyReviewReminders`（無到期不發／日界去重／今天已練習跳過／404·410 清除／其他錯誤保留並記 log／單點失敗不影響他人／批次與上限） <!-- id: 52-03 -->
 
 ## Phase 52.2: 資料庫與基礎設施
-- [ ] Task 4: Prisma `push_subscription` + migration <!-- id: 52-04 -->
-- [ ] Task 5: `PrismaPushSubscriptionRepository` 與每位司機到期卡片數計數查詢（整合測試） <!-- id: 52-05 -->
-- [ ] Task 6: `WebPushSender`（`web-push`；缺環境變數時為停用狀態） <!-- id: 52-06 -->
+- [x] Task 4: Prisma `push_subscription` + migration <!-- id: 52-04 -->
+- [x] Task 5: `PrismaPushSubscriptionRepository` 與每位司機到期卡片數計數查詢（整合測試） <!-- id: 52-05 -->
+- [x] Task 6: `WebPushSender`（`web-push`；缺環境變數時為停用狀態） <!-- id: 52-06 -->
 
 ## Phase 52.3: API
 - [ ] Task 7: `POST /api/push/subscribe`、`/unsubscribe`（需登入、輸入驗證、冪等） <!-- id: 52-07 -->

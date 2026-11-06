@@ -248,6 +248,7 @@ model Driver {
   createdAt    DateTime @default(now()) @map("created_at")
 
   resetTokens  PasswordResetToken[]
+  pushSubscriptions PushSubscription[]
 
   @@map("driver")
 }
@@ -276,4 +277,23 @@ model AuthRateLimit {
   @@id([key, windowStart])
   @@index([windowStart])
   @@map("auth_rate_limit")
+}
+
+// Change 52: 推播訂閱（每台裝置一列；endpoint 唯一，換帳號時轉移）。
+// lastCheckedDay：最後一次處理（發送或判定不需發送）的 Brisbane 日，用來每日去重。
+model PushSubscription {
+  id             String   @id @default(uuid())
+  driverId       String   @map("driver_id")
+  endpoint       String   @unique
+  p256dh         String
+  auth           String
+  locale         String   @default("en")
+  lastCheckedDay String?  @map("last_checked_day")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  driver         Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@index([driverId])
+  @@index([lastCheckedDay])
+  @@map("push_subscription")
 }

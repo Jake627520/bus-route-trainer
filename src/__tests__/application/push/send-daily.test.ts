@@ -114,9 +114,9 @@ describe('Change 52: SendDailyReviewReminders', () => {
     await repo.upsert(sub('d2'));
     stats.due.set('d2', 2);
     const original = stats.countDueCards.bind(stats);
-    stats.countDueCards = async (id, now) => {
+    stats.countDueCards = async (id: string) => {
       if (id === 'd1') throw new Error('db hiccup');
-      return original(id, now);
+      return original(id);
     };
     const r = await uc.execute({ now: NOW });
     expect(r.failed).toBe(1);
