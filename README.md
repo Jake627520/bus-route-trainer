@@ -161,6 +161,10 @@ A scheduled GitHub Actions workflow refreshes the feed automatically; see `.gith
 
 The workflow uses GitHub's automatically provided `GITHUB_TOKEN` to commit the feed version marker; it does not need a manually configured secret for that token. The database refresh runs in one transaction, so a failed import rolls back the replacement.
 
+The marker is the SHA-256 of the downloaded ZIP, so any byte change triggers a refresh (including ZIP metadata changes). The first run after switching from the previous date marker reimports the feed. Downloads are limited to 512 MiB; extracted archives are limited to 2 GiB total, 1 GiB per file and 100 flat files. Oversized or unsafe archives fail before the database is modified. These limits may need adjustment if Translink grows its feed.
+
+Run this workflow only from the repository's default branch. Its `GITHUB_TOKEN` needs permission to push the marker to that branch; branch protection may reject the push. If recording the marker fails after a successful import, the workflow fails and the next run retries the import.
+
 ### Troubleshooting
 
 | Symptom | Cause / fix |
