@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ClientSuppliedDriverIdError, UnauthenticatedError } from './driver-context';
+import { SessionLookupError } from '@/infrastructure/auth/session-cookie';
 
 export interface ApiErrorResponse {
   error: {
@@ -28,6 +29,14 @@ export function handleApiError(error: unknown): NextResponse<ApiErrorResponse> {
     return NextResponse.json(
       { error: { code: 'UNAUTHENTICATED', message: error.message } },
       { status: 401 },
+    );
+  }
+
+  // 2b. 暫時無法驗證 session（DB 失敗）→ 503，不外洩例外細節，也不改用其他身分。
+  if (error instanceof SessionLookupError) {
+    return NextResponse.json(
+      { error: { code: 'SERVICE_UNAVAILABLE', message: 'Service temporarily unavailable. Please try again.' } },
+      { status: 503 },
     );
   }
 

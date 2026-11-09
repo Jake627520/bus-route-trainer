@@ -48,13 +48,32 @@ export function readSessionClaims(request: Request): SessionPayload | null {
 }
 
 /**
+ * 查 sessionVersion 時 DB 失敗。呼叫端要 fail closed：
+ * 頁面當成未登入，API 回 503（sessionUnavailableResponse），不可當成已登入或改用其他身分。
+ */
+export class SessionLookupError extends Error {
+  constructor() {
+    super('Session could not be verified right now.');
+    this.name = 'SessionLookupError';
+  }
+}
+
+/**
  * 有效 session → 其 driverId；無 cookie / 竄改 / 過期 / 已撤銷 / driver 已刪 → null。
  * 撤銷檢查：token 的 sv 必須等於 DB 目前的 Driver.sessionVersion。
+ * DB 查詢失敗 → 記錄後 throw SessionLookupError（不帶原始例外，避免細節外洩給客戶端）。
  */
 export async function readSessionDriverId(request: Request): Promise<string | null> {
   const claims = readSessionClaims(request);
   if (!claims) return null;
-  const version = await currentSessionVersion(claims.driverId);
+  let version: number | null;
+  try {
+    version = await currentSessionVersion(claims.driverId);
+  } catch (error) {
+    // 只記錄例外本身；不印 cookie 或 token。
+    console.error('[auth] session version lookup failed:', error);
+    throw new SessionLookupError();
+  }
   if (version === null || version !== claims.sv) return null;
   return claims.driverId;
 }

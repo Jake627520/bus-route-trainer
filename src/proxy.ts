@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { readSessionDriverId } from '@/infrastructure/auth/session-cookie';
+import { readSessionDriverId, SessionLookupError } from '@/infrastructure/auth/session-cookie';
 
 /** 未登入也可訪問的頁面（認證相關）。 */
 const PUBLIC_PATHS = new Set(['/login', '/forgot', '/reset']);
@@ -15,7 +15,7 @@ const PUBLIC_PATHS = new Set(['/login', '/forgot', '/reset']);
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
   // 資安稽核 2026-11：也檢查 sessionVersion，已撤銷的 cookie 視同未登入（才能回到 /login）。
-  const hasSession = (await readSessionDriverId(request)) !== null;
+  const hasSession = await hasValidSession(request);
 
   if (pathname === '/login') {
     return hasSession ? NextResponse.redirect(new URL('/', request.url)) : NextResponse.next();
@@ -30,6 +30,19 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   }
 
   return NextResponse.next();
+}
+
+/**
+ * 查不到 session（含 DB 暫時失敗）一律當成未登入：fail closed，不放行受保護頁，也不讓整站 500。
+ * DB 失敗已在 readSessionDriverId 記錄；這裡只補記其他未預期的例外。
+ */
+async function hasValidSession(request: NextRequest): Promise<boolean> {
+  try {
+    return (await readSessionDriverId(request)) !== null;
+  } catch (error) {
+    if (!(error instanceof SessionLookupError)) console.error('[proxy] session check failed:', error);
+    return false;
+  }
 }
 
 export const config = {
