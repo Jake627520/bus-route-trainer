@@ -33,6 +33,10 @@
 | `DIRECT_URL` | Production 的 **direct** 連線字串 | Production |
 | `AUTH_SECRET` | `openssl rand -base64 32` 產生的強隨機值 | Production（＋ Preview） |
 | `APP_URL` | 對外正式網址，例如 `https://<你的網域>`。重設密碼信的連結用它（不用 request Host，防 reset poisoning）；未設時 production 不寄重設信 | Production（Preview 要測重設信才設） |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `npx web-push generate-vapid-keys` 的 **Public Key**（公開，建置時內嵌，改了要重新部署） | Production |
+| `VAPID_PRIVATE_KEY` | 同上的 **Private Key**（機密，勿外洩、勿進 repo） | Production |
+| `VAPID_SUBJECT` | `mailto:你的信箱` | Production |
+| `CRON_SECRET` | `openssl rand -base64 32` 產生的隨機值（Vercel cron 會自動帶 `Authorization: Bearer`） | Production |
 | `DATABASE_URL` | **另一個**資料庫的 pooled 連線字串（見下方） | Preview |
 | `PREVIEW_DIRECT_URL` | **同一個** Preview 資料庫的 direct 連線字串 | Preview |
 
@@ -62,6 +66,12 @@
 3. （選）匯入 GTFS 資料後，首頁「所有路線」才有內容（見 GTFS 匯入 change）。
 
 ---
+
+## 每日複習提醒驗證（Change 52）
+- cron 定義在 `vercel.json`（`0 19 * * *` = Brisbane 05:00；Hobby 方案一天一次、實際可能晚到一小時內）。Vercel → Project → Settings → Cron Jobs 可看到並手動執行。
+- 手機實機：Android 用 Chrome 開網站 → 首頁「每日複習提醒」按「開啟」→ 允許通知。iPhone 要**先加到主畫面**再從主畫面開啟。
+- 手動觸發一次：`curl -H "Authorization: Bearer $CRON_SECRET" https://<網址>/api/cron/review-reminders`。有到期卡片、且今天沒練習過，應收到「你有 N 張卡片待複習」。回應 `{"data":{"skipped":true}}` 代表 VAPID 變數沒設好。
+- 同一天再打一次不應再收到（每日去重）。登出後該裝置不應再收到通知。
 
 ## PWA 驗證（Change 51）
 部署後用手機 Chrome／Safari 開網站：選單應出現「加到主畫面／安裝」；開飛航模式再開 App 應看到「目前離線」頁而非瀏覽器錯誤。`/sw.js`、`/manifest.webmanifest`、`/offline.html` 與圖示不需登入即可存取（`src/proxy.ts` 已排除）。緊急停用 SW 見 HANDOFF.md。

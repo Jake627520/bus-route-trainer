@@ -19,3 +19,8 @@ export function toAppDateString(date: Date): string {
   const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '';
   return `${get('year')}-${get('month')}-${get('day')}`;
 }
+
+/** 應用時區當日 00:00 對應的時間點（Brisbane 固定 UTC+10、無夏令時，故可直接用 +10:00）。 */
+export function toAppDayStart(date: Date): Date {
+  return new Date(`${toAppDateString(date)}T00:00:00+10:00`);
+}
