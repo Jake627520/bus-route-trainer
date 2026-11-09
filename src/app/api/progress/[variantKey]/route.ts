@@ -7,7 +7,12 @@ import {
   GetVariantProgressUseCase,
   ProgressNotFoundError,
 } from '@/application/learning/get-variant-progress-use-case';
-import { readSessionDriverId, unauthorizedResponse } from '@/app/_lib/session';
+import {
+  readSessionDriverId,
+  unauthorizedResponse,
+  SessionLookupError,
+  sessionUnavailableResponse,
+} from '@/app/_lib/session';
 
 const learningRepo = new PrismaLearningProgressRepository(prisma);
 const gtfsReadRepo = new PrismaGtfsReadRepository(prisma);
@@ -37,6 +42,7 @@ export async function GET(
 
     return NextResponse.json({ data: progress }, { status: 200 });
   } catch (error: unknown) {
+    if (error instanceof SessionLookupError) return sessionUnavailableResponse();
     if (error instanceof ProgressNotFoundError) {
       return NextResponse.json(
         { error: { code: 'PROGRESS_NOT_FOUND', message: error.message } },

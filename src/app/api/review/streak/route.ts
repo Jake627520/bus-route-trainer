@@ -3,7 +3,12 @@ import { prisma } from '@/infrastructure/db/prisma';
 import { PrismaPracticeStatsAdapter } from '@/infrastructure/recall/prisma-practice-stats-adapter';
 import { GetPracticeStreakUseCase } from '@/application/learning/get-practice-streak-use-case';
 import { SystemClock } from '@/application/common/clock';
-import { readSessionDriverId, unauthorizedResponse } from '@/app/_lib/session';
+import {
+  readSessionDriverId,
+  unauthorizedResponse,
+  SessionLookupError,
+  sessionUnavailableResponse,
+} from '@/app/_lib/session';
 
 const getPracticeStreakUseCase = new GetPracticeStreakUseCase(
   new PrismaPracticeStatsAdapter(prisma),
@@ -20,7 +25,8 @@ export async function GET(request: Request): Promise<NextResponse> {
     if (!driverId) return unauthorizedResponse();
     const data = await getPracticeStreakUseCase.execute({ driverId });
     return NextResponse.json({ data }, { status: 200 });
-  } catch {
+  } catch (error: unknown) {
+    if (error instanceof SessionLookupError) return sessionUnavailableResponse();
     return NextResponse.json(
       { error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' } },
       { status: 500 }

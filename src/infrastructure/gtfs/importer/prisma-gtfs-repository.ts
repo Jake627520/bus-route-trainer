@@ -16,6 +16,16 @@ import { ImportConflictError } from '@/application/gtfs/cross-file-validator';
 export class PrismaGtfsTransactionalRepository implements GtfsTransactionalRepository {
   constructor(private readonly tx: Prisma.TransactionClient) {}
 
+  public async clear(): Promise<void> {
+    await this.tx.gtfsStopTime.deleteMany();
+    await this.tx.gtfsTrip.deleteMany();
+    await this.tx.gtfsStop.deleteMany();
+    await this.tx.gtfsRoute.deleteMany();
+    await this.tx.gtfsCalendarDate.deleteMany();
+    await this.tx.gtfsCalendar.deleteMany();
+    await this.tx.gtfsAgency.deleteMany();
+  }
+
   public async saveAgencies(agencies: GtfsAgencyRecord[]): Promise<number> {
     if (agencies.length === 0) return 0;
     const ids = agencies.map((a) => a.id);

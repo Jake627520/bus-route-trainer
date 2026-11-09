@@ -1,13 +1,19 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/infrastructure/db/prisma';
 import { PrismaDriverAccountRepository } from '@/infrastructure/auth/prisma-driver-account-repository';
-import { readSessionDriverId } from '@/app/_lib/session';
+import { readSessionDriverId, SessionLookupError, sessionUnavailableResponse } from '@/app/_lib/session';
 
 const repo = new PrismaDriverAccountRepository(prisma);
 
 /** Change 26: GET /api/auth/me — 回目前登入司機 { id, username }；未登入 401。 */
 export async function GET(request: Request): Promise<NextResponse> {
-  const driverId = await readSessionDriverId(request);
+  let driverId: string | null;
+  try {
+    driverId = await readSessionDriverId(request);
+  } catch (error) {
+    if (error instanceof SessionLookupError) return sessionUnavailableResponse();
+    throw error;
+  }
   if (!driverId) {
     return NextResponse.json(
       { error: { code: 'UNAUTHENTICATED', message: 'Not signed in' } },

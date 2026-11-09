@@ -10,7 +10,7 @@ async function main(): Promise<void> {
   const feedDirArg = positional[0];
   if (!feedDirArg) {
     console.error('Error: Please provide the GTFS feed directory path as an argument.');
-    console.error('Usage: npx tsx scripts/import-gtfs.ts <feed-dir> [--bus-only] [--route-types=3,4] [--max-routes=N] [--clear] [--tx-timeout-ms=N]');
+    console.error('Usage: npx tsx scripts/import-gtfs.ts <feed-dir> [--bus-only] [--route-types=3,4] [--max-routes=N] [--clear] [--weekly] [--tx-timeout-ms=N]');
     process.exit(1);
   }
 
@@ -51,22 +51,14 @@ async function main(): Promise<void> {
   const repository = new PrismaGtfsRepository(prisma);
   const useCase = new ImportGtfsUseCase(repository);
 
-  // --clear：匯入前清空 gtfs 資料表（用於整份 feed 重新整理；driver 進度為 soft ref，不受影響）。
-  if (flags.includes('--clear')) {
-    console.log('[GTFS Importer] clearing existing GTFS tables…');
-    await prisma.gtfsStopTime.deleteMany();
-    await prisma.gtfsTrip.deleteMany();
-    await prisma.gtfsStop.deleteMany();
-    await prisma.gtfsRoute.deleteMany();
-    await prisma.gtfsCalendarDate.deleteMany();
-    await prisma.gtfsCalendar.deleteMany();
-    await prisma.gtfsAgency.deleteMany();
-  }
-
-  const filter =
-    routeTypes || maxRoutes
-      ? { ...(routeTypes ? { routeTypes } : {}), ...(maxRoutes ? { maxRoutes } : {}) }
-      : undefined;
+  const filter = {
+    ...(routeTypes ? { routeTypes } : {}),
+    ...(maxRoutes ? { maxRoutes } : {}),
+    ...(flags.includes('--weekly') ? {
+      routeTypes: [2, 3, 4], maxRoutesByType: { 2: 50 }, requiredRouteTypes: [2, 3, 4],
+    } : {}),
+    ...(flags.includes('--clear') ? { clear: true } : {}),
+  };
 
   try {
     const report = await useCase.execute(
@@ -84,19 +76,23 @@ async function main(): Promise<void> {
     console.log(`Trips persisted:          ${report.tripsCount}`);
     console.log(`Stop times persisted:     ${report.stopTimesCount}`);
     console.log('--------------------------------------------------');
-  } catch (err) {
-    console.error('\n[GTFS Importer] Import failed. Any partial modifications have been rolled back.');
-    if (err instanceof Error) {
-      console.error(`Reason: [${err.name}] ${err.message}`);
-    } else {
-      console.error('Reason:', err);
-    }
-    process.exit(1);
+  } catch {
+    // Database errors may contain credentials. Never print raw exceptions to CI logs.
+    console.error('\n[GTFS Importer] Import failed. No partial database changes were committed.');
+    process.exitCode = 1;
   } finally {
-    await prisma.$disconnect();
+    try {
+      await prisma.$disconnect();
+    } catch {
+      console.error('[GTFS Importer] Database disconnect failed.');
+      process.exitCode = 1;
+    }
   }
 }
 
 if (require.main === module) {
-  void main();
+  void main().catch(() => {
+    console.error('[GTFS Importer] Import failed unexpectedly.');
+    process.exitCode = 1;
+  });
 }
