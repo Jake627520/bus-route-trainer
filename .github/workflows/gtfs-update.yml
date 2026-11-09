@@ -1,17 +1,11 @@
 name: GTFS Weekly Update
 
-# Change 40: 每週自動更新 SEQ GTFS 資料到 Neon。
-# Translink 每週（約週五）發佈新 feed。此排程在週日（Brisbane）下載、比對版本，有更新才重灌。
-# 需要 repo secret：GTFS_DATABASE_URL = Neon 的 direct 連線字串（非 pooled）。
-
 on:
   schedule:
-    - cron: '0 20 * * 6' # 週六 20:00 UTC ≈ 週日 06:00 Brisbane
-  workflow_dispatch: {} # 可手動觸發（第一次測試用）
+    - cron: '0 20 * * 6' # Sunday 06:00 Brisbane
+  workflow_dispatch: {}
 
-permissions:
-  contents: write # 更新版本標記檔並 commit
-
+permissions: {}
 concurrency:
   group: gtfs-update
   cancel-in-progress: false
@@ -20,73 +14,81 @@ jobs:
   update:
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.ver.outputs.changed }}
+      hash: ${{ steps.ver.outputs.hash }}
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - name: Check required secret
+        env:
+          GTFS_DATABASE_URL: ${{ secrets.GTFS_DATABASE_URL }}
+        run: |
+          if [ -z "$GTFS_DATABASE_URL" ]; then
+            echo "::error::GTFS_DATABASE_URL secret is not set. Add the direct database URL in repository Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+      - name: Require default branch
+        env:
+          RUN_REF: ${{ github.ref }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if [ -z "$DEFAULT_BRANCH" ] || [ "$RUN_REF" != "refs/heads/$DEFAULT_BRANCH" ]; then
+            echo '::error::Run GTFS updates from the default branch only.'
+            exit 1
+          fi
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
           cache: npm
-
       - run: npm ci
-      - run: npx prisma generate
-
-      - name: Download SEQ GTFS feed
-        run: |
-          curl -sSL "https://gtfsrt.api.translink.com.au/GTFS/SEQ_GTFS.zip" -o seq_gtfs.zip
-          mkdir -p seq_gtfs
-          unzip -o -q seq_gtfs.zip -d seq_gtfs
-          ls -la seq_gtfs | head
-
-      - name: Determine feed version & whether changed
+      - run: npm exec --no -- prisma generate
+      - name: Download and safely extract SEQ GTFS feed
+        run: python3 scripts/download-gtfs.py
+      - name: Determine feed content version
         id: ver
         run: |
-          # feed_info.txt: feed_publisher_name,feed_publisher_url,feed_lang,feed_start_date,feed_end_date
-          NEW=$(awk -F',' 'NR==2 {print $4"-"$5}' seq_gtfs/feed_info.txt | tr -d '\r"')
-          # 外部 feed 內容不可信：只接受 YYYYMMDD-YYYYMMDD，避免把任意字串帶進後續 shell / output。
-          if ! [[ "$NEW" =~ ^[0-9]{8}-[0-9]{8}$ ]]; then
-            echo "::error::Unexpected feed version format in feed_info.txt"
-            exit 1
-          fi
-          OLD=$(cat .github/gtfs-feed-version 2>/dev/null || echo none)
-          echo "new=$NEW" >> "$GITHUB_OUTPUT"
-          echo "old=$OLD" >> "$GITHUB_OUTPUT"
+          NEW=$(sha256sum seq_gtfs.zip | cut -d ' ' -f 1)
+          OLD=$(cat .github/gtfs-feed-version 2>/dev/null || true)
+          echo "hash=$NEW" >> "$GITHUB_OUTPUT"
           if [ "$NEW" = "$OLD" ]; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT"; fi
-          echo "feed version: new=$NEW old=$OLD"
-
+          echo "Feed SHA-256: $NEW"
       - name: Import to Neon (bus + ferry + train subset)
         if: steps.ver.outputs.changed == 'true'
         env:
           GTFS_DATABASE_URL: ${{ secrets.GTFS_DATABASE_URL }}
           NODE_OPTIONS: --max-old-space-size=4096
         run: |
-          if [ -z "$GTFS_DATABASE_URL" ]; then
-            echo "::error::GTFS_DATABASE_URL secret is not set (Neon direct URL). Add it in repo Settings → Secrets."
-            exit 1
-          fi
           export DATABASE_URL="$GTFS_DATABASE_URL"
           export DIRECT_URL="$GTFS_DATABASE_URL"
-          # bus（全）：--clear 先清空整份 gtfs 再灌
-          npx tsx scripts/import-gtfs.ts ./seq_gtfs --clear --route-types=3 --tx-timeout-ms=1800000
-          # ferry（全）
-          npx tsx scripts/import-gtfs.ts ./seq_gtfs --route-types=4 --tx-timeout-ms=600000
-          # train 子集（50 條，控制在 Neon 1GB 內）
-          npx tsx scripts/import-gtfs.ts ./seq_gtfs --route-types=2 --max-routes=50 --tx-timeout-ms=600000
-
-      - name: Commit new feed-version marker
-        if: steps.ver.outputs.changed == 'true'
-        env:
-          NEW_VERSION: ${{ steps.ver.outputs.new }}
-        run: |
-          echo "$NEW_VERSION" > .github/gtfs-feed-version
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .github/gtfs-feed-version
-          git commit -m "chore(gtfs): update feed version to $NEW_VERSION" || echo "no change to commit"
-          git push
-
+          npm exec --no -- tsx scripts/import-gtfs.ts ./seq_gtfs --clear --weekly --tx-timeout-ms=1800000
       - name: No update needed
         if: steps.ver.outputs.changed == 'false'
+        run: echo 'Feed content unchanged; skipping import.'
+
+  record-version:
+    needs: update
+    if: needs.update.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Commit new feed content marker
         env:
-          OLD_VERSION: ${{ steps.ver.outputs.old }}
-        run: echo "Feed version unchanged ($OLD_VERSION); skipping import."
+          NEW_HASH: ${{ needs.update.outputs.hash }}
+        run: |
+          if ! [[ "$NEW_HASH" =~ ^[a-f0-9]{64}$ ]]; then
+            echo '::error::Invalid feed hash'
+            exit 1
+          fi
+          echo "$NEW_HASH" > .github/gtfs-feed-version
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .github/gtfs-feed-version
+          git commit -m "chore(gtfs): update feed content hash" || { echo '::error::Failed to commit feed marker'; exit 1; }
+          git push

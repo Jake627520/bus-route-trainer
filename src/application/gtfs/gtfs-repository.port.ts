@@ -61,6 +61,7 @@ export interface TransactionOptions {
 }
 
 export interface GtfsTransactionalRepository {
+  clear(): Promise<void>;
   saveAgencies(agencies: GtfsAgencyRecord[]): Promise<number>;
   saveCalendars(calendars: GtfsCalendarRecord[]): Promise<number>;
   saveCalendarDates(calendarDates: GtfsCalendarDateRecord[]): Promise<number>;
