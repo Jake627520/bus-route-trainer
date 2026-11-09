@@ -159,7 +159,7 @@ A scheduled GitHub Actions workflow refreshes the feed automatically; see `.gith
 
 - `GTFS_DATABASE_URL`: the direct (non-pooled) PostgreSQL connection URL for the GTFS database. The workflow checks this before downloading or changing anything.
 
-The workflow uses GitHub's automatically provided `GITHUB_TOKEN` to commit the feed version marker; it does not need a manually configured secret for that token. The database refresh runs in one transaction, so a failed import rolls back the replacement.
+The workflow uses GitHub's automatically provided `GITHUB_TOKEN` to commit the feed version marker; it does not need a manually configured secret for that token. The database refresh runs in one transaction, so a failed import rolls back the replacement. Before replacing data, the weekly import requires at least one selected route, trip, and stop-time chain for each of bus, ferry, and train. This non-empty check does not detect every partially truncated feed.
 
 The marker is the SHA-256 of the downloaded ZIP, so any byte change triggers a refresh (including ZIP metadata changes). The first run after switching from the previous date marker reimports the feed. Downloads are limited to 512 MiB; extracted archives are limited to 2 GiB total, 1 GiB per file and 100 flat files. Oversized or unsafe archives fail before the database is modified. These limits may need adjustment if Translink grows its feed.
 

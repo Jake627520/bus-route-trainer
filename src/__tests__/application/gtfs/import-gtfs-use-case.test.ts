@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import path from 'node:path';
+import fs from 'node:fs';
+import os from 'node:os';
 import { PrismaClient } from '@prisma/client';
 import { ImportGtfsUseCase } from '@/application/gtfs/import-gtfs-use-case';
 import { PrismaGtfsTransactionalRepository, PrismaGtfsRepository } from '@/infrastructure/gtfs/importer/prisma-gtfs-repository';
@@ -180,12 +182,75 @@ describe('ImportGtfsUseCase (Pass 1 Streaming Validation + Pass 2 Atomic Persist
       expect((await prisma.gtfsTrip.findMany()).map((t) => t.id).sort()).toEqual(['TBUS', 'TFERRY']);
     });
 
+    it('accepts a complete weekly selection', async () => {
+      const report = await useCase.execute(mixedModesFeedDir, undefined, {
+        routeTypes: [2, 3, 4], maxRoutesByType: { 2: 50 },
+        requiredRouteTypes: [2, 3, 4], clear: true,
+      });
+      expect(report.routesCount).toBe(3);
+      expect(report.tripsCount).toBe(3);
+      expect(report.stopTimesCount).toBe(6);
+    });
+
+    it('does not clear existing data when a replacement filter selects no routes', async () => {
+      await useCase.execute(mixedModesFeedDir);
+      const before = await prisma.gtfsRoute.findMany({ orderBy: { id: 'asc' } });
+      const tx = vi.spyOn(repository, 'executeInTransaction');
+      try {
+        await expect(useCase.execute(mixedModesFeedDir, undefined, {
+          routeTypes: [999], clear: true,
+        })).rejects.toThrow('Cannot replace GTFS data without routes, trips and stop times');
+        expect(tx).not.toHaveBeenCalled();
+        expect(await prisma.gtfsRoute.findMany({ orderBy: { id: 'asc' } })).toEqual(before);
+      } finally {
+        tx.mockRestore();
+      }
+    });
+
     it('keeps existing data when validation fails before a replacement', async () => {
       await useCase.execute(mixedModesFeedDir);
       const before = await prisma.gtfsRoute.findMany({ orderBy: { id: 'asc' } });
       await expect(useCase.execute(multiAgencyFeedDir, undefined, { clear: true }))
         .rejects.toThrow(UnsupportedMultiAgencyFeedError);
       expect(await prisma.gtfsRoute.findMany({ orderBy: { id: 'asc' } })).toEqual(before);
+    });
+
+    it.each([
+      ['no routes', 'routes.txt', () => true],
+      ['no trips', 'trips.txt', () => true],
+      ['no stop times', 'stop_times.txt', () => true],
+      ['a selected mode without trips', 'trips.txt', (line: string) => line.startsWith('TBUS,')],
+      ['a selected mode without stop times', 'stop_times.txt', (line: string) => line.startsWith('TBUS,')],
+      ['a selected mode without routes', 'routes.txt', (line: string) => line.startsWith('BUS1,')],
+    ])('preserves existing data when replacement has %s', async (_name, file, removeRow) => {
+      await useCase.execute(mixedModesFeedDir);
+      const before = {
+        routes: await prisma.gtfsRoute.findMany({ orderBy: { id: 'asc' } }),
+        trips: await prisma.gtfsTrip.findMany({ orderBy: { id: 'asc' } }),
+        stopTimes: await prisma.gtfsStopTime.count(),
+      };
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gtfs-incomplete-'));
+      try {
+        fs.cpSync(mixedModesFeedDir, dir, { recursive: true });
+        const target = path.join(dir, file);
+        const [header, ...rows] = fs.readFileSync(target, 'utf8').trimEnd().split(/\r?\n/);
+        fs.writeFileSync(target, [header, ...rows.filter((row) => !removeRow(row))].join('\n') + '\n');
+        const tx = vi.spyOn(repository, 'executeInTransaction');
+        try {
+          await expect(useCase.execute(dir, undefined, {
+            routeTypes: [2, 3, 4], maxRoutesByType: { 2: 50 }, clear: true,
+            requiredRouteTypes: [2, 3, 4],
+          })).rejects.toThrow();
+          expect(tx).not.toHaveBeenCalled();
+        } finally {
+          tx.mockRestore();
+        }
+        expect(await prisma.gtfsRoute.findMany({ orderBy: { id: 'asc' } })).toEqual(before.routes);
+        expect(await prisma.gtfsTrip.findMany({ orderBy: { id: 'asc' } })).toEqual(before.trips);
+        expect(await prisma.gtfsStopTime.count()).toBe(before.stopTimes);
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
     });
 
     it('rolls back the clear and partial writes when persistence fails', async () => {

@@ -54,7 +54,9 @@ async function main(): Promise<void> {
   const filter = {
     ...(routeTypes ? { routeTypes } : {}),
     ...(maxRoutes ? { maxRoutes } : {}),
-    ...(flags.includes('--weekly') ? { routeTypes: [2, 3, 4], maxRoutesByType: { 2: 50 } } : {}),
+    ...(flags.includes('--weekly') ? {
+      routeTypes: [2, 3, 4], maxRoutesByType: { 2: 50 }, requiredRouteTypes: [2, 3, 4],
+    } : {}),
     ...(flags.includes('--clear') ? { clear: true } : {}),
   };
 

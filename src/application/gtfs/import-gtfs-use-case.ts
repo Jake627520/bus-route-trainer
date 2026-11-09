@@ -35,6 +35,8 @@ export interface ImportFilter {
   maxRoutes?: number;
   maxRoutesByType?: Record<number, number>;
   clear?: boolean;
+  /** Require a route → trip → stop time chain for each listed type. */
+  requiredRouteTypes?: number[];
 }
 
 export class ImportGtfsUseCase {
@@ -53,6 +55,9 @@ export class ImportGtfsUseCase {
     const routeCountsByType = new Map<number, number>();
     const keptRouteIds = new Set<string>();
     const keptTripIds = new Set<string>();
+    const routeTypesById = new Map<string, number>();
+    const tripTypesById = new Map<string, number>();
+    const routeTypesWithStopTimes = new Set<number>();
     const agencyFile = path.join(feedDirPath, 'agency.txt');
     const routesFile = path.join(feedDirPath, 'routes.txt');
     const stopsFile = path.join(feedDirPath, 'stops.txt');
@@ -86,6 +91,7 @@ export class ImportGtfsUseCase {
       const typeCount = routeCountsByType.get(parsed.routeType) ?? 0;
       if (typeLimit !== undefined && typeCount >= typeLimit) continue;
       keptRouteIds.add(parsed.id);
+      routeTypesById.set(parsed.id, parsed.routeType);
       routeCountsByType.set(parsed.routeType, typeCount + 1);
       validator.registerRoute(parsed.id, parsed.agencyId, {
         shortName: parsed.shortName,
@@ -132,6 +138,8 @@ export class ImportGtfsUseCase {
       const parsed = tripRowSchema.parse(row);
       if (hasFilter && !keptRouteIds.has(parsed.routeId)) continue;
       keptTripIds.add(parsed.id);
+      const routeType = routeTypesById.get(parsed.routeId);
+      if (routeType !== undefined) tripTypesById.set(parsed.id, routeType);
       validator.registerTrip(parsed.id, parsed.routeId, parsed.serviceId, {
         directionId: parsed.directionId,
         tripHeadsign: parsed.tripHeadsign,
@@ -156,6 +164,8 @@ export class ImportGtfsUseCase {
     for await (const row of parseCsvStream(fs.createReadStream(stopTimesFile))) {
       const parsed = stopTimeRowSchema.parse(row);
       if (hasFilter && !keptTripIds.has(parsed.tripId)) continue;
+      const routeType = tripTypesById.get(parsed.tripId);
+      if (routeType !== undefined) routeTypesWithStopTimes.add(routeType);
       validator.registerStopTime(parsed.tripId, parsed.stopSequence, parsed.stopId, {
         arrivalTime: parsed.arrivalTime,
         departureTime: parsed.departureTime,
@@ -182,6 +192,18 @@ export class ImportGtfsUseCase {
 
     // Finalize cross-file referential integrity
     validator.finalize();
+
+    // A valid but empty replacement would otherwise clear all existing data.
+    // Check the filtered data, before opening a transaction, so rows from an
+    // unrelated transport mode cannot make an empty selection look complete.
+    if (filter?.clear && routeTypesWithStopTimes.size === 0) {
+      throw new Error('Cannot replace GTFS data without routes, trips and stop times');
+    }
+    for (const routeType of filter?.requiredRouteTypes ?? []) {
+      if (!routeTypesWithStopTimes.has(routeType)) {
+        throw new Error(`GTFS route type ${routeType} has no complete route, trip and stop time chain`);
+      }
+    }
 
     // =========================================================================
     // PASS 2: Atomic Persistence inside Single Transaction
