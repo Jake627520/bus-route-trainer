@@ -15,6 +15,13 @@ fi
 if [ "\${FAIL_MIGRATE:-}" = "1" ] && [ "$1" = "migrate" ]; then
   exit 1
 fi
+if [ -n "\${MIGRATE_P1001_TIMES:-}" ] && [ "$1" = "migrate" ]; then
+  attempts=$(grep -c ' migrate deploy ' "$COMMAND_LOG")
+  if [ "$attempts" -le "$MIGRATE_P1001_TIMES" ]; then
+    echo "Error: P1001: Can't reach database server" >&2
+    exit 1
+  fi
+fi
 `;
 
 function recorded(bin: string, args: string, db = '', direct = '') {
@@ -130,6 +137,54 @@ describe('vercel-build', () => {
       recorded('prisma', 'generate'),
       recorded('prisma', 'migrate deploy', 'postgresql://preview-direct', 'postgresql://preview-direct'),
     ]);
+  });
+
+  describe('database cold start', () => {
+    const noDelay = { MIGRATE_RETRY_DELAY_SECONDS: '0' };
+    const migrate = recorded('prisma', 'migrate deploy');
+
+    it('retries migrate deploy on P1001 and then builds', () => {
+      const { commands, error } = runVercelBuild('production', {
+        ...noDelay,
+        MIGRATE_P1001_TIMES: '2',
+      });
+      expect(error).toBeUndefined();
+      expect(commands).toEqual([
+        recorded('prisma', 'generate'),
+        migrate,
+        migrate,
+        migrate,
+        recorded('next', 'build'),
+      ]);
+    });
+
+    it('stops after five attempts when the database stays unreachable', () => {
+      const { commands, error } = runVercelBuild('production', {
+        ...noDelay,
+        MIGRATE_P1001_TIMES: '99',
+      });
+      expect(error).toBeDefined();
+      expect(commands).toEqual([recorded('prisma', 'generate'), ...Array(5).fill(migrate)]);
+    });
+
+    it('keeps the preview URL on retries and out of next build', () => {
+      const previewUrl = 'postgresql://preview-direct';
+      const previewMigrate = recorded('prisma', 'migrate deploy', previewUrl, previewUrl);
+      const { commands, error } = runVercelBuild('preview', {
+        ...noDelay,
+        DATABASE_URL: 'postgresql://prod-pool',
+        DIRECT_URL: 'postgresql://prod-direct',
+        PREVIEW_DIRECT_URL: previewUrl,
+        MIGRATE_P1001_TIMES: '1',
+      });
+      expect(error).toBeUndefined();
+      expect(commands).toEqual([
+        recorded('prisma', 'generate', 'postgresql://prod-pool', 'postgresql://prod-direct'),
+        previewMigrate,
+        previewMigrate,
+        recorded('next', 'build', 'postgresql://prod-pool', 'postgresql://prod-direct'),
+      ]);
+    });
   });
 
   it('stops before migrate or next build when prisma generate fails', () => {
