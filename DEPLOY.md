@@ -32,6 +32,7 @@
 | `DATABASE_URL` | Production 的 **pooled** 連線字串 | Production |
 | `DIRECT_URL` | Production 的 **direct** 連線字串 | Production |
 | `AUTH_SECRET` | `openssl rand -base64 32` 產生的強隨機值 | Production（＋ Preview） |
+| `APP_URL` | 對外正式網址，例如 `https://<你的網域>`。重設密碼信的連結用它（不用 request Host，防 reset poisoning）；未設時 production 不寄重設信 | Production（Preview 要測重設信才設） |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `npx web-push generate-vapid-keys` 的 **Public Key**（公開，建置時內嵌，改了要重新部署） | Production |
 | `VAPID_PRIVATE_KEY` | 同上的 **Private Key**（機密，勿外洩、勿進 repo） | Production |
 | `VAPID_SUBJECT` | `mailto:你的信箱` | Production |

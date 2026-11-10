@@ -8,6 +8,7 @@ import { SystemClock } from '@/application/common/clock';
 import { getClientIp } from '@/app/_lib/client-ip';
 import { createAuthRateGate, tooManyRequests, rateKey } from '@/app/_lib/auth-rate-gate';
 import { RATE_RULES } from '@/domain/auth/rate-limit-policy';
+import { getAppBaseUrl } from '@/infrastructure/auth/app-base-url';
 
 const gate = createAuthRateGate(prisma);
 const useCase = new RequestPasswordResetUseCase(
@@ -38,9 +39,16 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!emailDecision.allowed) {
     return NextResponse.json({ data: { ok: true } }, { status: 200 });
   }
-  const origin = new URL(request.url).origin;
+  let baseUrl: string;
   try {
-    await useCase.execute({ email, resetUrlBase: `${origin}/reset` });
+    baseUrl = getAppBaseUrl(request);
+  } catch (err) {
+    // 設定錯誤（production 缺 APP_URL 等）：fail closed，不寄信；對外仍回 200。
+    console.error('[auth/forgot] reset email not sent:', (err as Error).message);
+    return NextResponse.json({ data: { ok: true } }, { status: 200 });
+  }
+  try {
+    await useCase.execute({ email, resetUrlBase: `${baseUrl}/reset` });
   } catch {
     // 寄信失敗等內部錯誤不阻斷、不洩漏；仍回 200。
   }
