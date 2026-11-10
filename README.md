@@ -35,7 +35,14 @@ This makes the site open like an app, without the browser address bar.
 - **iPhone / iPad (Safari)**: tap the **Share** button → **Add to Home Screen** → **Add**.
 - **Android (Chrome)**: tap the **⋮** menu → **Add to Home screen** → **Add**.
 
-> **Note**: this creates a shortcut only. The app still requires an internet connection — offline support is not yet implemented (see [Roadmap](#roadmap)).
+> **Note**: once added, the site opens like an app and shows a friendly "You're offline" page when there is no signal. **Practice itself still needs an internet connection** — offline practice is not available yet (see [Roadmap](#roadmap)). Answers you submit while the connection drops are re-sent automatically when it returns.
+
+### Daily review reminder (optional)
+
+On the home screen, turn on **Daily review reminder** to get one notification each morning when you have cards to review. It only shows a number (for example, "You have 12 cards to review"), never any stop names or answers. You can turn it off any time, and logging out turns it off on that device.
+
+- **Android (Chrome)**: works in the browser or from the home screen.
+- **iPhone / iPad**: first add the site to your Home Screen (see above) and open it from there, then turn the reminder on.
 
 ### How practice works
 
@@ -45,12 +52,17 @@ Practice uses **active recall** with a **spaced repetition system (SRS)**:
 - Cards you get right come back **less** often; cards you get wrong come back **sooner**.
 - The home screen shows your **daily review queue**, **practice streak**, **accuracy**, and a **mastery trend**.
 
-Two question modes are used:
+Five question modes are used. The answer is never shown before you answer:
 
 | Mode | What you are asked |
 |---|---|
-| **Next stop** | Given the current stop, name the stop that comes next |
-| **Station identification** | Given a position in the route, name that stop |
+| **Next stop** | Given a stop, name the stop that comes next |
+| **Previous stop** | Given a stop, name the stop that comes before it |
+| **Cross street** | Given a stop with its cross street or landmark blanked out (for example `Freesia St at ______`), fill in the blank |
+| **Stop number** | Given a stop name, type its stop number |
+| **Word fill-in** | Given a stop name with one key word hidden, fill in the word |
+
+Stops that cannot be split into a street and a landmark, or that have no stop number, automatically get the word fill-in question instead. Spelling is matched leniently (capitalisation, punctuation and common variants such as *Centre* / *Center* are accepted).
 
 ### Password requirements
 
@@ -189,16 +201,17 @@ Run this workflow only from the repository's default branch. Its `GITHUB_TOKEN` 
 **Available now**
 
 - **Route & variant discovery** — browse routes and enrol in specific directions/variants
-- **Active recall practice** — next-stop and station-identification questions
+- **Active recall practice** — five question types: next stop, previous stop, cross street, stop number, and word fill-in
 - **Spaced repetition (SRS)** — adaptive review intervals driven by recall performance
 - **Review dashboard** — daily review queue, practice streak, accuracy, and mastery trend
 - **Accounts** — registration, sign-in, enforced password strength policy, and email password reset
 - **Bilingual interface** — Australian English and Traditional Chinese
+- **Installable web app** — add to your home screen; friendly offline page; daily review reminder notification
 - **Multi-mode data** — bus, train, and ferry imports, with scheduled GTFS refresh
 
 ### Roadmap
 
-- **Offline PWA support** — not yet implemented; an internet connection is currently required
+- **Offline practice** — not yet available. The site is installable and shows an offline page, but practising needs an internet connection (answers would have to be stored on the device, which needs a separate safety design)
 - **Driver knowledge layer** — personal notes, hazards, and depot pointers (data model exists; UI pending)
 - **Timetable & timing-point drills**
 - **Multi-factor authentication (MFA)**

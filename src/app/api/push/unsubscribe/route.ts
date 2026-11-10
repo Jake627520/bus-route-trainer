@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { unsubscribeFromPush } from '@/app/_lib/push-services';
-import { readSessionDriverId, unauthorizedResponse } from '@/app/_lib/session';
+import {
+  readSessionDriverId,
+  unauthorizedResponse,
+  SessionLookupError,
+  sessionUnavailableResponse,
+} from '@/app/_lib/session';
 
 const badRequest = (message: string) =>
   NextResponse.json({ error: { code: 'INVALID_REQUEST', message } }, { status: 400 });
@@ -24,7 +29,8 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     await unsubscribeFromPush.execute({ driverId, endpoint });
     return NextResponse.json({ data: { ok: true } }, { status: 200 });
-  } catch {
+  } catch (error) {
+    if (error instanceof SessionLookupError) return sessionUnavailableResponse();
     return NextResponse.json(
       { error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' } },
       { status: 500 },

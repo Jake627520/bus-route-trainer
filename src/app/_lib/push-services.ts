@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/infrastructure/db/prisma';
 import { PrismaPushSubscriptionRepository } from '@/infrastructure/push/prisma-push-subscription-repository';
 import { PrismaReminderStatsQuery } from '@/infrastructure/push/prisma-reminder-stats-query';
 import { WebPushSender } from '@/infrastructure/push/web-push-sender';
@@ -10,7 +10,6 @@ import {
 import { SendDailyReviewRemindersUseCase } from '@/application/push/send-daily-review-reminders-use-case';
 
 /** Change 52: 推播相關服務的組裝（route 共用）。環境變數在呼叫時才讀，缺設定時回 null。 */
-const prisma = new PrismaClient();
 const subscriptions = new PrismaPushSubscriptionRepository(prisma);
 
 export const subscribeToPush = new SubscribeToPushUseCase(subscriptions);
