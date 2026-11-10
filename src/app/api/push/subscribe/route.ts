@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { PushSubscriptionError } from '@/application/push/subscribe-use-cases';
 import { subscribeToPush } from '@/app/_lib/push-services';
-import { readSessionDriverId, unauthorizedResponse } from '@/app/_lib/session';
+import {
+  readSessionDriverId,
+  unauthorizedResponse,
+  SessionLookupError,
+  sessionUnavailableResponse,
+} from '@/app/_lib/session';
 
 const badRequest = (message: string) =>
   NextResponse.json({ error: { code: 'INVALID_REQUEST', message } }, { status: 400 });
@@ -24,6 +29,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     await subscribeToPush.execute({ driverId, endpoint, keys, locale });
     return NextResponse.json({ data: { ok: true } }, { status: 200 });
   } catch (error) {
+    if (error instanceof SessionLookupError) return sessionUnavailableResponse();
     if (error instanceof PushSubscriptionError) {
       const status = error.code === 'TOO_MANY_SUBSCRIPTIONS' ? 409 : 400;
       return NextResponse.json({ error: { code: error.code, message: error.message } }, { status });
