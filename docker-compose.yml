@@ -12,7 +12,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: bus_route_trainer
     ports:
-      - "5432:5432" # 本機若已有 postgres 佔 5432，改成 "5433:5432" 即可
+      - "5433:5432" # 本機 Homebrew postgres 已佔 5432，容器對外改用 5433
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

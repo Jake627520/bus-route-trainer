@@ -35,7 +35,12 @@ describe('Database Connection via Prisma Client', () => {
       const result: Array<{ current_database: string; current_user: string }> =
         await prisma.$queryRaw`SELECT current_database(), current_user`;
       expect(result.length).toBeGreaterThan(0);
-      expect(result[0].current_database).toBe('bus_route_trainer');
+      // 驗證連到 DATABASE_URL 指定的庫；允許測試指向獨立 test DB，避免 deleteMany 清掉開發資料。
+      const configuredUrl = process.env.DATABASE_URL;
+      const expectedDb = configuredUrl
+        ? decodeURIComponent(new URL(configuredUrl).pathname.slice(1))
+        : 'bus_route_trainer';
+      expect(result[0].current_database).toBe(expectedDb);
     } finally {
       await prisma.$disconnect();
     }

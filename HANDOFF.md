@@ -18,7 +18,7 @@ Next.js 16（App Router）+ React 19 + TypeScript / Prisma 6 + PostgreSQL / Vite
   docker compose run --rm app npm test
   docker compose run --rm --service-ports app npm run dev   # → http://localhost:3000
   ```
-- 雲端 session 沒有 Docker，但機器上有 Postgres 16：`pg_ctlcluster 16 main start`，再以 `su postgres -c psql` 建使用者與 DB、`DATABASE_URL=... npx prisma migrate deploy`，即可本機跑完整測試（`foundation.test.ts` 固定檢查 DB 名為 `bus_route_trainer`，要用這個名字才會全綠）。
+- 雲端 session 沒有 Docker，但機器上有 Postgres 16：`pg_ctlcluster 16 main start`，再以 `su postgres -c psql` 建使用者與 DB、`DATABASE_URL=... npx prisma migrate deploy`，即可本機跑完整測試（`foundation.test.ts` 會比對 `DATABASE_URL` 裡的 DB 名稱；整合測試會清空該庫，請用獨立的 `_test` 庫，例如 `bus_route_trainer_test`）。
 - Next 16 有破壞性變更：寫程式前先讀 `node_modules/next/dist/docs/`。`cookies()` / `headers()` 是 async。
 - 部署與環境變數見 [DEPLOY.md](./DEPLOY.md)。
 
